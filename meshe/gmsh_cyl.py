@@ -1,4 +1,6 @@
 import gmsh 
+import meshio
+import numpy as np 
 
 gmsh.initialize()
 
@@ -37,3 +39,33 @@ factory.synchronize()
 gmsh.model.mesh.generate(3)
 gmsh.write('test.msh')
 gmsh.finalize()
+
+# Load mesh from file
+mesh = meshio.read("test.msh")
+points = mesh.points
+cells = mesh.cells
+print('Number of nodes :', np.shape(points))
+print(cells)
+print('Number of cells block :', len(cells))
+
+# Separate triangles and tetrahedra
+triangles = [cell.data for cell in mesh.cells if cell.type == "triangle"]
+tetrahedra = [cell.data for cell in mesh.cells if cell.type == "tetra"]
+
+print(len(mesh.cell_data))
+#print(mesh.cell_data_dict['gmsh:physical']['triangle'])
+print(len(mesh.cell_data_dict['gmsh:physical']['triangle']))
+#print(mesh.cell_data_dict['gmsh:physical']['tetra'])
+print(len(mesh.cell_data_dict['gmsh:physical']['tetra']))
+#print(mesh.cell_data['gmsh:physical'])
+print(len(mesh.cell_data['gmsh:physical']))
+
+for i in range(len(mesh.cells)):
+    elements = mesh.cells[i].data
+    print('element shape :', np.shape(elements))
+    print('elements type : ', mesh.cells[i].type)
+    elements_data = mesh.cell_data['gmsh:physical'][i]
+    print('element data shape : ', np.shape(elements_data))
+
+
+
