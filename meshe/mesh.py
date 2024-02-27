@@ -119,7 +119,8 @@ class Mesh :
         elif sign == - 1 : 
             face_normal = - face_normal
         else : 
-            raise ValueError("Error Face normal is perpendicular to face centroid / cell centroid vector")
+            raise ValueError("Error Face normal is perpendicular to face centroid /"
+                             "cell centroid vector")
         #
         volflux = (1/3)*np.dot(face_centroid,face_normal)*face_surface
         return volflux
@@ -127,7 +128,8 @@ class Mesh :
     def _calc_element_volume(self,element_surfaces,centroid):
         '''
         arguments 
-        element_surfaces ::: np.array (n_surfaces,n_nodes,n_dim) ::: coordinates of the 
+        element_surfaces ::: np.array (n_surfaces,n_nodes,n_dim) ::: coordinates
+        of the 
         nodes defining the surfaces surrounding the element
         centroid ::: np.array (3,) ::: coordinates of the control 
         volume centroid. Note that surface_element should be a surface of 
