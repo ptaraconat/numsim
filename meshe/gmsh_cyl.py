@@ -1,6 +1,7 @@
 import gmsh 
 import meshio
 import numpy as np 
+from mesh import * 
 
 gmsh.initialize()
 
@@ -50,6 +51,7 @@ print('Number of cells block :', len(cells))
 
 # Separate triangles and tetrahedra
 triangles = [cell.data for cell in mesh.cells if cell.type == "triangle"]
+triangles_labels = []
 tetrahedra = [cell.data for cell in mesh.cells if cell.type == "tetra"]
 
 print(len(mesh.cell_data))
@@ -60,12 +62,41 @@ print(len(mesh.cell_data_dict['gmsh:physical']['tetra']))
 #print(mesh.cell_data['gmsh:physical'])
 print(len(mesh.cell_data['gmsh:physical']))
 
+surf_elements = []
+vol_elements = []
+surf_tags = []
 for i in range(len(mesh.cells)):
-    elements = mesh.cells[i].data
-    print('element shape :', np.shape(elements))
-    print('elements type : ', mesh.cells[i].type)
+    cell = mesh.cells[i]
     elements_data = mesh.cell_data['gmsh:physical'][i]
+    if cell.type == 'triangle' : 
+        surf_elements.append(cell.data)
+        surf_tags.append(elements_data)
+    if cell.type == 'tetra':
+        vol_elements.append(cell.data)
+    elements = cell.data
+    print('##########',i,'###########')
+    print('element shape :', np.shape(elements))
     print('element data shape : ', np.shape(elements_data))
+    print('elements type : ', mesh.cells[i].type)
+vol_elements = np.concatenate(vol_elements)
+print(np.shape(vol_elements))
+surf_elements = np.concatenate(surf_elements)
+surf_tags = np.concatenate(surf_tags)
+print(np.shape(surf_elements))
+print(np.shape(surf_tags))
+
+#print(mesh)
+#print(mesh.cell_sets['wall'])
+#print(mesh.cell_sets['gmsh:bounding_entities'])
+
+mesh = Mesh(type = 'tetra')
+mesh.gmsh_reader('test.msh')
+print(np.shape(mesh.nodes))
+print(np.shape(mesh.elements))
+print(np.shape(mesh.boundary_elements))
+print(np.shape(mesh.boundary_tags))
+
+
 
 
 
