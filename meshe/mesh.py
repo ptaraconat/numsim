@@ -52,7 +52,7 @@ class Mesh :
         centroid = np.mean(element,axis = 0)
         return centroid 
 
-    def _calc_surface(self,surface_element):
+    def _calc_surface_area(self,surface_element):
         '''
         arguments 
         surface_element ::: np.array (n_nodes,3) ::: coordinates of the 
@@ -95,8 +95,53 @@ class Mesh :
         normal_vec = np.cross(p1,p2)
         normal_norm = np.sqrt(np.sum(normal_vec**2.))
         return normal_vec/normal_norm
-
-
+    
+    def _calc_surface_volflux(self,surface_element,cell_centroid): 
+        '''
+        arguments 
+        surface_element ::: np.array (n_nodes,3) ::: coordinates of the 
+        nodes defining the surface element
+        cell_centroid ::: np.array (3,) ::: coordinates of the control 
+        volume centroid. Note that surface_element should be a surface of 
+        that control volume. 
+        returns 
+        volflux ::: float ::: (1/3)*dot(x,n)*Sf
+        '''
+        face_centroid = self._calc_centroid(surface_element)
+        face_normal = self._calc_surface_normal(surface_element)
+        face_surface = self._calc_surface_area(surface_element)
+        # express face_centroid in the frame centered at cell_centroid 
+        face_centroid = face_centroid - cell_centroid
+        # orient normal outward of the control volume 
+        sign = np.sign(np.dot(face_centroid,face_normal))
+        if sign == 1 :
+            face_normal = face_normal
+        elif sign == - 1 : 
+            face_normal = - face_normal
+        else : 
+            raise ValueError("Error Face normal is perpendicular to face centroid / cell centroid vector")
+        #
+        volflux = (1/3)*np.dot(face_centroid,face_normal)*face_surface
+        return volflux
+    
+    def _calc_element_volume(self,element_surfaces,centroid):
+        '''
+        arguments 
+        element_surfaces ::: np.array (n_surfaces,n_nodes,n_dim) ::: coordinates of the 
+        nodes defining the surfaces surrounding the element
+        centroid ::: np.array (3,) ::: coordinates of the control 
+        volume centroid. Note that surface_element should be a surface of 
+        that control volume. 
+        returns 
+        volume ::: float ::: elemnt volume 
+        '''
+        #centroid = self._calc_centroid(element)
+        volume = 0 
+        for element_surface in element_surfaces : 
+            volflux = self._calc_surface_volflux(element_surface,centroid)
+            volume = volume + volflux
+        return volume
+        
 
 
 
