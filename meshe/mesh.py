@@ -11,12 +11,19 @@ class Mesh :
         '''
         self.dim = dimension
         self.type = type 
+        # Mesh Elements : filled with node index
         self.elements = None
         self.boundary_elements = None
-        self.boundary_tags = None
-        self.nodes = None 
         self.internal_faces = None 
+        # face connectivity : Filled with element index 
         self.internal_connectivity = None 
+        self.boundary_connectivity = None 
+        # element connectivity : Filled with face index 
+        self.elements_face_connectivity = None 
+        self.boundary_tags = None
+        # nodes coordinates (x,y,z)
+        self.nodes = None 
+        
 
     def set_internal_faces(self): 
         '''
@@ -27,12 +34,21 @@ class Mesh :
         # Get index of faces that are connecteed to two elements 
         bool_arr = np.asarray([len(con) for con in connectivity])
         bool_arr = bool_arr == 2
-        index = np.where(bool_arr)[0]
+        int_index = np.where(bool_arr)[0]
+        ext_index = np.where(np.logical_not(bool_arr))[0]
         # Get internal faces and associated connectivity
-        internal_faces = faces[index,:]
-        internal_faces_connectivity = np.asarray([connectivity[i] for i in index])
+        internal_faces = faces[int_index,:]
+        internal_faces_connectivity = np.asarray([connectivity[i] for i in int_index])
+        # Discard external face connectivity 
+        extface_mask = np.full(elem_face_connectivity.shape, False)
+        for i in ext_index : 
+            extface_mask = np.logical_or(extface_mask,elem_face_connectivity == i)
+        elem_face_connectivity[extface_mask] = -1
+        #
         self.internal_faces = internal_faces
         self.internal_connectivity = internal_faces_connectivity
+        self.elements_face_connectivity = elem_face_connectivity
+
         print('Number of internal surfaces : ', np.shape(self.internal_faces))
     
     def _calc_centroid(self,element):

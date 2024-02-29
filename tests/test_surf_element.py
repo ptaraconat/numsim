@@ -143,7 +143,10 @@ def test_set_internal_faces(mesh_fixture2):
     mesh_fixture2.set_internal_faces()
     expected_int_faces = np.array([[0,3,1]])
     expected_int_connectivity = np.array([[0,1]])
+    expected_el_face_connectivity = np.array([[-1, -1, 2, -1],
+                                              [-1, 2, -1, -1]])
     assertion = np.all(mesh_fixture2.internal_faces == expected_int_faces)
     assertion = assertion and np.all(mesh_fixture2.internal_connectivity == expected_int_connectivity)
+    assertion = assertion and np.all(mesh_fixture2.elements_face_connectivity == expected_el_face_connectivity)
     assert assertion 
                         

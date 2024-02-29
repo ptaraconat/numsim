@@ -45,3 +45,6 @@ print('NUmber of nodes : ', np.shape(mesh.nodes))
 print('Number of elements :',np.shape(mesh.elements))
 print('Number of boundary elements :',np.shape(mesh.boundary_elements))
 mesh.set_internal_faces()
+print(mesh.elements_face_connectivity)
+for elem_connectivity in mesh.elements_face_connectivity: 
+    print(elem_connectivity)
