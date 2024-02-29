@@ -4,7 +4,6 @@ import numpy as np
 from mesh import * 
 
 gmsh.initialize()
-
 gmsh.model.add('test_model')
 
 radius = 0.5
@@ -34,7 +33,6 @@ volume = gmsh.model.addPhysicalGroup(3, [extruded_volume[1][1]], name="fluid")
 inlet = gmsh.model.addPhysicalGroup(2, [1], tag = 101, name="inlet")
 outlet = gmsh.model.addPhysicalGroup(2, [26], tag = 102, name="outlet")
 surface3 = gmsh.model.addPhysicalGroup(2, [13,17,21,25], tag = 103, name="wall")
-
 # Generate the mesh
 factory.synchronize()
 gmsh.model.mesh.generate(3)
@@ -46,10 +44,4 @@ mesh.gmsh_reader('test.msh')
 print('NUmber of nodes : ', np.shape(mesh.nodes))
 print('Number of elements :',np.shape(mesh.elements))
 print('Number of boundary elements :',np.shape(mesh.boundary_elements))
-
 mesh.set_internal_faces()
-
-
-
-
-
