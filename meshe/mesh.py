@@ -33,6 +33,7 @@ class Mesh :
         internal_faces_connectivity = np.asarray([connectivity[i] for i in index])
         self.internal_faces = internal_faces
         self.internal_connectivity = internal_faces_connectivity
+        print('Number of internal surfaces : ', np.shape(self.internal_faces))
     
     def _calc_centroid(self,element):
         '''
@@ -254,6 +255,4 @@ class TetraMesh(Mesh):
                 surfaces_connectivity[face4_paired_index].append(elem_index)
         surfaces = np.asarray(surfaces)
         print('Number of surfaces :',np.shape(surfaces))
-        print(type(surfaces))
-        print(surfaces_connectivity)
         return surfaces, surfaces_connectivity

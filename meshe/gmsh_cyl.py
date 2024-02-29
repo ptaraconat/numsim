@@ -78,7 +78,7 @@ print('NUmber of nodes : ', np.shape(mesh.nodes))
 print('Number of elements :',np.shape(mesh.elements))
 print('Number of boundary elements :',np.shape(mesh.boundary_elements))
 
-mesh._get_elements_faces()
+mesh.set_internal_faces()
 
 
 
