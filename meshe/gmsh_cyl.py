@@ -41,37 +41,6 @@ gmsh.model.mesh.generate(3)
 gmsh.write('test.msh')
 gmsh.finalize()
 
-# Load mesh from file
-mesh = meshio.read("test.msh")
-points = mesh.points
-cells = mesh.cells
-
-
-surf_elements = []
-vol_elements = []
-surf_tags = []
-for i in range(len(mesh.cells)):
-    cell = mesh.cells[i]
-    elements_data = mesh.cell_data['gmsh:physical'][i]
-    if cell.type == 'triangle' : 
-        surf_elements.append(cell.data)
-        surf_tags.append(elements_data)
-    if cell.type == 'tetra':
-        vol_elements.append(cell.data)
-    elements = cell.data
-    print('##########',i,'###########')
-    print('element shape :', np.shape(elements))
-    print('element data shape : ', np.shape(elements_data))
-    print('elements type : ', mesh.cells[i].type)
-vol_elements = np.concatenate(vol_elements)
-print(np.shape(vol_elements))
-surf_elements = np.concatenate(surf_elements)
-surf_tags = np.concatenate(surf_tags)
-print(np.shape(surf_elements))
-print(np.shape(surf_tags))
-
-print(mesh)
-
 mesh = TetraMesh()
 mesh.gmsh_reader('test.msh')
 print('NUmber of nodes : ', np.shape(mesh.nodes))

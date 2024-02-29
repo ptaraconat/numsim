@@ -177,6 +177,7 @@ class TetraMesh(Mesh):
         path ::: str ::: path of the gmsh mesh ('.msh' file)
         '''
         mesh = meshio.read("test.msh")
+        print(mesh)
         self.nodes = mesh.points
         surf_elements = []
         vol_elements = []
