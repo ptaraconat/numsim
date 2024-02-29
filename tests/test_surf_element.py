@@ -13,6 +13,18 @@ def mesh_fixture():
     mesh.elements = np.array([[0, 1, 2, 3]])
     return mesh 
 
+@pytest.fixture 
+def mesh_fixture2():
+    mesh = TetraMesh()
+    mesh.nodes = np.array([[0, 0, 0],
+                           [0, 1, 0],
+                           [1, 0, 0],
+                           [0, 0, 1],
+                           [-1, 0, 0]])
+    mesh.elements = np.array([[0, 1, 2, 3],
+                              [0,4,1,3]])
+    return mesh 
+
 def test_centroid_calculation(mesh_fixture):
     element = mesh_fixture.nodes[mesh_fixture.elements[0]]
     centroid = mesh_fixture._calc_centroid(element)
@@ -108,4 +120,16 @@ def test_calc_element_volume(mesh_fixture) :
     print(volume)
     assertion = volume == expected
     assert assertion 
+
+def test_tetra_faces(mesh_fixture2):
+    faces = mesh_fixture2._get_elements_faces()
+    expected_faces = np.array([[0, 1, 2],
+                               [0, 2, 3],
+                               [0, 3, 1],
+                               [1, 2, 3],
+                               [0, 4, 1],
+                               [0, 3, 4],
+                               [4, 1, 3]])
+    assertion = np.all(faces == expected_faces) and len(faces) == 7
+    assert assertion
                         

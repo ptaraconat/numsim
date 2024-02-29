@@ -154,3 +154,50 @@ class TetraMesh(Mesh):
         self.elements = vol_elements
         self.boundary_elements = surf_elements
         self.boundary_tags = surf_tags
+    
+    def _get_elements_faces(self):
+        '''
+        returns 
+        surfaces ::: np.array (N_surfaces, 3) ::: surfaces elements 
+        N_surfaces shall equal 0.5*(4*Nelements+N_bnd_faces)
+        '''
+        surfaces = []
+        # Elements loop 
+        for i,element in enumerate(self.elements) : 
+            node1, node2, node3, node4 = element 
+            face1 = [node1, node2, node3]
+            face2 = [node1, node3, node4]
+            face3 = [node1, node4, node2]
+            face4 = [node2, node3, node4]
+            # Check surfaces 
+            bool_face1 = True
+            bool_face2 = True
+            bool_face3 = True
+            bool_face4 = True
+            if i != 0 :
+                surfaces_tmp = np.sort(surfaces, axis = 1).tolist()
+                face_tmp = np.sort(face1).tolist()
+                if face_tmp in surfaces_tmp : 
+                    bool_face1 = False
+                face_tmp = np.sort(face2).tolist()
+                if face_tmp in surfaces_tmp : 
+                    bool_face2 = False
+                face_tmp = np.sort(face3).tolist()
+                if face_tmp in surfaces_tmp : 
+                    bool_face3 = False
+                face_tmp = np.sort(face4).tolist()
+                if face_tmp in surfaces_tmp : 
+                    bool_face4 = False
+            # Add surfaces 
+            if bool_face1 : 
+                surfaces.append(face1)
+            if bool_face2 : 
+                surfaces.append(face2)
+            if bool_face3 : 
+                surfaces.append(face3)
+            if bool_face4 : 
+                surfaces.append(face4)
+        surfaces = np.asarray(surfaces)
+        print('Number of surfaces :',np.shape(surfaces))
+        print(type(surfaces))
+        return surfaces

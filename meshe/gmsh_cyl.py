@@ -45,22 +45,7 @@ gmsh.finalize()
 mesh = meshio.read("test.msh")
 points = mesh.points
 cells = mesh.cells
-print('Number of nodes :', np.shape(points))
-print(cells)
-print('Number of cells block :', len(cells))
 
-# Separate triangles and tetrahedra
-triangles = [cell.data for cell in mesh.cells if cell.type == "triangle"]
-triangles_labels = []
-tetrahedra = [cell.data for cell in mesh.cells if cell.type == "tetra"]
-
-print(len(mesh.cell_data))
-#print(mesh.cell_data_dict['gmsh:physical']['triangle'])
-print(len(mesh.cell_data_dict['gmsh:physical']['triangle']))
-#print(mesh.cell_data_dict['gmsh:physical']['tetra'])
-print(len(mesh.cell_data_dict['gmsh:physical']['tetra']))
-#print(mesh.cell_data['gmsh:physical'])
-print(len(mesh.cell_data['gmsh:physical']))
 
 surf_elements = []
 vol_elements = []
@@ -85,16 +70,15 @@ surf_tags = np.concatenate(surf_tags)
 print(np.shape(surf_elements))
 print(np.shape(surf_tags))
 
-#print(mesh)
-#print(mesh.cell_sets['wall'])
-#print(mesh.cell_sets['gmsh:bounding_entities'])
+print(mesh)
 
 mesh = TetraMesh()
 mesh.gmsh_reader('test.msh')
-print(np.shape(mesh.nodes))
-print(np.shape(mesh.elements))
-print(np.shape(mesh.boundary_elements))
-print(np.shape(mesh.boundary_tags))
+print('NUmber of nodes : ', np.shape(mesh.nodes))
+print('Number of elements :',np.shape(mesh.elements))
+print('Number of boundary elements :',np.shape(mesh.boundary_elements))
+
+mesh._get_elements_faces()
 
 
 
