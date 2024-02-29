@@ -120,6 +120,30 @@ class Mesh :
             volflux = self._calc_surface_volflux(element_surface,centroid)
             volume = volume + volflux
         return volume
+    
+    def _surface_checker_(self, face, surfaces_list,order_list = True):
+        '''
+        Check if face belongs to surfaces_list 
+        arguments 
+        face ::: np.array (N_nodes,) ::: Index of nodes defining the face 
+        surfaces_list ::: np.array (N_faces,N_nodes) ::: Array containing several faces 
+        Each row is associated to one face. The columns stores the index of nodes defining 
+        the faces 
+        order_list ::: bool ::: whether or not the surfaces_list is already ordered
+        '''
+        if order_list : 
+            surfaces_tmp = np.sort(surfaces_list, axis = 1)
+        else : 
+            surfaces_tmp = surfaces_list
+        face_tmp = np.sort(face)
+        bool_tmp = np.all(surfaces_tmp == face_tmp, axis = 1)
+        if np.any(bool_tmp): 
+            bool_face = False
+            face_paired_index = np.where(bool_tmp)[0][0]
+        else :
+            bool_face = True
+            face_paired_index = None 
+        return bool_face, face_paired_index
 
 class TetraMesh(Mesh): 
 
@@ -160,10 +184,13 @@ class TetraMesh(Mesh):
         returns 
         surfaces ::: np.array (N_surfaces, 3) ::: surfaces elements 
         N_surfaces shall equal 0.5*(4*Nelements+N_bnd_faces)
+        surfaces_connectivity ::: np.array (N_surfaces, 2) ::: Elements index to 
+        which the surface belong to 
         '''
         surfaces = []
+        surfaces_connectivity = []
         # Elements loop 
-        for i,element in enumerate(self.elements) : 
+        for elem_index,element in enumerate(self.elements) : 
             node1, node2, node3, node4 = element 
             face1 = [node1, node2, node3]
             face2 = [node1, node3, node4]
@@ -174,30 +201,43 @@ class TetraMesh(Mesh):
             bool_face2 = True
             bool_face3 = True
             bool_face4 = True
-            if i != 0 :
-                surfaces_tmp = np.sort(surfaces, axis = 1).tolist()
-                face_tmp = np.sort(face1).tolist()
-                if face_tmp in surfaces_tmp : 
-                    bool_face1 = False
-                face_tmp = np.sort(face2).tolist()
-                if face_tmp in surfaces_tmp : 
-                    bool_face2 = False
-                face_tmp = np.sort(face3).tolist()
-                if face_tmp in surfaces_tmp : 
-                    bool_face3 = False
-                face_tmp = np.sort(face4).tolist()
-                if face_tmp in surfaces_tmp : 
-                    bool_face4 = False
+            if elem_index != 0 :
+                surfaces_tmp = np.sort(surfaces, axis = 1)
+                bool_face1, face1_paired_index = self._surface_checker_(face1,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
+                bool_face2, face2_paired_index = self._surface_checker_(face2,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
+                bool_face3, face3_paired_index = self._surface_checker_(face3,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
+                bool_face4, face4_paired_index = self._surface_checker_(face4,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
             # Add surfaces 
             if bool_face1 : 
                 surfaces.append(face1)
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face1_paired_index].append(elem_index)
             if bool_face2 : 
                 surfaces.append(face2)
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face2_paired_index].append(elem_index)
             if bool_face3 : 
                 surfaces.append(face3)
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face3_paired_index].append(elem_index)
             if bool_face4 : 
                 surfaces.append(face4)
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face4_paired_index].append(elem_index)
         surfaces = np.asarray(surfaces)
         print('Number of surfaces :',np.shape(surfaces))
         print(type(surfaces))
-        return surfaces
+        print(surfaces_connectivity)
+        return surfaces, surfaces_connectivity

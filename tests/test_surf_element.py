@@ -122,7 +122,7 @@ def test_calc_element_volume(mesh_fixture) :
     assert assertion 
 
 def test_tetra_faces(mesh_fixture2):
-    faces = mesh_fixture2._get_elements_faces()
+    faces, connectivity = mesh_fixture2._get_elements_faces()
     expected_faces = np.array([[0, 1, 2],
                                [0, 2, 3],
                                [0, 3, 1],
@@ -130,6 +130,9 @@ def test_tetra_faces(mesh_fixture2):
                                [0, 4, 1],
                                [0, 3, 4],
                                [4, 1, 3]])
+    expected_connectivity = [[0], [0], [0, 1], [0], [1], [1], [1]]
     assertion = np.all(faces == expected_faces) and len(faces) == 7
+    assertion = assertion and (connectivity == expected_connectivity)
+    #assertion = False
     assert assertion
                         
