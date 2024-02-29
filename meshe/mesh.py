@@ -43,6 +43,7 @@ class Mesh :
         extface_mask = np.full(elem_face_connectivity.shape, False)
         for i in ext_index : 
             extface_mask = np.logical_or(extface_mask,elem_face_connectivity == i)
+        # replace external face indices by -1
         elem_face_connectivity[extface_mask] = -1
         #
         self.internal_faces = internal_faces
