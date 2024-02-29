@@ -89,7 +89,7 @@ print(np.shape(surf_tags))
 #print(mesh.cell_sets['wall'])
 #print(mesh.cell_sets['gmsh:bounding_entities'])
 
-mesh = Mesh(type = 'tetra')
+mesh = TetraMesh()
 mesh.gmsh_reader('test.msh')
 print(np.shape(mesh.nodes))
 print(np.shape(mesh.elements))

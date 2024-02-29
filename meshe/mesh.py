@@ -15,32 +15,9 @@ class Mesh :
         self.boundary_elements = None
         self.boundary_tags = None
         self.nodes = None 
-
-    def gmsh_reader(self,path) : 
-        '''
-        path ::: str ::: path of the gmsh mesh ('.msh' file)
-        '''
-        mesh = meshio.read("test.msh")
-        self.nodes = mesh.points
-        if self.type == "tetra" : 
-            surf_elements = []
-            vol_elements = []
-            surf_tags = []
-            for i in range(len(mesh.cells)):
-                cell = mesh.cells[i]
-                elements_data = mesh.cell_data['gmsh:physical'][i]
-                if cell.type == 'triangle' : 
-                    surf_elements.append(cell.data)
-                    surf_tags.append(elements_data)
-                if cell.type == 'tetra':
-                    vol_elements.append(cell.data)
-            vol_elements = np.concatenate(vol_elements)
-            surf_elements = np.concatenate(surf_elements)
-            surf_tags = np.concatenate(surf_tags)
-            self.elements = vol_elements
-            self.boundary_elements = surf_elements
-            self.boundary_tags = surf_tags
-
+        self.internal_faces = None 
+        self.internal_connectivity = None 
+    
     def _calc_centroid(self,element):
         '''
         arguments 
@@ -143,7 +120,37 @@ class Mesh :
             volflux = self._calc_surface_volflux(element_surface,centroid)
             volume = volume + volflux
         return volume
-        
 
+class TetraMesh(Mesh): 
 
+    def __init__(self):
+        '''
+        arguments : 
+        dimension ::: int ::: dimension of the domain (1, 2 or 3)
+        type ::: str ::: elements type 
+        '''
+        super().__init__(dimension = 3, type = 'tet')
 
+    def gmsh_reader(self,path) : 
+        '''
+        path ::: str ::: path of the gmsh mesh ('.msh' file)
+        '''
+        mesh = meshio.read("test.msh")
+        self.nodes = mesh.points
+        surf_elements = []
+        vol_elements = []
+        surf_tags = []
+        for i in range(len(mesh.cells)):
+            cell = mesh.cells[i]
+            elements_data = mesh.cell_data['gmsh:physical'][i]
+            if cell.type == 'triangle' : 
+                surf_elements.append(cell.data)
+                surf_tags.append(elements_data)
+            if cell.type == 'tetra':
+                vol_elements.append(cell.data)
+        vol_elements = np.concatenate(vol_elements)
+        surf_elements = np.concatenate(surf_elements)
+        surf_tags = np.concatenate(surf_tags)
+        self.elements = vol_elements
+        self.boundary_elements = surf_elements
+        self.boundary_tags = surf_tags
