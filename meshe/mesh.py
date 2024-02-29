@@ -23,7 +23,7 @@ class Mesh :
         Set the internal faces 
         '''
         # calculate elements faces and faces connectivity 
-        faces, connectivity = self._get_elements_faces()
+        faces, connectivity, elem_face_connectivity = self._get_elements_faces()
         # Get index of faces that are connecteed to two elements 
         bool_arr = np.asarray([len(con) for con in connectivity])
         bool_arr = bool_arr == 2
@@ -277,4 +277,4 @@ class TetraMesh(Mesh):
         print('Number of surfaces :',np.shape(surfaces))
         print('Number of surfaces :',faces_count)
         print(np.shape(elements_face_connectivity))
-        return surfaces, surfaces_connectivity
+        return surfaces, surfaces_connectivity, elements_face_connectivity
