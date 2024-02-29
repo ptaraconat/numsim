@@ -204,9 +204,13 @@ class TetraMesh(Mesh):
         N_surfaces shall equal 0.5*(4*Nelements+N_bnd_faces)
         surfaces_connectivity ::: np.array (N_surfaces, 2) ::: Elements index to 
         which the surface belong to 
+        elements_face_connectivity ::: np.array(N_elements, 4) ::: index of faces 
+        that bound the mesh elements 
         '''
         surfaces = []
         surfaces_connectivity = []
+        elements_face_connectivity = []
+        faces_count = 0 
         # Elements loop 
         for elem_index,element in enumerate(self.elements) : 
             node1, node2, node3, node4 = element 
@@ -233,27 +237,44 @@ class TetraMesh(Mesh):
                 bool_face4, face4_paired_index = self._surface_checker_(face4,
                                                                         surfaces_tmp, 
                                                                         order_list= False)
+            element_fc = []
             # Add surfaces 
             if bool_face1 : 
                 surfaces.append(face1)
+                element_fc.append(faces_count)
+                faces_count +=1
                 surfaces_connectivity.append([elem_index])
             else : 
                 surfaces_connectivity[face1_paired_index].append(elem_index)
+                element_fc.append(face1_paired_index)
             if bool_face2 : 
                 surfaces.append(face2)
+                element_fc.append(faces_count)
+                faces_count +=1
                 surfaces_connectivity.append([elem_index])
             else : 
                 surfaces_connectivity[face2_paired_index].append(elem_index)
+                element_fc.append(face2_paired_index)
             if bool_face3 : 
                 surfaces.append(face3)
+                element_fc.append(faces_count)
+                faces_count +=1
                 surfaces_connectivity.append([elem_index])
             else : 
                 surfaces_connectivity[face3_paired_index].append(elem_index)
+                element_fc.append(face3_paired_index)
             if bool_face4 : 
                 surfaces.append(face4)
+                element_fc.append(faces_count)
+                faces_count +=1
                 surfaces_connectivity.append([elem_index])
             else : 
                 surfaces_connectivity[face4_paired_index].append(elem_index)
+                element_fc.append(face4_paired_index)
+            elements_face_connectivity.append(element_fc)
         surfaces = np.asarray(surfaces)
+        elements_face_connectivity = np.asarray(elements_face_connectivity)
         print('Number of surfaces :',np.shape(surfaces))
+        print('Number of surfaces :',faces_count)
+        print(np.shape(elements_face_connectivity))
         return surfaces, surfaces_connectivity
