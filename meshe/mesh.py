@@ -17,6 +17,22 @@ class Mesh :
         self.nodes = None 
         self.internal_faces = None 
         self.internal_connectivity = None 
+
+    def set_internal_faces(self): 
+        '''
+        Set the internal faces 
+        '''
+        # calculate elements faces and faces connectivity 
+        faces, connectivity = self._get_elements_faces()
+        # Get index of faces that are connecteed to two elements 
+        bool_arr = np.asarray([len(con) for con in connectivity])
+        bool_arr = bool_arr == 2
+        index = np.where(bool_arr)[0]
+        # Get internal faces and associated connectivity
+        internal_faces = faces[index,:]
+        internal_faces_connectivity = np.asarray([connectivity[i] for i in index])
+        self.internal_faces = internal_faces
+        self.internal_connectivity = internal_faces_connectivity
     
     def _calc_centroid(self,element):
         '''
