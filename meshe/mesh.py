@@ -55,7 +55,7 @@ class Mesh :
 
     def set_internal_faces(self): 
         '''
-        Set the internal faces 
+        Set the internal faces tables and internal faces to element connectivity table 
         '''
         # calculate elements faces and faces connectivity 
         faces, connectivity= self._get_elements_faces()
@@ -67,20 +67,13 @@ class Mesh :
         # Get internal faces and associated connectivity
         internal_faces = faces[int_index,:]
         internal_faces_connectivity = np.asarray([connectivity[i] for i in int_index])
-        # Discard external face connectivity 
-        #extface_mask = np.full(elem_face_connectivity.shape, False)
-        #for i in ext_index : 
-        #    extface_mask = np.logical_or(extface_mask,elem_face_connectivity == i)
-        # replace external face indices by -1
-        #elem_face_connectivity[extface_mask] = -1
-        #
         self.intfaces = internal_faces
         self.intfaces_elem_conn = internal_faces_connectivity
         print('Number of internal surfaces : ', np.shape(self.intfaces))
     
     def set_elements_intfaces_connectivity(self) : 
         '''
-        Set the connectivity between internal faces and mesh elements 
+        Set the elements to internal faces connectivity table 
         '''
         elem_intf_conn = [ [] for i in range(np.size(self.elements,0))]
         print(len(elem_intf_conn))

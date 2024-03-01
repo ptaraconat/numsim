@@ -1,7 +1,10 @@
 import gmsh 
 import meshio
 import numpy as np 
-from mesh import * 
+import sys as sys 
+sys.path.append('../')
+from meshe.mesh import * 
+from fvm.gradient import *
 
 gmsh.initialize()
 gmsh.model.add('test_model')
@@ -46,6 +49,25 @@ print('Number of elements :',np.shape(mesh.elements))
 print('Number of boundary elements :',np.shape(mesh.boundary_elements))
 mesh.set_internal_faces()
 mesh.set_elements_intfaces_connectivity()
-print(mesh.elements_intf_conn)
-for elem_connectivity in mesh.elements_intf_conn: 
-    print(elem_connectivity)
+
+# set data 
+def function(x,y,z):
+    return 4*x + 2*y + 2*z
+mesh.set_elements_data('T', function)
+# calc data gradient 
+grad_computer = LSGradient('T','gradT', mesh)
+
+count = 0 
+for i in range(len(mesh.elements)):
+    grad = grad_computer.calc_element_gradient(i)
+    gradx = grad[0]
+    err = np.abs((4 - gradx)/4) * 100
+    if err > 1 : 
+        count += 1
+        print(i,grad)
+        print(mesh.elements_intf_conn[i])
+    else : 
+        print(grad)
+        
+grad_computer.calculate_gradients()
+print(mesh.elements_data)
