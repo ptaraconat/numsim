@@ -53,7 +53,6 @@ class Mesh :
         data_arr = functional(x_arr,y_arr,z_arr)
         self.elements_data[dataname] = data_arr
 
-
     def set_internal_faces(self): 
         '''
         Set the internal faces 
