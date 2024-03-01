@@ -149,4 +149,20 @@ def test_set_internal_faces(mesh_fixture2):
     assertion = assertion and np.all(mesh_fixture2.internal_connectivity == expected_int_connectivity)
     assertion = assertion and np.all(mesh_fixture2.elements_face_connectivity == expected_el_face_connectivity)
     assert assertion 
+
+def test_set_centroids(mesh_fixture2):
+    mesh_fixture2.set_elements_centroids()
+    expected_centroids = np.array([[0.25, 0.25, 0.25],
+                                   [-0.25, 0.25, 0.25]])
+    assertion = np.all(mesh_fixture2.elements_centroids == expected_centroids)
+    assert assertion 
+
+def test_set_elem_data(mesh_fixture2):
+    def function(x,y,z):
+        return 4*x + 0*y + 0*z
+    mesh_fixture2.set_elements_data('temp',function)
+    print(mesh_fixture2.elements_data)
+    expected_data_array = np.array([1,-1])
+    assertion = np.all(mesh_fixture2.elements_data['temp'] == expected_data_array)
+    assert assertion
                         

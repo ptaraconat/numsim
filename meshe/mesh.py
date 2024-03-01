@@ -13,17 +13,46 @@ class Mesh :
         self.type = type 
         # Mesh Elements : filled with node index
         self.elements = None
-        self.boundary_elements = None
-        self.internal_faces = None 
+        self.boundary_elements = None # change name to bndfaces
+        self.internal_faces = None # change name to intfaces
         # face connectivity : Filled with element index 
-        self.internal_connectivity = None 
-        self.boundary_connectivity = None 
+        self.internal_connectivity = None # change name to intfaces_elem_conn
+        self.boundary_connectivity = None # change name to bndfaces_elem_conn
         # element connectivity : Filled with face index 
-        self.elements_face_connectivity = None 
-        self.boundary_tags = None
+        self.elements_face_connectivity = None # change name to elements_intf_conn
+        self.boundary_tags = None # change name to bndfaces_elem_tags
         # nodes coordinates (x,y,z)
         self.nodes = None 
-        
+        # data 
+        self.elements_centroids = None 
+        self.elements_data = {}
+    
+    def set_elements_centroids(self):
+        '''
+        set the elements centroid array 
+        '''
+        centroids_arr = np.zeros((np.size(self.elements,0),3))
+        for i,element in enumerate(self.elements) : 
+            element_nodes_coordinates = self.nodes[element]
+            centroid = self._calc_centroid(element_nodes_coordinates)
+            centroids_arr[i,:] = centroid
+        self.elements_centroids = centroids_arr
+    
+    def set_elements_data(self,dataname, functional):
+        '''
+        argument 
+        dataname ::: string ::: name of the element data 
+        functional ::: callable object ::: function of centroids coordinates 
+        that defines the data 
+        '''
+        if self.elements_centroids == None :
+            self.set_elements_centroids()
+        x_arr = self.elements_centroids[:,0]
+        y_arr = self.elements_centroids[:,1]
+        z_arr = self.elements_centroids[:,2]
+        data_arr = functional(x_arr,y_arr,z_arr)
+        self.elements_data[dataname] = data_arr
+
 
     def set_internal_faces(self): 
         '''
