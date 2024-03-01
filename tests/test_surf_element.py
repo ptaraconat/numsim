@@ -163,4 +163,13 @@ def test_set_elem_data(mesh_fixture2):
     expected_data_array = np.array([1,-1])
     assertion = np.all(mesh_fixture2.elements_data['temp'] == expected_data_array)
     assert assertion
+
+def test_set_elem_intf_conn(mesh_fixture2) : 
+    mesh_fixture2.set_internal_faces()
+    mesh_fixture2.set_elements_intfaces_connectivity()
+    print(mesh_fixture2.elements_intf_conn)
+    print(mesh_fixture2.intfaces)
+    expected = [[0],[0]]
+    assertion = mesh_fixture2.elements_intf_conn == expected
+    assert assertion 
                         

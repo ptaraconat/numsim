@@ -78,6 +78,18 @@ class Mesh :
         self.intfaces_elem_conn = internal_faces_connectivity
         print('Number of internal surfaces : ', np.shape(self.intfaces))
     
+    def set_elements_intfaces_connectivity(self) : 
+        '''
+        Set the connectivity between internal faces and mesh elements 
+        '''
+        elem_intf_conn = [ [] for i in range(np.size(self.elements,0))]
+        print(len(elem_intf_conn))
+        for surf_ind, intf_to_el in enumerate(self.intfaces_elem_conn) : 
+            elem_ind1, elem_ind2 = intf_to_el
+            elem_intf_conn[elem_ind1].append(surf_ind)
+            elem_intf_conn[elem_ind2].append(surf_ind)
+        self.elements_intf_conn = elem_intf_conn
+    
     def _calc_centroid(self,element):
         '''
         arguments 
