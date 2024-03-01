@@ -122,7 +122,7 @@ def test_calc_element_volume(mesh_fixture) :
     assert assertion 
 
 def test_tetra_faces(mesh_fixture2):
-    faces, connectivity, el_face_conn = mesh_fixture2._get_elements_faces()
+    faces, connectivity = mesh_fixture2._get_elements_faces()
     expected_faces = np.array([[0, 1, 2],
                                [0, 2, 3],
                                [0, 3, 1],
@@ -135,7 +135,6 @@ def test_tetra_faces(mesh_fixture2):
                                      [4,2,5,6]])
     assertion = np.all(faces == expected_faces) and len(faces) == 7
     assertion = assertion and (connectivity == expected_connectivity)
-    assertion = assertion and np.all(el_face_conn == expected_el_face_conn)
     #assertion = False
     assert assertion
 
@@ -145,9 +144,8 @@ def test_set_internal_faces(mesh_fixture2):
     expected_int_connectivity = np.array([[0,1]])
     expected_el_face_connectivity = np.array([[-1, -1, 2, -1],
                                               [-1, 2, -1, -1]])
-    assertion = np.all(mesh_fixture2.internal_faces == expected_int_faces)
-    assertion = assertion and np.all(mesh_fixture2.internal_connectivity == expected_int_connectivity)
-    assertion = assertion and np.all(mesh_fixture2.elements_face_connectivity == expected_el_face_connectivity)
+    assertion = np.all(mesh_fixture2.intfaces == expected_int_faces)
+    assertion = assertion and np.all(mesh_fixture2.intfaces_elem_conn == expected_int_connectivity)
     assert assertion 
 
 def test_set_centroids(mesh_fixture2):

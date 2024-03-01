@@ -14,12 +14,12 @@ class Mesh :
         # Mesh Elements : filled with node index
         self.elements = None
         self.boundary_elements = None # change name to bndfaces
-        self.internal_faces = None # change name to intfaces
+        self.intfaces = None # change name to intfaces
         # face connectivity : Filled with element index 
-        self.internal_connectivity = None # change name to intfaces_elem_conn
+        self.intfaces_elem_conn = None # change name to intfaces_elem_conn
         self.boundary_connectivity = None # change name to bndfaces_elem_conn
         # element connectivity : Filled with face index 
-        self.elements_face_connectivity = None # change name to elements_intf_conn
+        self.elements_intf_conn = None # change name to elements_intf_conn
         self.boundary_tags = None # change name to bndfaces_elem_tags
         # nodes coordinates (x,y,z)
         self.nodes = None 
@@ -58,7 +58,7 @@ class Mesh :
         Set the internal faces 
         '''
         # calculate elements faces and faces connectivity 
-        faces, connectivity, elem_face_connectivity = self._get_elements_faces()
+        faces, connectivity= self._get_elements_faces()
         # Get index of faces that are connecteed to two elements 
         bool_arr = np.asarray([len(con) for con in connectivity])
         bool_arr = bool_arr == 2
@@ -68,17 +68,15 @@ class Mesh :
         internal_faces = faces[int_index,:]
         internal_faces_connectivity = np.asarray([connectivity[i] for i in int_index])
         # Discard external face connectivity 
-        extface_mask = np.full(elem_face_connectivity.shape, False)
-        for i in ext_index : 
-            extface_mask = np.logical_or(extface_mask,elem_face_connectivity == i)
+        #extface_mask = np.full(elem_face_connectivity.shape, False)
+        #for i in ext_index : 
+        #    extface_mask = np.logical_or(extface_mask,elem_face_connectivity == i)
         # replace external face indices by -1
-        elem_face_connectivity[extface_mask] = -1
+        #elem_face_connectivity[extface_mask] = -1
         #
-        self.internal_faces = internal_faces
-        self.internal_connectivity = internal_faces_connectivity
-        self.elements_face_connectivity = elem_face_connectivity
-
-        print('Number of internal surfaces : ', np.shape(self.internal_faces))
+        self.intfaces = internal_faces
+        self.intfaces_elem_conn = internal_faces_connectivity
+        print('Number of internal surfaces : ', np.shape(self.intfaces))
     
     def _calc_centroid(self,element):
         '''
@@ -282,44 +280,32 @@ class TetraMesh(Mesh):
                 bool_face4, face4_paired_index = self._surface_checker_(face4,
                                                                         surfaces_tmp, 
                                                                         order_list= False)
-            element_fc = []
             # Add surfaces 
             if bool_face1 : 
                 surfaces.append(face1)
-                element_fc.append(faces_count)
                 faces_count +=1
                 surfaces_connectivity.append([elem_index])
             else : 
                 surfaces_connectivity[face1_paired_index].append(elem_index)
-                element_fc.append(face1_paired_index)
             if bool_face2 : 
                 surfaces.append(face2)
-                element_fc.append(faces_count)
                 faces_count +=1
                 surfaces_connectivity.append([elem_index])
             else : 
                 surfaces_connectivity[face2_paired_index].append(elem_index)
-                element_fc.append(face2_paired_index)
             if bool_face3 : 
                 surfaces.append(face3)
-                element_fc.append(faces_count)
                 faces_count +=1
                 surfaces_connectivity.append([elem_index])
             else : 
                 surfaces_connectivity[face3_paired_index].append(elem_index)
-                element_fc.append(face3_paired_index)
             if bool_face4 : 
                 surfaces.append(face4)
-                element_fc.append(faces_count)
                 faces_count +=1
                 surfaces_connectivity.append([elem_index])
             else : 
                 surfaces_connectivity[face4_paired_index].append(elem_index)
-                element_fc.append(face4_paired_index)
-            elements_face_connectivity.append(element_fc)
         surfaces = np.asarray(surfaces)
-        elements_face_connectivity = np.asarray(elements_face_connectivity)
         print('Number of surfaces :',np.shape(surfaces))
         print('Number of surfaces :',faces_count)
-        print(np.shape(elements_face_connectivity))
-        return surfaces, surfaces_connectivity, elements_face_connectivity
+        return surfaces, surfaces_connectivity
