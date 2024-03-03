@@ -1,5 +1,6 @@
 import pytest
 import sys as sys 
+sys.path.append('.')
 from fvm.gradient import * 
 from meshe.mesh import TetraMesh
 
