@@ -1,5 +1,5 @@
 import numpy as np
-from meshe.mesh import * 
+from meshe.mesh import Mesh 
 
 class ElementsGradientComputer : 
 
