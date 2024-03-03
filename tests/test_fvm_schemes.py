@@ -1,7 +1,7 @@
 import pytest
 import sys as sys 
-from meshe.mesh import TetraMesh
 from fvm.gradient import * 
+from meshe.mesh import TetraMesh
 
 @pytest.fixture 
 def lsgrad_fixture():
