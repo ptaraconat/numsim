@@ -1,6 +1,6 @@
 import pytest 
 import sys as sys 
-sys.path.append('../')
+#sys.path.append('../')
 from meshe.mesh import * 
 
 @pytest.fixture 
