@@ -13,6 +13,7 @@ COPY tests $TEST_DIR
 COPY meshe $MESHE_DIR
 COPY fvm $FVM_DIR
 COPY requirements.txt /app/
+COPY __init__.py /app/__init__.py
 
 RUN pip install --no-cache-dir -r requirements.txt
 
