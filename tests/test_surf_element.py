@@ -1,7 +1,7 @@
 import pytest 
 import sys as sys 
-sys.path.append('meshe')
-from mesh import * 
+sys.path.append('.')
+from meshe.mesh import * 
 
 @pytest.fixture 
 def mesh_fixture():
