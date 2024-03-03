@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Copy the test files and sources into the container working directory
 COPY tests $TEST_DIR
-COPY meshe $MESHES_DIR
+COPY meshe $MESHE_DIR
 COPY fvm $FVM_DIR
 COPY requirements.txt /app/
 
