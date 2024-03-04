@@ -13,14 +13,14 @@ class Mesh :
         self.type = type 
         # Mesh Elements : filled with node index
         self.elements = None
-        self.boundary_elements = None # change name to bndfaces
+        self.bndfaces = None # change name to bndfaces
         self.intfaces = None # change name to intfaces
         # face connectivity : Filled with element index 
         self.intfaces_elem_conn = None # change name to intfaces_elem_conn
-        self.boundary_connectivity = None # change name to bndfaces_elem_conn
+        self.bndfaces_elem_conn = None # change name to bndfaces_elem_conn
         # element connectivity : Filled with face index 
         self.elements_intf_conn = None # change name to elements_intf_conn
-        self.boundary_tags = None # change name to bndfaces_elem_tags
+        self.bndfaces_tags = None # change name to bndfaces_tags
         # nodes coordinates (x,y,z)
         self.nodes = None 
         # data 
@@ -242,8 +242,8 @@ class TetraMesh(Mesh):
         surf_elements = np.concatenate(surf_elements)
         surf_tags = np.concatenate(surf_tags)
         self.elements = vol_elements
-        self.boundary_elements = surf_elements
-        self.boundary_tags = surf_tags
+        self.bndfaces = surf_elements
+        self.bndfaces_tags = surf_tags
     
     def _get_elements_faces(self):
         '''
