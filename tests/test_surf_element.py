@@ -39,6 +39,18 @@ def mesh_fixture3():
     #mesh.bndfaces_tags = np.array
     return mesh 
 
+@pytest.fixture 
+def mesh_fixture4():
+    mesh = TetraMesh()
+    mesh.nodes = np.array([[0, 0, 0],
+                           [0, 1, 0],
+                           [1, 0, 0],
+                           [0, 0, 1],
+                           [-0.5, 0, 0]])
+    mesh.elements = np.array([[0, 1, 2, 3],
+                              [0,4,1,3]])
+    return mesh 
+
 def test_centroid_calculation(mesh_fixture):
     element = mesh_fixture.nodes[mesh_fixture.elements[0]]
     centroid = mesh_fixture._calc_centroid(element)
@@ -200,4 +212,19 @@ def test_bnd_element_conn(mesh_fixture3):
     assertion = expected_el_bndf_conn == mesh_fixture3.elements_bndf_conn
     assertion = assertion and np.all(expected_bndf_el_conn == mesh_fixture3.bndfaces_elem_conn) 
     assert assertion 
-                        
+
+def test_surface_vertex_distance(mesh_fixture4): 
+    mesh_fixture4.set_elements_centroids()
+    mesh_fixture4.set_internal_faces()
+    face = mesh_fixture4.nodes[mesh_fixture4.intfaces[0]]
+    print(face)
+    vertex = mesh_fixture4.elements_centroids[0]
+    distance1 = mesh_fixture4._calc_vertex_face_distance(vertex, face)
+    print(vertex)
+    print(distance1)
+    vertex = mesh_fixture4.elements_centroids[1]
+    distance2 = mesh_fixture4._calc_vertex_face_distance(vertex, face)
+    print(vertex)
+    print(distance2)
+    assertion = (distance1 == 0.25) and (distance2 == 0.125)
+    assert assertion                    

@@ -107,6 +107,22 @@ class Mesh :
             elem_intf_conn[elem_ind1].append(surf_ind)
             elem_intf_conn[elem_ind2].append(surf_ind)
         self.elements_intf_conn = elem_intf_conn
+        
+    def _calc_vertex_face_distance(self,vertex,face):
+        '''
+        arguments 
+        vertex ::: np.array (3,) ::: coordinates of the vertex
+        face ::: np.array(n_node,3) ::: coordinates of nodes defining 
+        the faces (n_node >= 3). 
+        returns 
+        distance ::: float ::: distance between vertex and plane (shortest distance)
+        '''
+        unit_normal = self._calc_surface_normal(face)
+        p1 = face[0]
+        vec_tmp = vertex - p1
+        distance = np.dot(vec_tmp, unit_normal)
+        return np.abs(distance)
+        
     
     def _calc_centroid(self,element):
         '''
