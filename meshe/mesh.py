@@ -13,14 +13,15 @@ class Mesh :
         self.type = type 
         # Mesh Elements : filled with node index
         self.elements = None
-        self.boundary_elements = None # change name to bndfaces
-        self.intfaces = None # change name to intfaces
+        self.bndfaces = None 
+        self.intfaces = None 
         # face connectivity : Filled with element index 
-        self.intfaces_elem_conn = None # change name to intfaces_elem_conn
-        self.boundary_connectivity = None # change name to bndfaces_elem_conn
+        self.intfaces_elem_conn = None 
+        self.bndfaces_elem_conn = None 
         # element connectivity : Filled with face index 
-        self.elements_intf_conn = None # change name to elements_intf_conn
-        self.boundary_tags = None # change name to bndfaces_elem_tags
+        self.elements_intf_conn = None 
+        self.elements_bndf_conn = None
+        self.bndfaces_tags = None 
         # nodes coordinates (x,y,z)
         self.nodes = None 
         # data 
@@ -70,7 +71,31 @@ class Mesh :
         self.intfaces = internal_faces
         self.intfaces_elem_conn = internal_faces_connectivity
         print('Number of internal surfaces : ', np.shape(self.intfaces))
-    
+
+    def set_boundary_faces(self): 
+        '''
+        Brute force strategy. May be optimized 
+        Set the boundary faces to element connectivity table, given the bndfaces table/attribute
+        '''
+        count = 0
+        el_bndf_conn = [[] for _ in range(np.size(self.elements,0)) ]
+        bndf_el_conn = np.zeros((np.size(self.bndfaces,0),1))
+        elbnd_index = self._get_boundary_elements_index()
+        for bndface_ind,bndface in enumerate(self.bndfaces) : 
+            for i in elbnd_index:
+                element = self.elements[i]
+                elem_faces = np.asarray(self._get_element_faces(element))
+                bool_face, face_paired_index = self._surface_checker_(bndface, 
+                                                                      elem_faces,
+                                                                      order_list = True)
+                if not(bool_face) :
+                    el_bndf_conn[i].append(bndface_ind)
+                    bndf_el_conn[bndface_ind] = i
+                    count += 1
+        self.elements_bndf_conn = el_bndf_conn
+        self.bndfaces_elem_conn = bndf_el_conn
+        print(count)
+
     def set_elements_intfaces_connectivity(self) : 
         '''
         Set the elements to internal faces connectivity table 
@@ -194,7 +219,7 @@ class Mesh :
         surfaces_list ::: np.array (N_faces,N_nodes) ::: Array containing several faces 
         Each row is associated to one face. The columns stores the index of nodes defining 
         the faces 
-        order_list ::: bool ::: whether or not the surfaces_list is already ordered
+        order_list ::: bool ::: whether or not the surfaces_list has to be ordered
         '''
         if order_list : 
             surfaces_tmp = np.sort(surfaces_list, axis = 1)
@@ -242,9 +267,34 @@ class TetraMesh(Mesh):
         surf_elements = np.concatenate(surf_elements)
         surf_tags = np.concatenate(surf_tags)
         self.elements = vol_elements
-        self.boundary_elements = surf_elements
-        self.boundary_tags = surf_tags
+        self.bndfaces = surf_elements
+        self.bndfaces_tags = surf_tags
+
+    def _get_element_faces(self,element):
+        '''
+        argument 
+        element ::: np.array(n_nodes,) ::: array containing the nodes index that 
+        defines the element 
+        returns 
+        faces ::: list of lists of int ::: list of faces. Each face being defined 
+        as a list of nodes index
+        '''
+        node1, node2, node3, node4 = element 
+        face1 = [node1, node2, node3]
+        face2 = [node1, node3, node4]
+        face3 = [node1, node4, node2]
+        face4 = [node2, node3, node4]
+        faces = [face1, face2, face3, face4]
+        return faces
     
+    def _get_boundary_elements_index(self):
+        '''
+        returns 
+        index_list ::: list of int ::: indexes of elements located at a boundary
+        '''
+        index_list = [i for i,el_conn in enumerate(self.elements_intf_conn) if  len(el_conn) < 4]
+        return index_list
+
     def _get_elements_faces(self):
         '''
         returns 
@@ -261,11 +311,7 @@ class TetraMesh(Mesh):
         faces_count = 0 
         # Elements loop 
         for elem_index,element in enumerate(self.elements) : 
-            node1, node2, node3, node4 = element 
-            face1 = [node1, node2, node3]
-            face2 = [node1, node3, node4]
-            face3 = [node1, node4, node2]
-            face4 = [node2, node3, node4]
+            [face1, face2, face3, face4] = self._get_element_faces(element)
             # Check surfaces 
             bool_face1 = True
             bool_face2 = True

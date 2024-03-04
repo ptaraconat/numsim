@@ -25,6 +25,20 @@ def mesh_fixture2():
                               [0,4,1,3]])
     return mesh 
 
+@pytest.fixture 
+def mesh_fixture3():
+    mesh = TetraMesh()
+    mesh.nodes = np.array([[0, 0, 0],
+                           [0, 1, 0],
+                           [1, 0, 0],
+                           [0, 0, 1],
+                           [-1, 0, 0]])
+    mesh.elements = np.array([[0, 1, 2, 3],
+                              [0,4,1,3]])
+    mesh.bndfaces = np.array([[0, 4, 1]])
+    #mesh.bndfaces_tags = np.array
+    return mesh 
+
 def test_centroid_calculation(mesh_fixture):
     element = mesh_fixture.nodes[mesh_fixture.elements[0]]
     centroid = mesh_fixture._calc_centroid(element)
@@ -171,5 +185,19 @@ def test_set_elem_intf_conn(mesh_fixture2) :
     print(mesh_fixture2.intfaces)
     expected = [[0],[0]]
     assertion = mesh_fixture2.elements_intf_conn == expected
+    assert assertion 
+    
+def test_bnd_element_conn(mesh_fixture3):
+    mesh_fixture3.set_internal_faces()
+    mesh_fixture3.set_elements_intfaces_connectivity()
+    mesh_fixture3.set_boundary_faces()
+    print(mesh_fixture3.elements_bndf_conn)
+    print(mesh_fixture3.bndfaces_elem_conn)
+    print(len(mesh_fixture3.elements_bndf_conn))
+    print(np.shape(mesh_fixture3.bndfaces_elem_conn))
+    expected_el_bndf_conn = [[],[0]]
+    expected_bndf_el_conn = np.array([[1]])
+    assertion = expected_el_bndf_conn == mesh_fixture3.elements_bndf_conn
+    assertion = assertion and np.all(expected_bndf_el_conn == mesh_fixture3.bndfaces_elem_conn) 
     assert assertion 
                         

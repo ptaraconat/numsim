@@ -44,11 +44,12 @@ gmsh.finalize()
 
 mesh = TetraMesh()
 mesh.gmsh_reader('test.msh')
-print('NUmber of nodes : ', np.shape(mesh.nodes))
-print('Number of elements :',np.shape(mesh.elements))
-print('Number of boundary elements :',np.shape(mesh.boundary_elements))
 mesh.set_internal_faces()
 mesh.set_elements_intfaces_connectivity()
+print('NUmber of nodes : ', np.shape(mesh.nodes))
+print('Number of elements :',np.shape(mesh.elements))
+print('Number of boundary faces :',np.shape(mesh.bndfaces))
+print('Number of internal faces :', np.shape(mesh.intfaces))
 
 # set data 
 def function(x,y,z):
@@ -56,18 +57,20 @@ def function(x,y,z):
 mesh.set_elements_data('T', function)
 # calc data gradient 
 grad_computer = LSGradient('T','gradT', mesh)
-
-count = 0 
-for i in range(len(mesh.elements)):
-    grad = grad_computer.calc_element_gradient(i)
-    gradx = grad[0]
-    err = np.abs((4 - gradx)/4) * 100
-    if err > 1 : 
-        count += 1
-        print(i,grad)
-        print(mesh.elements_intf_conn[i])
-    else : 
-        print(grad)
-        
+#count = 0 
+#for i in range(len(mesh.elements)):
+#    grad = grad_computer.calc_element_gradient(i)
+#    gradx = grad[0]
+#    err = np.abs((4 - gradx)/4) * 100
+#    if err > 1 : 
+#        count += 1
+#        print(i,grad)
+#        print(mesh.elements_intf_conn[i]) 
 grad_computer.calculate_gradients()
-print(mesh.elements_data)
+
+# 
+mesh.set_boundary_faces()
+print(mesh.elements_bndf_conn)
+print(mesh.bndfaces_elem_conn)
+print(len(mesh.elements_bndf_conn))
+print(np.shape(mesh.bndfaces_elem_conn))
