@@ -67,3 +67,10 @@ grad_computer = LSGradient('T','gradT', mesh)
 #        print(i,grad)
 #        print(mesh.elements_intf_conn[i]) 
 grad_computer.calculate_gradients()
+
+# 
+mesh.set_boundary_faces()
+print(mesh.elements_bndf_conn)
+print(mesh.bndfaces_elem_conn)
+print(len(mesh.elements_bndf_conn))
+print(np.shape(mesh.bndfaces_elem_conn))
