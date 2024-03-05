@@ -27,7 +27,15 @@ class Mesh :
         # data 
         self.elements_centroids = None 
         self.elements_data = {}
-    
+        
+    def _get_boundary_elements_index(self, N = 6):
+        '''
+        returns 
+        index_list ::: list of int ::: indexes of elements located at a boundary
+        '''
+        index_list = [i for i,el_conn in enumerate(self.elements_intf_conn) if  len(el_conn) < N]
+        return index_list
+        
     def set_elements_centroids(self):
         '''
         set the elements centroid array 
