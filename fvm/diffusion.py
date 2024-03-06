@@ -14,7 +14,7 @@ class OrthogonalDiffusion(FaceComputer):
     def __init__(self):
         super().__init__('Orto_diffusion', 'implicit')
         
-    def calc_surface_flux(self, centroid1, centroid2, surface_area, surface_vector,diffusion_coeff = 1):
+    def calc_surface_coef(self, centroid1, centroid2, surface_area, surface_vector,diffusion_coeff = 1):
         '''
         arguments 
         centroid1 ::: np.array(3,) ::: coordinates of first node
@@ -32,7 +32,7 @@ class OrthogonalDiffusion(FaceComputer):
         surf_flux = diffusion_coeff*surface_area*np.abs(np.dot(gradf,surface_vector))
         return surf_flux
     
-    def calc_dirchlet_bnd_surface_flux(self,centroid,surface_centroid,surface_area, surface_vector, diffusion_coeff = 1):
+    def calc_dirchlet_bnd_surface_coef(self,centroid,surface_centroid,surface_area, surface_vector, diffusion_coeff = 1):
         '''
         arguments 
         centroid ::: np.array(3,) ::: coordinates of first node
@@ -50,7 +50,7 @@ class OrthogonalDiffusion(FaceComputer):
         surf_flux = diffusion_coeff*surface_area*np.abs(np.dot(gradf,surface_vector))
         return surf_flux
     
-    def calc_neumann_bnd_surface_flux(self, surface_area, surface_vector, surface_flux):
+    def calc_neumann_bnd_surface_coef(self, surface_area, surface_vector, surface_flux):
         '''
         arguments 
         surface_area ::: float ::: Area of the boundary face
@@ -83,7 +83,7 @@ class OrthogonalDiffusion(FaceComputer):
             face_area = mesh._calc_surface_area(coord_face)
             face_normal = mesh._calc_surface_normal(coord_face)
             #
-            surf_flux = self.calc_surface_flux(centroid1, 
+            surf_flux = self.calc_surface_coef(centroid1, 
                                                centroid2, 
                                                face_area, 
                                                face_normal, 

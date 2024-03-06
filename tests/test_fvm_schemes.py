@@ -96,7 +96,7 @@ def test_orto_diff_face(mesh_fixture):
     print('face normal :', face_normal)
     
     # expect diffusion_coeff*face_area*(1/centroids_distance)
-    surf_flux = diff_op.calc_surface_flux(centroid1, centroid2, face_area, face_normal, diffusion_coeff=1.)
+    surf_flux = diff_op.calc_surface_coef(centroid1, centroid2, face_area, face_normal, diffusion_coeff=1.)
     print(surf_flux)
     
     assertion = surf_flux == 1.6
@@ -122,7 +122,7 @@ def test_ortho_diff_drbnd(mesh_fixture2):
     print('face area :', face_area)
     print('face normal : ', face_normal)
     #
-    surf_flux = diff_op.calc_dirchlet_bnd_surface_flux(centroid, 
+    surf_flux = diff_op.calc_dirchlet_bnd_surface_coef(centroid, 
                                                        face_centroid, 
                                                        face_area, 
                                                        face_normal, 
@@ -149,8 +149,8 @@ def test_ortho_diff_neumbnd(mesh_fixture2):
     print('face normal : ', face_normal)
     print('bnd flux : ', bnd_flux)
     
-    surf_flux = diff_op.calc_neumann_bnd_surface_flux(face_area, face_normal, bnd_flux)
+    surf_flux = diff_op.calc_neumann_bnd_surface_coef(face_area, face_normal, bnd_flux)
     print('surface flux : ', surf_flux)
-    assertion = False 
+    assertion = surf_flux == 2.
     assert assertion 
     
