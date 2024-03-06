@@ -27,6 +27,16 @@ class Mesh :
         # data 
         self.elements_centroids = None 
         self.elements_data = {}
+        self.physical_entities = None 
+        
+    def _get_bc_index(self,bc_name): 
+        '''
+        arguments 
+        bc_name ::: str ::: name of the boundary condition
+        returns 
+        bc_index ::: int ::: index label of that boundary, if if exists
+        '''
+        return self.physical_entities[bc_name][0]
         
     def _get_boundary_elements_index(self, N = 6):
         '''
@@ -293,6 +303,7 @@ class TetraMesh(Mesh):
         self.elements = vol_elements
         self.bndfaces = surf_elements
         self.bndfaces_tags = surf_tags
+        self.physical_entities = mesh.field_data
 
     def _get_element_faces(self,element):
         '''

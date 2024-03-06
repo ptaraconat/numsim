@@ -63,10 +63,11 @@ class OrthogonalDiffusion(FaceComputer):
         surf_flux = surface_area*np.dot(surface_vector,surface_flux)
         return surf_flux
     
-    def __call__(self,mesh,diffusion_coeff = 1):
+    def __call__(self,mesh,boundary_conditions,diffusion_coeff = 1):
         '''
         arguments 
-        mesh ::: numsim.meshe.mesh.Mesh ::: mesh on which the diffusion operator is calculated 
+        mesh ::: numsim.meshe.mesh.Mesh ::: mesh on which the diffusion operator is calculated
+        boundary_conditions ::: dictionnary ::: dictionnary that specifies the boundary conditions 
         diffusion_coeff ::: float ::: 
         returns 
         matrix ::: np.array (n_elem,n_elem) :::
@@ -95,6 +96,25 @@ class OrthogonalDiffusion(FaceComputer):
             matrix[ind_cent1,ind_cent2] += surf_flux
             matrix[ind_cent2,ind_cent1] += surf_flux
         # Treat boundaries 
+        for bc_key,val in boundary_conditions.items():
+            bc_index = mesh._get_bc_index(bc_key)
+            type = val['type']
+            bc_val = val['value']
+            surfaces_indices =np.squeeze(np.argwhere(mesh.bndfaces_tags == bc_index))
+            for i in surfaces_indices : 
+                if type == 'dirichlet': 
+                    face_coeff = self.calc_dirchlet_bnd_surface_coef(centroid, 
+                                                                     face_centroid, 
+                                                                     surface_area, 
+                                                                     surface_normal, 
+                                                                     diffusion_coeff = 1)
+                if type == 'neumann' : 
+                    face_coeff = self.calc_neumann_bnd_surface_coef(surface_area, 
+                                                                    surface_normal, 
+                                                                    bc_val)
+            print(np.shape(mesh.bndfaces_tags))
+            print(np.shape(surfaces_indices))
+            
         return matrix 
             
         
