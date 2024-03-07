@@ -87,4 +87,6 @@ boundary_conditions = {'inlet' : {'type' : 'dirichlet',
 
 diffusion_op = OrthogonalDiffusion()
 
-mat = diffusion_op(mesh,boundary_conditions)
+mat, rhs_vec = diffusion_op(mesh,boundary_conditions)
+print(mat)
+print(rhs_vec)

@@ -269,6 +269,46 @@ class Mesh :
             face_paired_index = None 
         return bool_face, face_paired_index
 
+class HexaMesh(Mesh) : 
+    
+    def __init__(self):
+        '''
+        arguments : 
+        dimension ::: int ::: dimension of the domain (1, 2 or 3)
+        type ::: str ::: elements type 
+        '''
+        super().__init__(dimension = 3, type = 'hexa')
+    
+    def _get_element_faces(self,element):
+        '''
+        argument 
+        element ::: np.array(n_nodes,) ::: array containing the nodes index that 
+        defines the element 
+        returns 
+        faces ::: list of lists of int ::: list of faces. Each face being defined 
+        as a list of nodes index
+        '''
+        node1, node2, node3, node4 = element 
+        face1 = [node1, node2, node3, node4]
+        face2 = []
+        face3 = []
+        face4 = []
+        face5 = []
+        face6 = []
+        faces = [face1, face2, face3, face4, face5, face6]
+        return faces
+    
+    def _get_boundary_elements_index(self):
+        '''
+        returns 
+        index_list ::: list of int ::: indexes of elements located at a boundary
+        '''
+        index_list = [i for i,el_conn in enumerate(self.elements_intf_conn) if  len(el_conn) < 6]
+        return index_list
+        
+    
+    
+
 class TetraMesh(Mesh): 
 
     def __init__(self):

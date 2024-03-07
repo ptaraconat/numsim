@@ -60,7 +60,55 @@ def mesh_fixture2():
     mesh.elements_intf_conn = []
     return mesh 
     
-    
+@pytest.fixture 
+def mesh_fixture3():
+    mesh = Mesh()
+    dx = 1. 
+    mesh.nodes = np.array([[0, 0 ,0],
+                           [0, dx, 0],
+                           [0, dx, dx],
+                           [0, 0, dx],
+                           [dx, 0 ,0],
+                           [dx, dx, 0],
+                           [dx, dx, dx],
+                           [dx, 0, dx],
+                           [2*dx, 0 ,0],
+                           [2*dx, dx, 0],
+                           [2*dx, dx, dx],
+                           [2*dx, 0, dx],
+                           [3*dx, 0 ,0],
+                           [3*dx, dx, 0],
+                           [3*dx, dx, dx],
+                           [3*dx, 0, dx]])
+    mesh.elements = np.array([[1,2,3,4,5,6,7,8],
+                              [5,6,7,8,9,10,11,12],
+                              [9,10,11,12,13,14,15,16]]) - 1
+    mesh.bndfaces = np.array([[1,2,3,4],
+                              [1,5,8,4],
+                              [2,6,7,3],
+                              [5,9,12,8],
+                              [6,10,11,7],
+                              [9,13,16,12],
+                              [10,14,15,11],
+                              [13,14,15,16]]) -1
+    mesh.intfaces = np.array([[5,6,7,8],
+                              [9,10,11,12]]) -1
+    mesh.intfaces_elem_conn = np.array([[1,2],
+                                        [2,3]]) - 1
+    mesh.elements_bndf_conn = [[0,1,2],
+                               [3,4],
+                               [5,6,7]]
+    mesh.bndfaces_elem_conn = np.expand_dims(np.array([1,1,1,2,2,3,3,3]),axis = 1)-1
+    mesh.bndfaces_tags = np.array([1,2,2,2,2,2,2,3])
+    mesh.physical_entities = {'inlet': np.array([1,   2]), 
+                              'outlet': np.array([3,   2]), 
+                              'wall': np.array([2,   2])}
+
+    mesh.set_elements_intfaces_connectivity()
+    mesh.set_elements_centroids()
+    #mesh.set_boundary_faces()
+    return mesh
+
 def test_ls_gradient(lsgrad_fixture): 
     gradient0 = lsgrad_fixture.calc_element_gradient(0)
     gradient1 = lsgrad_fixture.calc_element_gradient(1)
@@ -153,4 +201,24 @@ def test_ortho_diff_neumbnd(mesh_fixture2):
     print('surface flux : ', surf_flux)
     assertion = surf_flux == 2.
     assert assertion 
+
+def test_ortho_diff_operator(mesh_fixture3):
+    diff_op = OrthogonalDiffusion()
+    boundary_conditions = {'inlet' : {'type' : 'dirichlet',
+                                      'value' : 1},
+                           'outlet' : {'type' : 'dirichlet',
+                                       'value' : 0},
+                           'wall' : {'type' : 'neumann',
+                                     'value' : np.array([0,0,0])}}
     
+    print(mesh_fixture3.bndfaces_tags)
+    mat, rhs = diff_op(mesh_fixture3, 
+                       boundary_conditions, 
+                       diffusion_coeff=1.)
+    print(mat)
+    print(rhs)
+    print(np.linalg.solve(mat,rhs))
+    print(np.linalg.inv(mat))
+    print(rhs)
+    assertion = False 
+    assert assertion 

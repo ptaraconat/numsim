@@ -74,6 +74,7 @@ class OrthogonalDiffusion(FaceComputer):
         '''
         n_elem = np.size(mesh.elements,0)
         matrix = np.zeros((n_elem,n_elem))
+        rhs_vec = np.zeros((n_elem,1))
         for ind_face,face in enumerate(mesh.intfaces) : 
             ind_cent1 = mesh.intfaces_elem_conn[ind_face][0]
             ind_cent2 = mesh.intfaces_elem_conn[ind_face][1]
@@ -96,26 +97,51 @@ class OrthogonalDiffusion(FaceComputer):
             matrix[ind_cent1,ind_cent2] += surf_flux
             matrix[ind_cent2,ind_cent1] += surf_flux
         # Treat boundaries 
+        # Loop over different boundary conditions 
         for bc_key,val in boundary_conditions.items():
             bc_index = mesh._get_bc_index(bc_key)
             type = val['type']
             bc_val = val['value']
+            # get index associated with the current bondary condition 
             surfaces_indices =np.squeeze(np.argwhere(mesh.bndfaces_tags == bc_index))
-            for i in surfaces_indices : 
-                if type == 'dirichlet': 
+            if surfaces_indices.shape == () : 
+                surfaces_indices = [surfaces_indices]
+            # Loop over the later boundary surfaces 
+            for i in surfaces_indices :
+                # get face nodes 
+                bnd_face = mesh.bndfaces[i]
+                elem_ind = int(mesh.bndfaces_elem_conn[i][0])
+                face_nodes = mesh.nodes[bnd_face]
+                if type == 'dirichlet':
+                    # Treat a dirichlet bc 
+                    centroid = mesh.elements_centroids[elem_ind]
+                    face_centroid = mesh._calc_centroid(face_nodes)
+                    surface_area = mesh._calc_surface_area(face_nodes) 
+                    surface_normal = mesh._calc_surface_normal(face_nodes)
                     face_coeff = self.calc_dirchlet_bnd_surface_coef(centroid, 
                                                                      face_centroid, 
                                                                      surface_area, 
                                                                      surface_normal, 
-                                                                     diffusion_coeff = 1)
+                                                                     diffusion_coeff = diffusion_coeff)
+                    bc_dir_value = bc_val
+                    # rework ::: check sign
+                    print(bc_key, bc_val)
+                    rhs_vec[elem_ind] += -bc_dir_value*face_coeff 
+                    matrix[elem_ind,elem_ind] += -bc_dir_value*face_coeff 
                 if type == 'neumann' : 
+                    # Treat a Von Neumann bc 
+                    surface_area = mesh._calc_surface_area(face_nodes)
+                    surface_normal = mesh._calc_surface_normal(face_nodes)
+                    bc_neu_value =  bc_val
                     face_coeff = self.calc_neumann_bnd_surface_coef(surface_area, 
                                                                     surface_normal, 
-                                                                    bc_val)
-            print(np.shape(mesh.bndfaces_tags))
-            print(np.shape(surfaces_indices))
+                                                                    bc_neu_value)
+                    # rework ::: check sign
+                    rhs_vec[elem_ind] += -face_coeff
+            #print(np.shape(mesh.bndfaces_tags))
+            #print(np.shape(surfaces_indices))
             
-        return matrix 
+        return matrix, rhs_vec
             
         
     
