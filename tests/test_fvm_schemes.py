@@ -227,3 +227,10 @@ def test_ortho_diff_operator(mesh_fixture3):
     assertion = np.all(mat == expected_mat) and np.all(rhs == expected_rhs)
     
     assert assertion 
+    
+def test_ls_gradient_withweights(lsgrad_fixture): 
+    gradient0 = lsgrad_fixture.calc_element_gradient(0)
+    gradient1 = lsgrad_fixture.calc_element_gradient(1)
+    expected_grad = np.array([4, 0, 0])
+    assertion = False
+    assert assertion 

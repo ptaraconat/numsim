@@ -30,7 +30,7 @@ class ElementsGradientComputer :
 
 class LSGradient(ElementsGradientComputer): 
     
-    def __init__(self,dataname, gdataname, mesh): 
+    def __init__(self,dataname, gdataname, mesh, weighting = False): 
         '''
         arguments 
         dataname ::: string ::: name of the data for which 
@@ -38,8 +38,13 @@ class LSGradient(ElementsGradientComputer):
         gdataname ::: string ::: name of the gradient data 
         mesh ::: numsim.meshe.mesh.Mesh object ::: mesh on which the 
         gradient would be computed 
+        weighting ::: bool ::: wether or not use distance weights 
+        for calculating gradients. 
         '''
         super().__init__(dataname, gdataname, mesh)
+        self.weighting = weighting
+        
+    
 
     def calc_element_gradient(self,elem_indice):
         '''
@@ -56,6 +61,7 @@ class LSGradient(ElementsGradientComputer):
         el_face_conn = self.mesh.elements_intf_conn[elem_indice]
         distance_matrix = []
         delta_data_vector = []
+        weights_vector = []
         for face_index in el_face_conn :
             # Find neighboor element 
             index_el1, index_el2 = self.mesh.intfaces_elem_conn[face_index]
@@ -69,11 +75,16 @@ class LSGradient(ElementsGradientComputer):
             # Update distance matrix and delta vector (delta of data)
             distance = neigh_centroid - el_centroid
             delta_data = neigh_data - el_data
+            absolute_distance = np.sqrt(np.sum(distance**2.))
+            weight = 1/absolute_distance
             distance_matrix.append(distance)
             delta_data_vector.append(delta_data)
+            weights_vector.append(weight)
         # Uses Pseudo inverse to solve the gradients
         delta_data_vector = np.asarray(delta_data_vector)
         distance_matrix = np.asarray(distance_matrix)
         el_grad = np.dot(np.linalg.pinv(distance_matrix), np.transpose(delta_data_vector))
+        print(distance_matrix)
+        print(weights_vector)
         return np.squeeze(el_grad)
         
