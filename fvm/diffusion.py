@@ -125,9 +125,8 @@ class OrthogonalDiffusion(FaceComputer):
                                                                      diffusion_coeff = diffusion_coeff)
                     bc_dir_value = bc_val
                     # rework ::: check sign
-                    print(bc_key, bc_val)
                     rhs_vec[elem_ind] += -bc_dir_value*face_coeff 
-                    matrix[elem_ind,elem_ind] += -bc_dir_value*face_coeff 
+                    matrix[elem_ind,elem_ind] += -face_coeff 
                 if type == 'neumann' : 
                     # Treat a Von Neumann bc 
                     surface_area = mesh._calc_surface_area(face_nodes)

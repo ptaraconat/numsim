@@ -205,9 +205,9 @@ def test_ortho_diff_neumbnd(mesh_fixture2):
 def test_ortho_diff_operator(mesh_fixture3):
     diff_op = OrthogonalDiffusion()
     boundary_conditions = {'inlet' : {'type' : 'dirichlet',
-                                      'value' : 1},
+                                      'value' : 0},
                            'outlet' : {'type' : 'dirichlet',
-                                       'value' : 0},
+                                       'value' : 3},
                            'wall' : {'type' : 'neumann',
                                      'value' : np.array([0,0,0])}}
     
@@ -217,8 +217,13 @@ def test_ortho_diff_operator(mesh_fixture3):
                        diffusion_coeff=1.)
     print(mat)
     print(rhs)
-    print(np.linalg.solve(mat,rhs))
-    print(np.linalg.inv(mat))
-    print(rhs)
-    assertion = False 
+    solution = np.linalg.solve(mat,rhs)
+    print(solution)
+    
+    expected_mat = np.array([[-3, 1, 0],
+                              [1, -2, 1],
+                              [0, 1, -3]])
+    expected_rhs = np.array([[0],[0],[-6]])
+    assertion = np.all(mat == expected_mat) and np.all(rhs == expected_rhs)
+    
     assert assertion 
