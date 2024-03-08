@@ -5,6 +5,7 @@ import sys as sys
 sys.path.append('../')
 from meshe.mesh import * 
 from fvm.gradient import *
+from fvm.diffusion import * 
 
 gmsh.initialize()
 gmsh.model.add('test_model')
@@ -67,10 +68,27 @@ grad_computer = LSGradient('T','gradT', mesh)
 #        print(i,grad)
 #        print(mesh.elements_intf_conn[i]) 
 grad_computer.calculate_gradients()
-
 # 
 mesh.set_boundary_faces()
-print(mesh.elements_bndf_conn)
-print(mesh.bndfaces_elem_conn)
-print(len(mesh.elements_bndf_conn))
-print(np.shape(mesh.bndfaces_elem_conn))
+#print(mesh.elements_bndf_conn)
+#print(mesh.bndfaces_elem_conn)
+#print(len(mesh.elements_bndf_conn))
+#print(np.shape(mesh.bndfaces_elem_conn))
+
+print(mesh.bndfaces_tags)
+print(mesh.physical_entities)
+
+boundary_conditions = {'inlet' : {'type' : 'dirichlet',
+                                  'value' : 10},
+                       'outlet' : {'type' : 'dirichlet',
+                                   'value' : 0},
+                       'wall' : {'type' : 'neumann',
+                                 'value' : np.array([0,0,0])}}
+
+diffusion_op = OrthogonalDiffusion()
+
+mat, rhs_vec = diffusion_op(mesh,boundary_conditions)
+print(mat)
+print(rhs_vec)
+solution = np.linalg.solve(mat,rhs_vec)
+print(solution)

@@ -27,7 +27,25 @@ class Mesh :
         # data 
         self.elements_centroids = None 
         self.elements_data = {}
-    
+        self.physical_entities = None 
+        
+    def _get_bc_index(self,bc_name): 
+        '''
+        arguments 
+        bc_name ::: str ::: name of the boundary condition
+        returns 
+        bc_index ::: int ::: index label of that boundary, if if exists
+        '''
+        return self.physical_entities[bc_name][0]
+        
+    def _get_boundary_elements_index(self, N = 6):
+        '''
+        returns 
+        index_list ::: list of int ::: indexes of elements located at a boundary
+        '''
+        index_list = [i for i,el_conn in enumerate(self.elements_intf_conn) if  len(el_conn) < N]
+        return index_list
+        
     def set_elements_centroids(self):
         '''
         set the elements centroid array 
@@ -107,6 +125,22 @@ class Mesh :
             elem_intf_conn[elem_ind1].append(surf_ind)
             elem_intf_conn[elem_ind2].append(surf_ind)
         self.elements_intf_conn = elem_intf_conn
+        
+    def _calc_vertex_face_distance(self,vertex,face):
+        '''
+        arguments 
+        vertex ::: np.array (3,) ::: coordinates of the vertex
+        face ::: np.array(n_node,3) ::: coordinates of nodes defining 
+        the faces (n_node >= 3). 
+        returns 
+        distance ::: float ::: distance between vertex and plane (shortest distance)
+        '''
+        unit_normal = self._calc_surface_normal(face)
+        p1 = face[0]
+        vec_tmp = vertex - p1
+        distance = np.dot(vec_tmp, unit_normal)
+        return np.abs(distance)
+        
     
     def _calc_centroid(self,element):
         '''
@@ -235,6 +269,46 @@ class Mesh :
             face_paired_index = None 
         return bool_face, face_paired_index
 
+class HexaMesh(Mesh) : 
+    
+    def __init__(self):
+        '''
+        arguments : 
+        dimension ::: int ::: dimension of the domain (1, 2 or 3)
+        type ::: str ::: elements type 
+        '''
+        super().__init__(dimension = 3, type = 'hexa')
+    
+    def _get_element_faces(self,element):
+        '''
+        argument 
+        element ::: np.array(n_nodes,) ::: array containing the nodes index that 
+        defines the element 
+        returns 
+        faces ::: list of lists of int ::: list of faces. Each face being defined 
+        as a list of nodes index
+        '''
+        node1, node2, node3, node4 = element 
+        face1 = [node1, node2, node3, node4]
+        face2 = []
+        face3 = []
+        face4 = []
+        face5 = []
+        face6 = []
+        faces = [face1, face2, face3, face4, face5, face6]
+        return faces
+    
+    def _get_boundary_elements_index(self):
+        '''
+        returns 
+        index_list ::: list of int ::: indexes of elements located at a boundary
+        '''
+        index_list = [i for i,el_conn in enumerate(self.elements_intf_conn) if  len(el_conn) < 6]
+        return index_list
+        
+    
+    
+
 class TetraMesh(Mesh): 
 
     def __init__(self):
@@ -269,6 +343,7 @@ class TetraMesh(Mesh):
         self.elements = vol_elements
         self.bndfaces = surf_elements
         self.bndfaces_tags = surf_tags
+        self.physical_entities = mesh.field_data
 
     def _get_element_faces(self,element):
         '''
