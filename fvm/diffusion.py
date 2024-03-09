@@ -7,6 +7,26 @@ class FaceComputer :
         self.operator_name = name
         self.operator_type = type
 
+class NonOthogonalDiffusion(FaceComputer):
+    '''
+    '''
+    
+    def __init__(self):
+        super().__init__('Non-Orto_diffusion', 'explicit')
+    
+    def cal_surface_coef(self,face_gradient,surface_area, surface_vector,diffusion_coeff = 1):
+        '''
+        arguments 
+        face_gradient ::: np.array (3,) ::: gradient at the face 
+        surface_area ::: float ::: area of the face
+        surface_vector ::: np.array (3,) ::: vector associated with that face
+        diffusion_coef ::: float ::: material parameter. Diffusion coefficient 
+        returns 
+        face_coeff ::: float ::: explicit non-orthogonal 
+        '''
+        face_coeff = diffusion_coeff*surface_area*np.abs(np.dot(face_gradient,surface_vector))
+        return face_coeff
+
 class OrthogonalDiffusion(FaceComputer):
     '''
     '''

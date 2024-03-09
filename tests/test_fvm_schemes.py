@@ -236,3 +236,17 @@ def test_ls_gradient_withweights(lsgrad_fixture):
     print(gradient0,gradient1)
     assertion = assertion = np.all(gradient0 == expected_grad) and np.all(gradient1 == expected_grad)
     assert assertion 
+    
+def test_nonortho_diff_intface():
+    face_gradient = np.array([4,0,0])
+    face_area = 1.5
+    face_vector = np.array([0.1,0.5,0])
+    diffusion = 1. 
+    non_orthodiff = NonOthogonalDiffusion()
+    face_coeff = non_orthodiff.cal_surface_coef(face_gradient,
+                                                face_area,
+                                                face_vector,
+                                                diffusion_coeff=diffusion)
+    print(face_coeff)
+    assertion = False 
+    assert assertion 
