@@ -83,8 +83,11 @@ class LSGradient(ElementsGradientComputer):
         # Uses Pseudo inverse to solve the gradients
         delta_data_vector = np.asarray(delta_data_vector)
         distance_matrix = np.asarray(distance_matrix)
+        weights_vector = np.asarray(weights_vector)
+        if self.weighting : 
+            delta_data_vector = np.multiply(weights_vector,delta_data_vector)
+            distance_matrix = distance_matrix*weights_vector[:, np.newaxis]
+            
         el_grad = np.dot(np.linalg.pinv(distance_matrix), np.transpose(delta_data_vector))
-        print(distance_matrix)
-        print(weights_vector)
         return np.squeeze(el_grad)
         
