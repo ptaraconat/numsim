@@ -126,6 +126,29 @@ class Mesh :
             elem_intf_conn[elem_ind2].append(surf_ind)
         self.elements_intf_conn = elem_intf_conn
         
+    def _calc_face_pairnode_theta(self,face,node1,node2):
+        '''
+        arguments 
+        face ::: np.array(n_node,3) ::: coordinates of nodes defining 
+        the faces (n_node >= 3). 
+        node1 ::: np.array(3,) ::: coordinates of node1
+        node2 ::: np.array(3,) ::: coordinates of node2
+        returns 
+        angle ::: float :: angle (in radians) between the face normal and
+        the node1/node2 direction. 
+        '''
+        pairnode_vec = node1 - node2 
+        face_normal = self._calc_surface_normal(face)
+        dot_prod = np.dot(pairnode_vec,face_normal)
+        # Calculate the magnitudes of the vectors
+        pairnode_vec_mag = np.linalg.norm(pairnode_vec)
+        face_normal_mag = np.linalg.norm(face_normal)
+        # Calculate the cosine of the angle
+        cosine_angle = dot_prod / (pairnode_vec_mag * face_normal_mag)
+        # Calculate the angle in radians
+        angle = np.arccos(cosine_angle)
+        return angle
+        
     def _calc_vertex_face_distance(self,vertex,face):
         '''
         arguments 

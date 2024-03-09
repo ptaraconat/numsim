@@ -227,4 +227,15 @@ def test_surface_vertex_distance(mesh_fixture4):
     print(vertex)
     print(distance2)
     assertion = (distance1 == 0.25) and (distance2 == 0.125)
-    assert assertion                    
+    assert assertion  
+    
+def test_face_pairnod_angle(mesh_fixture):
+    surface_element = np.array([[0, 0, 0],
+                                [0, 1., 0],
+                                [1., 0, 0]])
+    node1 = np.array([0.25, 0.25, -1])
+    node2 = np.array([0.25, 0.25, 1])
+    theta = mesh_fixture._calc_face_pairnode_theta(surface_element,node1, node2)
+    print(np.degrees(theta))
+    assertion = False 
+    assert assertion                   
