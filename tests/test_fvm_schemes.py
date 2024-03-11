@@ -4,6 +4,7 @@ sys.path.append('.')
 from fvm.gradient import * 
 from meshe.mesh import TetraMesh
 from fvm.diffusion import * 
+from fvm.interpolation import * 
 
 @pytest.fixture 
 def lsgrad_fixture():
@@ -237,6 +238,31 @@ def test_ls_gradient_withweights(lsgrad_fixture):
     assertion = assertion = np.all(gradient0 == expected_grad) and np.all(gradient1 == expected_grad)
     assert assertion 
     
+def test_face_interpolation():
+    surface_element = np.array([[0, 0, 0.],
+                                [0, 1., 0.],
+                                [1., 1., 0.],
+                                [1., 0, 0.]])
+    node1 = np.array([0.25, 0.25, -0.25])
+    node2 = np.array([0.25, 0.25, 0.5])
+    value1 = 0
+    value2 = 9
+    pair_face_intersc = Mesh()._calc_face_pairnode_intersection(surface_element,
+                                                                node1,
+                                                                node2)
+    print(pair_face_intersc)
+    interpolator = FaceInterpolattion()
+    interpolated_val = interpolator.face_computation(node1,
+                                                     node2,
+                                                     value1,
+                                                     value2,
+                                                     pair_face_intersc)
+    print(interpolated_val)
+    expected_value = 3.
+    print(expected_value)
+    assertion =  interpolated_val == expected_value
+    assert assertion 
+    
 def test_nonortho_diff_intface():
     face_gradient = np.array([4,0,0])
     face_area = 1.5
@@ -249,4 +275,34 @@ def test_nonortho_diff_intface():
                                                 diffusion_coeff=diffusion)
     print(face_coeff)
     assertion = False 
+    assert assertion 
+    
+def test_face_gradient_interpolation():
+    surface_element = np.array([[0, 0, 0.],
+                                [0, 1., 0.],
+                                [1., 1., 0.],
+                                [1., 0, 0.]])
+    node1 = np.array([0.25, 0.25, -0.25])
+    node2 = np.array([0.25, 0.25, 0.5])
+    value1 = 0
+    grad_val1 = np.array([0,1,0])
+    value2 = 9
+    grad_val2 = np.array([0,4,3])
+    pair_face_intersc = Mesh()._calc_face_pairnode_intersection(surface_element,
+                                                                node1,
+                                                                node2)
+    print(pair_face_intersc)
+    interpolator = FaceGradientInterpolation()
+    interpolated_val = interpolator.face_computation(node1,
+                                                     node2,
+                                                     value1,
+                                                     value2,
+                                                     grad_val1,
+                                                     grad_val2,
+                                                     pair_face_intersc)
+    print(interpolated_val)
+    expected_value = np.array([0,2,12])
+    
+    
+    assertion = np.all(interpolated_val == expected_value)
     assert assertion 

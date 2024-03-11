@@ -126,6 +126,29 @@ class Mesh :
             elem_intf_conn[elem_ind2].append(surf_ind)
         self.elements_intf_conn = elem_intf_conn
         
+    def _calc_face_pairnode_intersection(self,face,node1,node2):
+        '''
+        arguments 
+        face ::: np.array(n_node,3) ::: coordinates of nodes defining 
+        the faces (n_node >= 3). 
+        node1 ::: np.array(3,) ::: coordinates of node1
+        node2 ::: np.array(3,) ::: coordinates of node2
+        returns 
+        intersection_vertex ::: np.array(3,) :::
+        '''
+        face_normal = self._calc_surface_normal(face)
+        point_on_plane = np.squeeze(face[0,:])
+        vector_start = node1
+        vector_end = node2
+        # Calculate the direction vector of the line
+        vector_direction = vector_end - vector_start
+        # Calculate the parameter t for the vector equation (intersection point)
+        t = np.dot(face_normal, (point_on_plane - vector_start)) / np.dot(face_normal, vector_direction)
+        # Calculate the intersection point
+        intersection_vertex = vector_start + t * vector_direction
+        return intersection_vertex
+        
+        
     def _calc_face_pairnode_theta(self,face,node1,node2):
         '''
         arguments 
