@@ -305,3 +305,17 @@ def test_face_gradient_interpolation():
     
     assertion = np.all(interpolated_val == expected_value)
     assert assertion 
+
+def test_over_relaxed_decomp():
+    diff_op = NonOthogonalDiffusion(method = 'over_relaxed')
+    face = np.array([[0, 0, 0.],
+                     [0, 1., 0.],
+                     [1., 1., 0.],
+                     [1., 0, 0.]])
+    node1 = np.array([0.25, 0.25, -0.25])
+    node2 = np.array([0.25, 0.25, 0.5])
+    ortho, nonortho = diff_op._decompose_normal(face,node1, node2)
+    print(ortho)
+    print(nonortho)
+    assertion = False 
+    assert assertion 

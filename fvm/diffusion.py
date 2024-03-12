@@ -11,8 +11,9 @@ class NonOthogonalDiffusion(FaceComputer):
     '''
     '''
     
-    def __init__(self):
+    def __init__(self, method = 'over_relaxed'):
         super().__init__('Non-Orto_diffusion', 'explicit')
+        self.method = method
     
     def cal_surface_coef(self,face_gradient,surface_area, surface_vector,diffusion_coeff = 1):
         '''
@@ -26,6 +27,29 @@ class NonOthogonalDiffusion(FaceComputer):
         '''
         face_coeff = diffusion_coeff*surface_area*np.abs(np.dot(face_gradient,surface_vector))
         return face_coeff
+    
+    def _decompose_normal(self,face, centroid1, centroid2):
+        '''
+        arguments 
+        face ::: np.array (n_nodes,3) :::
+        centroid1 ::: np.array (3,) :::
+        centroid2 ::: np.array (3,) :::
+        method ::: string :::
+        returns 
+        ortho_component ::: np.array (3,) :::
+        nonortho_component ::: np.array (3,) :::
+        '''
+        theta = Mesh()._calc_face_pairnode_theta(face,centroid1, centroid2)
+        centroids_vector = centroid2 - centroid1
+        centroids_distance = np.sqrt(np.sum(centroids_vector**2.))
+        centroids_unit_vector = centroids_vector/centroids_distance
+        face_normal = Mesh()._calc_surface_normal(face)
+        face_area = Mesh()._calc_surface_area(face)
+        if self.method == 'over_relaxed' : 
+            print('over relaxed non orthogonal correction')
+            ortho_component = (face_area/np.cos(theta))*centroids_unit_vector
+            nonortho_component = face_area*face_normal - ortho_component
+        return ortho_component, nonortho_component 
     
     def __call__(self,mesh,boundary_conditions,diffusion_coeff = 1):
         '''
