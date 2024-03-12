@@ -26,6 +26,17 @@ class NonOthogonalDiffusion(FaceComputer):
         '''
         face_coeff = diffusion_coeff*surface_area*np.abs(np.dot(face_gradient,surface_vector))
         return face_coeff
+    
+    def __call__(self,mesh,boundary_conditions,diffusion_coeff = 1):
+        '''
+        arguments 
+        mesh ::: numsim.meshe.mesh.Mesh ::: mesh on which the diffusion operator is calculated
+        boundary_conditions ::: dictionnary ::: dictionnary that specifies the boundary conditions 
+        diffusion_coeff ::: float ::: 
+        returns 
+        matrix ::: np.array (n_elem,n_elem) :::
+        '''
+        pass 
 
 class OrthogonalDiffusion(FaceComputer):
     '''

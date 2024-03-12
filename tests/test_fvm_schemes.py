@@ -264,9 +264,9 @@ def test_face_interpolation():
     assert assertion 
     
 def test_nonortho_diff_intface():
-    face_gradient = np.array([4,0,0])
-    face_area = 1.5
-    face_vector = np.array([0.1,0.5,0])
+    face_gradient = np.array([4,0,1])
+    face_area = 2.
+    face_vector = np.array([3.,4,0])
     diffusion = 1. 
     non_orthodiff = NonOthogonalDiffusion()
     face_coeff = non_orthodiff.cal_surface_coef(face_gradient,
@@ -274,7 +274,7 @@ def test_nonortho_diff_intface():
                                                 face_vector,
                                                 diffusion_coeff=diffusion)
     print(face_coeff)
-    assertion = False 
+    assertion = face_coeff == 24
     assert assertion 
     
 def test_face_gradient_interpolation():
@@ -302,7 +302,6 @@ def test_face_gradient_interpolation():
                                                      pair_face_intersc)
     print(interpolated_val)
     expected_value = np.array([0,2,12])
-    
     
     assertion = np.all(interpolated_val == expected_value)
     assert assertion 

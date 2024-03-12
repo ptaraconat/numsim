@@ -262,15 +262,43 @@ def test_face_pairnode_intersect2(mesh_fixture):
     assert assertion  
     
 def test_face_pairnod_angle(mesh_fixture):
-    surface_element = np.array([[0, 0, 0],
-                                [0, 1., 0],
-                                [1., 0, 0]])
-    node1 = np.array([0.25, 0.25, -1])
-    node2 = np.array([0.25, 0.25, 1])
+    surface_element = np.array([[-1, -1, -1],
+                                [-1, 1., 1],
+                                [1., 1., 1],
+                                [1., -1., -1]])
+    node2 = np.array([0.25, 0.25, -1])
+    node1 = np.array([0.25, 0.25, 1])
     theta = mesh_fixture._calc_face_pairnode_theta(surface_element,node1, node2)
     print(np.degrees(theta))
-    assertion = False 
+    print(theta)
+    print(np.pi/4)
+    assertion = np.degrees(theta) == 45 
     assert assertion  
     
+def test_face_pairnod_angle2(mesh_fixture):
+    surface_element = np.array([[-1, -1, 0],
+                                [-1, 1., 0],
+                                [1., 1., 0],
+                                [1., -1., 0]])
+    node2 = np.array([0.25, 0.25, -1])
+    node1 = np.array([0.25, 0.25, 1])
+    theta = mesh_fixture._calc_face_pairnode_theta(surface_element,node1, node2)
+    print(np.degrees(theta))
+    assertion = np.degrees(theta) == 0 
+    assert assertion  
+    
+def test_face_pairnod_angle3(mesh_fixture):
+    surface_element = np.array([[-1, -1, -1],
+                                [-1, 1., 1],
+                                [1., 1., 1],
+                                [1., -1., -1]])
+    node2 = np.array([0.25, 0.25, 1])
+    node1 = np.array([0.25, 0.25, -1])
+    theta = mesh_fixture._calc_face_pairnode_theta(surface_element,node1, node2)
+    print(np.degrees(theta))
+    print(theta)
+    print(np.pi/4)
+    assertion = np.degrees(theta) == 45 
+    assert assertion 
 
                 

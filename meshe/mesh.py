@@ -169,7 +169,7 @@ class Mesh :
         # Calculate the cosine of the angle
         cosine_angle = dot_prod / (pairnode_vec_mag * face_normal_mag)
         # Calculate the angle in radians
-        angle = np.arccos(cosine_angle)
+        angle = np.arccos(np.abs(cosine_angle))
         return angle
         
     def _calc_vertex_face_distance(self,vertex,face):

@@ -24,7 +24,7 @@ class FaceInterpolattion(FaceComputer):
         distance1 = np.sqrt(np.sum( (face_intrsc_vertex-centroid1)**2. ))
         distance2 = np.sqrt(np.sum( (face_intrsc_vertex-centroid2)**2. ))
         # Calculate distances between centroid sharing the face 
-        centroids_distance = np.sqrt(np.sum( (centroid1-centroid2)**2. ))
+        centroids_distance = distance1 + distance2 #np.sqrt(np.sum( (centroid1-centroid2)**2. ))
         # Calculate centroids weights 
         weight1 = distance2/centroids_distance
         weight2 = distance1/centroids_distance
