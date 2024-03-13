@@ -110,6 +110,68 @@ def mesh_fixture3():
     #mesh.set_boundary_faces()
     return mesh
 
+    
+@pytest.fixture 
+def mesh_fixture4():
+    mesh = Mesh()
+    dx = 1. 
+    mesh.nodes = np.array([[0, 0 ,0],
+                           [0, dx, 0],
+                           [0, dx, dx],
+                           [0, 0, dx],
+                           [dx, 0 ,0],
+                           [dx, dx, 0],
+                           [dx, dx, dx],
+                           [dx, 0, dx],
+                           [2*dx, 0 ,0],
+                           [2*dx, dx, 0],
+                           [2*dx, dx, dx],
+                           [2*dx, 0, dx],
+                           [3*dx, 0 ,0],
+                           [3*dx, dx, 0],
+                           [3*dx, dx, dx],
+                           [3*dx, 0, dx]])
+    mesh.elements = np.array([[1,2,3,4,5,6,7,8],
+                              [5,6,7,8,9,10,11,12],
+                              [9,10,11,12,13,14,15,16]]) - 1
+    mesh.bndfaces = np.array([[1,2,3,4],
+                              [1,5,8,4],
+                              [2,6,7,3],
+                              [5,9,12,8],
+                              [6,10,11,7],
+                              [9,13,16,12],
+                              [10,14,15,11],
+                              [13,14,15,16]]) -1
+    mesh.intfaces = np.array([[5,6,7,8],
+                              [9,10,11,12]]) -1
+    mesh.intfaces_elem_conn = np.array([[1,2],
+                                        [2,3]]) - 1
+    mesh.elements_bndf_conn = [[0,1,2],
+                               [3,4],
+                               [5,6,7]]
+    mesh.bndfaces_elem_conn = np.expand_dims(np.array([1,1,1,2,2,3,3,3]),axis = 1)-1
+    mesh.bndfaces_tags = np.array([1,2,2,2,2,2,2,3])
+    mesh.physical_entities = {'inlet': np.array([1,   2]), 
+                              'outlet': np.array([3,   2]), 
+                              'wall': np.array([2,   2])}
+
+    mesh.set_elements_intfaces_connectivity()
+    mesh.set_elements_centroids()
+    #mesh.set_boundary_faces()
+    # set data 
+    def function(x,y,z):
+        return 4*x + 0*y + 0*z
+    mesh.set_elements_data('t', function)
+    #def function(x,y,z):
+    #    return 4, 0, 0
+    #mesh.set_elements_data('gradt', function)
+    grad_tmp = np.array([[4,0,0],
+                         [4,0,0],
+                         [4,0,0]])
+    mesh.elements_data['gradt'] = grad_tmp
+    
+    return mesh
+
 def test_ls_gradient(lsgrad_fixture): 
     gradient0 = lsgrad_fixture.calc_element_gradient(0)
     gradient1 = lsgrad_fixture.calc_element_gradient(1)
@@ -314,8 +376,35 @@ def test_over_relaxed_decomp():
                      [1., 0, 0.]])
     node1 = np.array([0.25, 0.25, -0.25])
     node2 = np.array([0.25, 0.25, 0.5])
-    ortho, nonortho = diff_op._decompose_normal(face,node1, node2)
+    ortho, nonortho = diff_op._decompose_normal(face,node2, node1)
     print(ortho)
     print(nonortho)
-    assertion = False 
+    assertion = np.all(ortho == np.array([0,0,-1])) and np.all(nonortho == np.array([0,0,0]))
+    assert assertion 
+    
+def test_nonortho_diff_operator(mesh_fixture4):
+    diff_op = NonOthogonalDiffusion(data_name = 't', 
+                                    grad_data_name = 'gradt',
+                                    method = 'over_relaxed')
+    boundary_conditions = {'inlet' : {'type' : 'dirichlet',
+                                      'value' : 0},
+                           'outlet' : {'type' : 'dirichlet',
+                                       'value' : 3},
+                           'wall' : {'type' : 'neumann',
+                                     'value' : np.array([0,0,0])}}
+    
+    mat, rhs = diff_op(mesh_fixture4, 
+                       boundary_conditions, 
+                       diffusion_coeff=1.)
+    print(mat)
+    print(rhs)
+    #solution = np.linalg.solve(mat,rhs)
+    #print(solution)
+    
+    expected_mat = np.array([[-3, 1, 0],
+                              [1, -2, 1],
+                              [0, 1, -3]])
+    expected_rhs = np.array([[0],[0],[-6]])
+    assertion = False#np.all(mat == expected_mat) and np.all(rhs == expected_rhs)
+    
     assert assertion 

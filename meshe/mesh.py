@@ -64,7 +64,7 @@ class Mesh :
         functional ::: callable object ::: function of centroids coordinates 
         that defines the data 
         '''
-        if self.elements_centroids == None :
+        if np.all(self.elements_centroids == None) :
             self.set_elements_centroids()
         x_arr = self.elements_centroids[:,0]
         y_arr = self.elements_centroids[:,1]
