@@ -43,8 +43,6 @@ class LSGradient(ElementsGradientComputer):
         '''
         super().__init__(dataname, gdataname, mesh)
         self.weighting = weighting
-        
-    
 
     def calc_element_gradient(self,elem_indice):
         '''
@@ -87,7 +85,10 @@ class LSGradient(ElementsGradientComputer):
         if self.weighting : 
             delta_data_vector = np.multiply(weights_vector,delta_data_vector)
             distance_matrix = distance_matrix*weights_vector[:, np.newaxis]
-            
-        el_grad = np.dot(np.linalg.pinv(distance_matrix), np.transpose(delta_data_vector))
+        #print(np.linalg.pinv(distance_matrix),np.shape(np.linalg.pinv(distance_matrix)))
+        #print(np.transpose(delta_data_vector),np.shape(np.transpose(delta_data_vector)))
+        #el_grad = np.dot(np.linalg.pinv(distance_matrix), np.transpose(delta_data_vector))
+        el_grad = np.dot(np.linalg.pinv(distance_matrix), delta_data_vector)
+        #print(el_grad, np.shape(el_grad))
         return np.squeeze(el_grad)
         

@@ -58,20 +58,19 @@ def function(x,y,z):
 mesh.set_elements_data('T', function)
 # calc data gradient 
 grad_computer = LSGradient('T','gradT', mesh,weighting=True)
-count = 0 
-for i in range(len(mesh.elements)):
-    grad = grad_computer.calc_element_gradient(i)
-    gradx = grad[0]
-    err = np.abs((4 - gradx)/4) * 100
-    if err > 1 : 
-        count += 1
-        print(i,grad)
-        print(mesh.elements_intf_conn[i]) 
-print(count)
+#count = 0 
+#for i in range(len(mesh.elements)):
+#    grad = grad_computer.calc_element_gradient(i)
+#    gradx = grad[0]
+#    err = np.abs((4 - gradx)/4) * 100
+#    if err > 1 : 
+#        count += 1
+#        print(i,grad)
+#        print(mesh.elements_intf_conn[i]) 
+#print(count)
 grad_computer.calculate_gradients()
 # 
 mesh.set_boundary_faces()
-
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                   'value' : 10},
                        'outlet' : {'type' : 'dirichlet',
@@ -81,5 +80,25 @@ boundary_conditions = {'inlet' : {'type' : 'dirichlet',
 
 diffusion_op = OrthogonalDiffusion()
 mat, rhs_vec = diffusion_op(mesh,boundary_conditions)
-solution = np.linalg.solve(mat,rhs_vec)
-print(solution)
+solution1 = np.linalg.solve(mat,rhs_vec)
+#print(solution)
+
+# Init data 
+def function(x,y,z):
+    return 0*x + 0*y + 0*z
+mesh.set_elements_data('temp', function)
+mesh.set_elements_data('grad_temp', function)
+gradient_computer = LSGradient('temp', 'grad_temp', mesh, weighting = False)
+diff_op = NonOthogonalDiffusion(data_name = 'temp', 
+                                grad_data_name = 'grad_temp',
+                                method = 'over_relaxed')
+for i in range(1): 
+        mat, rhs = diff_op(mesh, 
+                           boundary_conditions, 
+                           diffusion_coeff=1.)
+        #print(mat)
+        #print(rhs)
+        solution = np.linalg.solve(mat,rhs)
+        mesh.elements_data['temp'] = solution
+        gradient_computer.calculate_gradients()
+print(np.abs(mesh.elements_data['temp']-solution1))
