@@ -27,7 +27,20 @@ class Mesh :
         # data 
         self.elements_centroids = None 
         self.elements_data = {}
-        self.physical_entities = None 
+        self.physical_entities = None
+        
+    def save_vtk(self,output_file = 'dump.vtk'):
+        '''
+        '''
+        # Create meshio.Mesh object
+        mesh = meshio.Mesh(
+            points=self.nodes,
+            cells={"tetra": self.elements}#,
+            #cell_data={
+            #    "tetra": self.elements_data
+            #}
+        )
+        meshio.write(output_file, mesh, file_format="vtk")
         
     def _get_bc_index(self,bc_name): 
         '''

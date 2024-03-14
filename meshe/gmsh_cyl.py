@@ -82,6 +82,8 @@ diffusion_op = OrthogonalDiffusion()
 mat, rhs_vec = diffusion_op(mesh,boundary_conditions)
 solution1 = np.linalg.solve(mat,rhs_vec)
 #print(solution)
+mesh.elements_data['orthodiff_solution'] = solution1
+mesh.save_vtk()
 
 # Init data 
 def function(x,y,z):
