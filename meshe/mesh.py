@@ -33,13 +33,18 @@ class Mesh :
         '''
         '''
         # Create meshio.Mesh object
+        print(self.elements_data)
+        data = {}
+        for key,val in self.elements_data.items():
+            data[key] = [val.tolist()]
+            print(key, np.shape(val))
+        #data = {'T' : [self.elements_data['orthodiff_solution']]}
         mesh = meshio.Mesh(
             points=self.nodes,
-            cells={"tetra": self.elements}#,
-            #cell_data={
-            #    "tetra": self.elements_data
-            #}
+            cells=[("tetra", self.elements)],
+            cell_data=data
         )
+        print(mesh.cell_data)
         meshio.write(output_file, mesh, file_format="vtk")
         
     def _get_bc_index(self,bc_name): 

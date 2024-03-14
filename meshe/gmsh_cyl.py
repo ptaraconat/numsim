@@ -103,4 +103,4 @@ for i in range(1):
         solution = np.linalg.solve(mat,rhs)
         mesh.elements_data['temp'] = solution
         gradient_computer.calculate_gradients()
-print(np.abs(mesh.elements_data['temp']-solution1))
+#print(np.abs(mesh.elements_data['temp']-solution1))
