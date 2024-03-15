@@ -26,25 +26,27 @@ class Mesh :
         self.nodes = None 
         # data 
         self.elements_centroids = None 
+        self.bndfaces_centroids = None 
         self.elements_data = {}
+        self.bndfaces_data = {}
         self.physical_entities = None
         
     def save_vtk(self,output_file = 'dump.vtk'):
         '''
         '''
         # Create meshio.Mesh object
-        print(self.elements_data)
+        #print(self.elements_data)
         data = {}
         for key,val in self.elements_data.items():
             data[key] = [val.tolist()]
-            print(key, np.shape(val))
+            #print(key, np.shape(val))
         #data = {'T' : [self.elements_data['orthodiff_solution']]}
         mesh = meshio.Mesh(
             points=self.nodes,
             cells=[("tetra", self.elements)],
             cell_data=data
         )
-        print(mesh.cell_data)
+        #print(mesh.cell_data)
         meshio.write(output_file, mesh, file_format="vtk")
         
     def _get_bc_index(self,bc_name): 
@@ -89,6 +91,32 @@ class Mesh :
         z_arr = self.elements_centroids[:,2]
         data_arr = functional(x_arr,y_arr,z_arr)
         self.elements_data[dataname] = data_arr
+    
+    def set_bndfaces_centroids(self):
+        '''
+        set the doundary faces centroid array 
+        '''
+        centroids_arr = np.zeros((np.size(self.bndfaces,0),3))
+        for i,face in enumerate(self.bndfaces) : 
+            face_nodes_coordinates = self.nodes[face]
+            centroid = self._calc_centroid(face_nodes_coordinates)
+            centroids_arr[i,:] = centroid
+        self.bndfaces_centroids = centroids_arr
+    
+    def set_bndfaces_data(self,dataname, functional):
+        '''
+        argument 
+        dataname ::: string ::: name of the element data 
+        functional ::: callable object ::: function of centroids coordinates 
+        that defines the data 
+        '''
+        if np.all(self.bndfaces_centroids == None) :
+            self.set_bndfaces_centroids()
+        x_arr = self.bndfaces_centroids[:,0]
+        y_arr = self.bndfaces_centroids[:,1]
+        z_arr = self.bndfaces_centroids[:,2]
+        data_arr = functional(x_arr,y_arr,z_arr)
+        self.bndfaces_data[dataname] = data_arr
 
     def set_internal_faces(self): 
         '''

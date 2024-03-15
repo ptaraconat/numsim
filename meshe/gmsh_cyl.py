@@ -47,6 +47,7 @@ mesh = TetraMesh()
 mesh.gmsh_reader('test.msh')
 mesh.set_internal_faces()
 mesh.set_elements_intfaces_connectivity()
+mesh.set_boundary_faces()
 print('NUmber of nodes : ', np.shape(mesh.nodes))
 print('Number of elements :',np.shape(mesh.elements))
 print('Number of boundary faces :',np.shape(mesh.bndfaces))
@@ -56,8 +57,9 @@ print('Number of internal faces :', np.shape(mesh.intfaces))
 def function(x,y,z):
     return 4*x + 0*y + 0*z
 mesh.set_elements_data('T', function)
+mesh.set_bndfaces_data('T', function)
 # calc data gradient 
-grad_computer = LSGradient('T','gradT', mesh,weighting=True)
+grad_computer = LSGradient('T','gradT', mesh,weighting=True,use_boundaries=True)
 #count = 0 
 #for i in range(len(mesh.elements)):
 #    grad = grad_computer.calc_element_gradient(i)
@@ -65,10 +67,11 @@ grad_computer = LSGradient('T','gradT', mesh,weighting=True)
 #    err = np.abs((4 - gradx)/4) * 100
 #    if err > 1 : 
 #        count += 1
-#        print(i,grad)
-#        print(mesh.elements_intf_conn[i]) 
+#    print(i,grad)
+#    print(mesh.elements_intf_conn[i]) 
 #print(count)
 grad_computer.calculate_gradients()
+print(mesh.elements_data['gradT'])
 # 
 mesh.set_boundary_faces()
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',

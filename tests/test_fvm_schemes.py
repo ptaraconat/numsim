@@ -6,6 +6,8 @@ from meshe.mesh import TetraMesh
 from fvm.diffusion import * 
 from fvm.interpolation import * 
 
+EPSILON = 1e-10
+
 @pytest.fixture 
 def lsgrad_fixture():
     mesh = TetraMesh()
@@ -16,11 +18,20 @@ def lsgrad_fixture():
                            [-1, 0, 0]])
     mesh.elements = np.array([[0, 1, 2, 3],
                               [0,4,1,3]])
+    mesh.bndfaces = np.array([[0,1,2],
+                              [0,2,3],
+                              [1,2,3],
+                              [0,4,1],
+                              [0,4,3],
+                              [4,1,3]])
+    
     mesh.set_internal_faces()
     mesh.set_elements_intfaces_connectivity()
+    mesh.set_boundary_faces()
     def function(x,y,z):
         return 4*x + 0*y + 0*z
     mesh.set_elements_data('T', function)
+    mesh.set_bndfaces_data('T', function)
     grad_computer = LSGradient('T','gradT', mesh)
     return grad_computer
 
@@ -518,4 +529,14 @@ def test_nonortho_diff_operator2(mesh_fixture5):
         print(mesh_fixture5.elements_data['temp'])
         #print(mesh_fixture5.elements_data['grad_temp'])
     assertion = False 
-    assert assertion 
+    assert assertion
+    
+def test_ls_gradient_with_bndval(lsgrad_fixture): 
+    lsgrad_fixture.use_boundaries = True
+    gradient0 = lsgrad_fixture.calc_element_gradient(0)
+    gradient1 = lsgrad_fixture.calc_element_gradient(1)
+    expected_grad = np.array([4, 0, 0])
+    print(gradient0)
+    print(gradient1)
+    assertion = np.all(np.abs(gradient0 - expected_grad) < EPSILON) and np.all(np.abs(gradient1 - expected_grad) < EPSILON)
+    assert assertion  

@@ -30,7 +30,7 @@ class ElementsGradientComputer :
 
 class LSGradient(ElementsGradientComputer): 
     
-    def __init__(self,dataname, gdataname, mesh, weighting = False): 
+    def __init__(self,dataname, gdataname, mesh, weighting = False, use_boundaries = False): 
         '''
         arguments 
         dataname ::: string ::: name of the data for which 
@@ -40,11 +40,13 @@ class LSGradient(ElementsGradientComputer):
         gradient would be computed 
         weighting ::: bool ::: wether or not use distance weights 
         for calculating gradients. 
+        use_boundaries ::: bool ::: 
         '''
         super().__init__(dataname, gdataname, mesh)
         self.weighting = weighting
+        self.use_boundaries = use_boundaries
 
-    def calc_element_gradient(self,elem_indice):
+    def calc_element_gradient(self,elem_indice ):
         '''
         When considering fixed mesh, this routine may be opptimized by precomputing 
         the element/neighbors distance, 
@@ -78,6 +80,22 @@ class LSGradient(ElementsGradientComputer):
             distance_matrix.append(distance)
             delta_data_vector.append(delta_data)
             weights_vector.append(weight)
+        if self.use_boundaries : 
+            el_bndface_conn = self.mesh.elements_bndf_conn[elem_indice]
+            for face_index in el_bndface_conn : 
+                neigh_bndf_indices = self.mesh.bndfaces[face_index]
+                neigh_bndf = self.mesh.nodes[neigh_bndf_indices]
+                # get neighbor centroid and data value
+                neigh_centroid = self.mesh._calc_centroid(neigh_bndf)
+                neigh_data = self.mesh.bndfaces_data[self.dataname][face_index]
+                # Update distance matrix and delta vector (delta of data)
+                distance = neigh_centroid - el_centroid
+                delta_data = neigh_data - el_data
+                absolute_distance = np.sqrt(np.sum(distance**2.))
+                weight = 1/absolute_distance
+                distance_matrix.append(distance)
+                delta_data_vector.append(delta_data)
+                weights_vector.append(weight)
         # Uses Pseudo inverse to solve the gradients
         delta_data_vector = np.asarray(delta_data_vector)
         distance_matrix = np.asarray(distance_matrix)
