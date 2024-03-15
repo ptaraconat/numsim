@@ -179,7 +179,7 @@ class NonOthogonalDiffusion(FaceComputer):
                                                                                       face_nonortho_comp_area, 
                                                                                       face_normal_nonortho_comp, 
                                                                                       diffusion_coeff = diffusion_coeff)
-                    #rhs_vec[elem_ind] += - face_coeff*(bc_dir_value-prev_centroid_val) ###### check sign
+                    rhs_vec[elem_ind] += - face_coeff*(bc_dir_value-prev_centroid_val) ###### check sign
                 if type == 'neumann' : 
                     # For a Non-orthogonal treatement we do exactely the same as for 
                     # the orthogonal diffusion 

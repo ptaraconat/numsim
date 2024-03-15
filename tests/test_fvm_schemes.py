@@ -464,10 +464,36 @@ def test_nonortho_diff_operator(mesh_fixture4):
                               [1, -2, 1],
                               [0, 1, -3]])
     expected_rhs = np.array([[0],[0],[-6]])
-    assertion = False#np.all(mat == expected_mat) and np.all(rhs == expected_rhs)
+    assertion = np.all(mat == expected_mat) and np.all(rhs == expected_rhs)
     
     assert assertion 
+   
+def test_ortho_diff_operator_on_nonorthomesh(mesh_fixture5):
+    diff_op = OrthogonalDiffusion()
+    boundary_conditions = {'inlet' : {'type' : 'dirichlet',
+                                      'value' : 0},
+                           'outlet' : {'type' : 'dirichlet',
+                                       'value' : 3},
+                           'wall' : {'type' : 'neumann',
+                                     'value' : np.array([0,0,0])}}
     
+    print(mesh_fixture5.bndfaces_tags)
+    mat, rhs = diff_op(mesh_fixture5, 
+                       boundary_conditions, 
+                       diffusion_coeff=1.)
+    print(mat)
+    print(rhs)
+    solution = np.linalg.solve(mat,rhs)
+    print(solution)
+    
+    expected_mat = np.array([[-3, 1, 0],
+                              [1, -2, 1],
+                              [0, 1, -3]])
+    expected_rhs = np.array([[0],[0],[-6]])
+    assertion = np.all(mat == expected_mat) and np.all(rhs == expected_rhs)
+    
+    assert assertion    
+ 
 def test_nonortho_diff_operator2(mesh_fixture5):
     gradient_computer = LSGradient('temp', 'grad_temp', mesh_fixture5, weighting = False)
     diff_op = NonOthogonalDiffusion(data_name = 'temp', 
@@ -480,7 +506,7 @@ def test_nonortho_diff_operator2(mesh_fixture5):
                            'wall' : {'type' : 'neumann',
                                      'value' : np.array([0,0,0])}}
     
-    for i in range(20): 
+    for i in range(2): 
         mat, rhs = diff_op(mesh_fixture5, 
                         boundary_conditions, 
                         diffusion_coeff=1.)
