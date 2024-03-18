@@ -53,3 +53,22 @@ def test_conv_central_differencing2():
     print(face_coeff,w1,w2)
     assertion = face_coeff == 1.625 and w1 == 0.75 and w2 == 0.25 
     assert assertion 
+    
+def test_conv_upwind():
+    convection_operator = UpwindConvection()
+    centroid1 = np.array([0,0,-1])
+    centroid2 = np.array([0,0,3])
+    surface_centroid = np.array([0,0,0])
+    surface_area = 0.5
+    surface_vector = np.array([0,0,1])
+    velocity1 = np.array([0,0,-4])
+    velocity2 = np.array([0,0,1])
+    
+    face_coeff, w1, w2 = convection_operator.calc_surface_coef(centroid1, centroid2, 
+                                                               surface_area, surface_vector, 
+                                                               surface_centroid,
+                                                               velocity1, velocity2)
+    print(face_coeff,w1,w2)
+    
+    assertion = False 
+    assert assertion
