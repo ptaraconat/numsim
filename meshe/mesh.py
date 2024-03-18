@@ -117,7 +117,29 @@ class Mesh :
         z_arr = self.bndfaces_centroids[:,2]
         data_arr = functional(x_arr,y_arr,z_arr)
         self.bndfaces_data[dataname] = data_arr
-
+        
+    def set_bndfaces_data_from_bc(self,dataname,dict):
+        '''
+        arguments 
+        dataname ::: string ::: name of the element data
+        dict ::: dictionnary ::: dictionary of uniform boundary condition
+        '''
+        # Init bndface_data with None 
+        self.bndfaces_data[dataname] = np.asarray([None for _ in range(np.size(self.bndfaces,0))])
+        # Loop over different boundary conditions 
+        for bc_key,val in dict.items():
+            bc_index = self._get_bc_index(bc_key)
+            type = val['type']
+            bc_val = val['value']
+            # get index associated with the current bondary condition 
+            surfaces_indices =np.squeeze(np.argwhere(self.bndfaces_tags == bc_index))
+            if surfaces_indices.shape == () : 
+                surfaces_indices = [surfaces_indices]
+            # Loop over the later boundary surfaces 
+            if type == 'dirichlet':
+                for i in surfaces_indices :
+                    self.bndfaces_data[dataname][i] = bc_val
+ 
     def set_internal_faces(self): 
         '''
         Set the internal faces tables and internal faces to element connectivity table 

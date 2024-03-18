@@ -126,9 +126,10 @@ class NonOthogonalDiffusion(FaceComputer):
             #print('grad val 1 : ', grad_value1)
             #print('grad val 2 : ', grad_value2)
             #print('face_gradient : ',face_gradient)
+            #print('surf_flux : ', surf_flux)
             # Check sign ??
-            rhs_vec[ind_cent1] += -surf_flux
-            rhs_vec[ind_cent2] += +surf_flux
+            rhs_vec[ind_cent1] += +surf_flux
+            rhs_vec[ind_cent2] += -surf_flux
             del ind_cent1, ind_cent2, centroid1, centroid2, coord_face 
             del face_normal_ortho_comp, face_normal_nonortho_comp, face_ortho_comp_area, face_nonortho_comp_area
             del surf_flux, value1, value2, grad_value1, grad_value2

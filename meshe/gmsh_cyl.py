@@ -86,18 +86,17 @@ mat, rhs_vec = diffusion_op(mesh,boundary_conditions)
 solution1 = np.linalg.solve(mat,rhs_vec)
 #print(solution)
 mesh.elements_data['orthodiff_solution'] = solution1
-mesh.save_vtk()
 
 # Init data 
 def function(x,y,z):
     return 0*x + 0*y + 0*z
 mesh.set_elements_data('temp', function)
 mesh.set_elements_data('grad_temp', function)
-gradient_computer = LSGradient('temp', 'grad_temp', mesh, weighting = False)
+gradient_computer = LSGradient('temp', 'grad_temp', mesh, weighting = False, use_boundaries = True)
 diff_op = NonOthogonalDiffusion(data_name = 'temp', 
                                 grad_data_name = 'grad_temp',
                                 method = 'over_relaxed')
-for i in range(1): 
+for i in range(10): 
         mat, rhs = diff_op(mesh, 
                            boundary_conditions, 
                            diffusion_coeff=1.)
@@ -105,5 +104,11 @@ for i in range(1):
         #print(rhs)
         solution = np.linalg.solve(mat,rhs)
         mesh.elements_data['temp'] = solution
+        mesh.set_bndfaces_data_from_bc('temp', boundary_conditions)
         gradient_computer.calculate_gradients()
-#print(np.abs(mesh.elements_data['temp']-solution1))
+        
+
+print(solution)
+print(np.mean(np.abs(mesh.elements_data['temp']-solution1)))
+
+mesh.save_vtk()

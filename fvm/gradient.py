@@ -88,14 +88,15 @@ class LSGradient(ElementsGradientComputer):
                 # get neighbor centroid and data value
                 neigh_centroid = self.mesh._calc_centroid(neigh_bndf)
                 neigh_data = self.mesh.bndfaces_data[self.dataname][face_index]
-                # Update distance matrix and delta vector (delta of data)
-                distance = neigh_centroid - el_centroid
-                delta_data = neigh_data - el_data
-                absolute_distance = np.sqrt(np.sum(distance**2.))
-                weight = 1/absolute_distance
-                distance_matrix.append(distance)
-                delta_data_vector.append(delta_data)
-                weights_vector.append(weight)
+                if neigh_data != None : 
+                    # Update distance matrix and delta vector (delta of data)
+                    distance = neigh_centroid - el_centroid
+                    delta_data = neigh_data - el_data
+                    absolute_distance = np.sqrt(np.sum(distance**2.))
+                    weight = 1/absolute_distance
+                    distance_matrix.append(distance)
+                    delta_data_vector.append(delta_data)
+                    weights_vector.append(weight)
         # Uses Pseudo inverse to solve the gradients
         delta_data_vector = np.asarray(delta_data_vector)
         distance_matrix = np.asarray(distance_matrix)
