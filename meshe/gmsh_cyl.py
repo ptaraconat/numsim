@@ -96,7 +96,7 @@ gradient_computer = LSGradient('temp', 'grad_temp', mesh, weighting = False, use
 diff_op = NonOthogonalDiffusion(data_name = 'temp', 
                                 grad_data_name = 'grad_temp',
                                 method = 'over_relaxed')
-for i in range(10): 
+for i in range(1): 
         mat, rhs = diff_op(mesh, 
                            boundary_conditions, 
                            diffusion_coeff=1.)

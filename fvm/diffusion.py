@@ -137,32 +137,41 @@ class NonOthogonalDiffusion(FaceComputer):
                     # Treat a dirichlet bc 
                     centroid = mesh.elements_centroids[elem_ind]
                     face_centroid = mesh._calc_centroid(face_nodes)
-                    face_normal_ortho_comp, face_normal_nonortho_comp = self._decompose_normal(face_nodes, 
-                                                                                               centroid, 
-                                                                                               face_centroid)
-                    face_ortho_comp_area = np.sqrt(np.sum(face_normal_ortho_comp**2.))
-                    face_nonortho_comp_area = np.sqrt(np.sum(face_normal_nonortho_comp**2.))
-                    face_normal_ortho_comp /= face_ortho_comp_area
-                    if face_nonortho_comp_area != 0. :
-                        face_normal_nonortho_comp /= face_nonortho_comp_area
-                    # Treat orthogonal component 
+                    ######
+                    surface_area = mesh._calc_surface_area(face_nodes) 
+                    surface_normal = mesh._calc_surface_normal(face_nodes)
                     face_coeff = self.ortho_calculator.calc_dirchlet_bnd_surface_coef(centroid, 
                                                                                       face_centroid, 
-                                                                                      face_ortho_comp_area, 
-                                                                                      face_normal_ortho_comp, 
+                                                                                      surface_area, 
+                                                                                      surface_normal, 
                                                                                       diffusion_coeff = diffusion_coeff)
+                    ######
+                    #face_normal_ortho_comp, face_normal_nonortho_comp = self._decompose_normal(face_nodes, 
+                    #                                                                           centroid, 
+                    #                                                                           face_centroid)
+                    #face_ortho_comp_area = np.sqrt(np.sum(face_normal_ortho_comp**2.))
+                    #face_nonortho_comp_area = np.sqrt(np.sum(face_normal_nonortho_comp**2.))
+                    #face_normal_ortho_comp /= face_ortho_comp_area
+                    #if face_nonortho_comp_area != 0. :
+                    #    face_normal_nonortho_comp /= face_nonortho_comp_area
+                    # Treat orthogonal component 
+                    #face_coeff = self.ortho_calculator.calc_dirchlet_bnd_surface_coef(centroid, 
+                    #                                                                  face_centroid, 
+                    #                                                                  face_ortho_comp_area, 
+                    #                                                                  face_normal_ortho_comp, 
+                    #                                                                  diffusion_coeff = diffusion_coeff)
                     bc_dir_value = bc_val
                     # rework ::: check sign
                     rhs_vec[elem_ind] += -bc_dir_value*face_coeff 
                     matrix[elem_ind,elem_ind] += -face_coeff
                     # Treat non orthogonal component
-                    prev_centroid_val = mesh.elements_data[self.data_name][elem_ind]
-                    face_coeff = self.ortho_calculator.calc_dirchlet_bnd_surface_coef(centroid, 
-                                                                                      face_centroid, 
-                                                                                      face_nonortho_comp_area, 
-                                                                                      face_normal_nonortho_comp, 
-                                                                                      diffusion_coeff = diffusion_coeff)
-                    rhs_vec[elem_ind] += - face_coeff*(bc_dir_value-prev_centroid_val) ###### check sign
+                    #prev_centroid_val = mesh.elements_data[self.data_name][elem_ind]
+                    #face_coeff = self.ortho_calculator.calc_dirchlet_bnd_surface_coef(centroid, 
+                    #                                                                  face_centroid, 
+                    #                                                                  face_nonortho_comp_area, 
+                    #                                                                  face_normal_nonortho_comp, 
+                    #                                                                  diffusion_coeff = diffusion_coeff)
+                    #rhs_vec[elem_ind] += - face_coeff*(bc_dir_value-prev_centroid_val) ###### check sign
                 if type == 'neumann' : 
                     # For a Non-orthogonal treatement we do exactely the same as for 
                     # the orthogonal diffusion 
