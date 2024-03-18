@@ -52,7 +52,6 @@ class NonOthogonalDiffusion(FaceComputer):
             face_normal = -face_normal
         face_area = Mesh()._calc_surface_area(face)
         if self.method == 'over_relaxed' : 
-            #print('over relaxed non orthogonal correction')
             ortho_component = (face_area/np.cos(theta))*centroids_unit_vector
             nonortho_component = face_area*face_normal - ortho_component
         return ortho_component, nonortho_component 
@@ -81,8 +80,6 @@ class NonOthogonalDiffusion(FaceComputer):
             face_normal_ortho_comp, face_normal_nonortho_comp = self._decompose_normal(coord_face, 
                                                                                        centroid1, 
                                                                                        centroid2)
-            #face_normal = mesh._calc_surface_normal(coord_face)
-            #face_area = mesh._calc_surface_area(coord_face)
             face_ortho_comp_area = np.sqrt(np.sum(face_normal_ortho_comp**2.))
             face_nonortho_comp_area = np.sqrt(np.sum(face_normal_nonortho_comp**2.))
             #
@@ -115,19 +112,6 @@ class NonOthogonalDiffusion(FaceComputer):
                                               face_nonortho_comp_area, 
                                               face_normal_nonortho_comp,
                                               diffusion_coeff = diffusion_coeff)
-            #print('orthogonal vector')
-            #print('vec : ', face_normal_ortho_comp)
-            #print('mag : ', face_ortho_comp_area)
-            #print('non orthogonal vector')
-            #print('vec : ', face_normal_nonortho_comp)
-            #print('mag : ', face_nonortho_comp_area)
-            #print('value 1 : ', value1)
-            #print('value 2 : ',value2)
-            #print('grad val 1 : ', grad_value1)
-            #print('grad val 2 : ', grad_value2)
-            #print('face_gradient : ',face_gradient)
-            #print('surf_flux : ', surf_flux)
-            # Check sign ??
             rhs_vec[ind_cent1] += +surf_flux
             rhs_vec[ind_cent2] += -surf_flux
             del ind_cent1, ind_cent2, centroid1, centroid2, coord_face 
@@ -153,8 +137,6 @@ class NonOthogonalDiffusion(FaceComputer):
                     # Treat a dirichlet bc 
                     centroid = mesh.elements_centroids[elem_ind]
                     face_centroid = mesh._calc_centroid(face_nodes)
-                    #surface_area = mesh._calc_surface_area(face_nodes) 
-                    #surface_normal = mesh._calc_surface_normal(face_nodes)
                     face_normal_ortho_comp, face_normal_nonortho_comp = self._decompose_normal(face_nodes, 
                                                                                                centroid, 
                                                                                                face_centroid)
@@ -233,8 +215,6 @@ class OrthogonalDiffusion(FaceComputer):
         '''
         centroids_distance = np.sqrt(np.sum( (centroid-surface_centroid)**2 ) )
         gradf = (centroid-surface_centroid)/centroids_distance**2.
-        #print('centroids distance :', centroids_distance)
-        #print('grad f : ', gradf)
         surf_flux = diffusion_coeff*surface_area*np.abs(np.dot(gradf,surface_vector))
         return surf_flux
     
@@ -325,9 +305,6 @@ class OrthogonalDiffusion(FaceComputer):
                                                                     bc_neu_value)
                     # rework ::: check sign
                     rhs_vec[elem_ind] += -face_coeff
-            #print(np.shape(mesh.bndfaces_tags))
-            #print(np.shape(surfaces_indices))
-            
         return matrix, rhs_vec
             
         
