@@ -26,8 +26,27 @@ class Mesh :
         self.nodes = None 
         # data 
         self.elements_centroids = None 
+        self.bndfaces_centroids = None 
         self.elements_data = {}
-        self.physical_entities = None 
+        self.bndfaces_data = {}
+        self.physical_entities = None
+        
+    def save_vtk(self,output_file = 'dump.vtk'):
+        '''
+        save the mesh into vtk format 
+        arguments 
+        output_file ::: str ::: name of the dumped file 
+        '''
+        # Create meshio.Mesh object
+        data = {}
+        for key,val in self.elements_data.items():
+            data[key] = [val.tolist()]
+        mesh = meshio.Mesh(
+            points=self.nodes,
+            cells=[("tetra", self.elements)],
+            cell_data=data
+        )
+        meshio.write(output_file, mesh, file_format="vtk")
         
     def _get_bc_index(self,bc_name): 
         '''
@@ -64,14 +83,62 @@ class Mesh :
         functional ::: callable object ::: function of centroids coordinates 
         that defines the data 
         '''
-        if self.elements_centroids == None :
+        if np.all(self.elements_centroids == None) :
             self.set_elements_centroids()
         x_arr = self.elements_centroids[:,0]
         y_arr = self.elements_centroids[:,1]
         z_arr = self.elements_centroids[:,2]
         data_arr = functional(x_arr,y_arr,z_arr)
         self.elements_data[dataname] = data_arr
-
+    
+    def set_bndfaces_centroids(self):
+        '''
+        set the doundary faces centroid array 
+        '''
+        centroids_arr = np.zeros((np.size(self.bndfaces,0),3))
+        for i,face in enumerate(self.bndfaces) : 
+            face_nodes_coordinates = self.nodes[face]
+            centroid = self._calc_centroid(face_nodes_coordinates)
+            centroids_arr[i,:] = centroid
+        self.bndfaces_centroids = centroids_arr
+    
+    def set_bndfaces_data(self,dataname, functional):
+        '''
+        argument 
+        dataname ::: string ::: name of the element data 
+        functional ::: callable object ::: function of centroids coordinates 
+        that defines the data 
+        '''
+        if np.all(self.bndfaces_centroids == None) :
+            self.set_bndfaces_centroids()
+        x_arr = self.bndfaces_centroids[:,0]
+        y_arr = self.bndfaces_centroids[:,1]
+        z_arr = self.bndfaces_centroids[:,2]
+        data_arr = functional(x_arr,y_arr,z_arr)
+        self.bndfaces_data[dataname] = data_arr
+        
+    def set_bndfaces_data_from_bc(self,dataname,dict):
+        '''
+        arguments 
+        dataname ::: string ::: name of the element data
+        dict ::: dictionnary ::: dictionary of uniform boundary condition
+        '''
+        # Init bndface_data with None 
+        self.bndfaces_data[dataname] = np.asarray([None for _ in range(np.size(self.bndfaces,0))])
+        # Loop over different boundary conditions 
+        for bc_key,val in dict.items():
+            bc_index = self._get_bc_index(bc_key)
+            type = val['type']
+            bc_val = val['value']
+            # get index associated with the current bondary condition 
+            surfaces_indices =np.squeeze(np.argwhere(self.bndfaces_tags == bc_index))
+            if surfaces_indices.shape == () : 
+                surfaces_indices = [surfaces_indices]
+            # Loop over the later boundary surfaces 
+            if type == 'dirichlet':
+                for i in surfaces_indices :
+                    self.bndfaces_data[dataname][i] = bc_val
+ 
     def set_internal_faces(self): 
         '''
         Set the internal faces tables and internal faces to element connectivity table 
@@ -125,6 +192,52 @@ class Mesh :
             elem_intf_conn[elem_ind1].append(surf_ind)
             elem_intf_conn[elem_ind2].append(surf_ind)
         self.elements_intf_conn = elem_intf_conn
+        
+    def _calc_face_pairnode_intersection(self,face,node1,node2):
+        '''
+        arguments 
+        face ::: np.array(n_node,3) ::: coordinates of nodes defining 
+        the faces (n_node >= 3). 
+        node1 ::: np.array(3,) ::: coordinates of node1
+        node2 ::: np.array(3,) ::: coordinates of node2
+        returns 
+        intersection_vertex ::: np.array(3,) :::
+        '''
+        face_normal = self._calc_surface_normal(face)
+        point_on_plane = np.squeeze(face[0,:])
+        vector_start = node1
+        vector_end = node2
+        # Calculate the direction vector of the line
+        vector_direction = vector_end - vector_start
+        # Calculate the parameter t for the vector equation (intersection point)
+        t = np.dot(face_normal, (point_on_plane - vector_start)) / np.dot(face_normal, vector_direction)
+        # Calculate the intersection point
+        intersection_vertex = vector_start + t * vector_direction
+        return intersection_vertex
+        
+        
+    def _calc_face_pairnode_theta(self,face,node1,node2):
+        '''
+        arguments 
+        face ::: np.array(n_node,3) ::: coordinates of nodes defining 
+        the faces (n_node >= 3). 
+        node1 ::: np.array(3,) ::: coordinates of node1
+        node2 ::: np.array(3,) ::: coordinates of node2
+        returns 
+        angle ::: float :: angle (in radians) between the face normal and
+        the node1/node2 direction. 
+        '''
+        pairnode_vec = node1 - node2 
+        face_normal = self._calc_surface_normal(face)
+        dot_prod = np.dot(pairnode_vec,face_normal)
+        # Calculate the magnitudes of the vectors
+        pairnode_vec_mag = np.linalg.norm(pairnode_vec)
+        face_normal_mag = np.linalg.norm(face_normal)
+        # Calculate the cosine of the angle
+        cosine_angle = dot_prod / (pairnode_vec_mag * face_normal_mag)
+        # Calculate the angle in radians
+        angle = np.arccos(np.abs(cosine_angle))
+        return angle
         
     def _calc_vertex_face_distance(self,vertex,face):
         '''
