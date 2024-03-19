@@ -43,6 +43,41 @@ class CentralDiffConvection(FaceComputer):
         surf_coeff = surface_area*np.abs(np.dot(surface_vector,face_velocity))
         return surf_coeff, weight1, weight2
     
+    def calc_dirichlet_surface_coeff(self, surface_area, surface_vector, surface_velocity):
+        '''
+        arguments : 
+        surface_area ::: float ::: Area of face associated with the pair of nodes 
+        centroid1/centroid2
+        surface_vector ::: np.array(3,) ::: vector associated with that face
+        surface_velocity ::: np.array(3,) ::: Convective velocity at
+        the boundary face
+        returns 
+        surf_coeff ::: float ::: convective coefficient associated with the boundary surface 
+        '''
+        surf_coeff = surface_area*np.abs(np.dot(surface_vector,surface_velocity))
+        return surf_coeff 
+    
+    def calc_neumann_surface_coeff(self,centroid, surface_centroid,surface_area, surface_vector, surface_velocity, centroid_value, surface_gradient):
+        '''
+        arguments : 
+        centroid ::: np.array(3,) ::: 
+        surface_centroid ::: np.array(3,) ::: 
+        surface_area ::: float ::: Area of face associated with the pair of nodes 
+        centroid1/centroid2
+        surface_vector ::: np.array(3,) ::: vector associated with that face
+        surface_velocity ::: np.array(3,) ::: Convective velocity at
+        the boundary face
+        centroid_value ::: float ::: value at the element centroid 
+        surface_gradient ::: np.array(3,) ::: gradient value at the boundary face 
+        returns 
+        surf_coeff ::: float ::: convective coefficient associated with the boundary surface
+        surface_value ::: float ::: data value at the boundary face  
+        '''
+        centroids_distance = centroid - surface_centroid
+        surface_value = centroid_value - np.dot(surface_gradient,centroids_distance)
+        surf_coeff = surface_area*np.abs(np.dot(surface_vector,surface_velocity))
+        return surf_coeff, surface_value
+    
 class UpwindConvection(FaceComputer): 
     
     def __init__(self,velocity_data = ''):

@@ -91,3 +91,24 @@ def test_conv_upwind2():
     
     assertion = face_coeff == 2 and w1 == 0 and w2 == 1 
     assert assertion
+    
+def test_conv_neum_central_diff():
+    convection_operator = CentralDiffConvection()
+    centroid = np.array([0,0,1])
+    surface_centroid = np.array([0,0,0])
+    surface_area = 0.5 
+    surface_normal = np.array([0,0,1])
+    surface_velocity = np.array([0,0,2])
+    centroid_value = 4
+    surface_gradient = np.array([0,0,1])
+    face_coeff, face_value = convection_operator.calc_neumann_surface_coeff(centroid,
+                                                                            surface_centroid,
+                                                                            surface_area,
+                                                                            surface_normal,
+                                                                            surface_velocity,
+                                                                            centroid_value,
+                                                                            surface_gradient)
+    
+    print(face_coeff, face_value)
+    assertion = face_coeff == 1. and face_value == 3
+    assert assertion 
