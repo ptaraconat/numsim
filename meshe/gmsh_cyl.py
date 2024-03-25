@@ -6,6 +6,7 @@ sys.path.append('../')
 from meshe.mesh import * 
 from fvm.gradient import *
 from fvm.diffusion import * 
+from fvm.convection import * 
 
 gmsh.initialize()
 gmsh.model.add('test_model')
@@ -58,6 +59,14 @@ def function(x,y,z):
     return 4*x + 0*y + 0*z
 mesh.set_elements_data('T', function)
 mesh.set_bndfaces_data('T', function)
+# set data 
+velocity = 1 
+arr_tmp = np.zeros([np.size(mesh.elements,0),3])
+arr_tmp[:,0] = velocity
+mesh.elements_data['velocity'] = arr_tmp
+arr_tmp = np.zeros([np.size(mesh.bndfaces,0),3])
+arr_tmp[:,0] = velocity
+mesh.bndfaces_data['velocity'] = arr_tmp
 # calc data gradient 
 grad_computer = LSGradient('T','gradT', mesh,weighting=True,use_boundaries=True)
 #count = 0 
@@ -87,6 +96,16 @@ solution1 = np.linalg.solve(mat,rhs_vec)
 #print(solution)
 mesh.elements_data['orthodiff_solution'] = solution1
 
+convection_op = CentralDiffConvection(velocity_data = 'velocity')
+mat_c, rhs_c = convection_op(mesh,boundary_conditions)
+
+mat += mat_c
+rhs_vec += rhs_c 
+solution2 = np.linalg.solve(mat,rhs_vec)
+#print(solution)
+mesh.elements_data['convdiff_solution'] = solution2
+print(mesh.elements_data['convdiff_solution'] )
+
 # Init data 
 def function(x,y,z):
     return 0*x + 0*y + 0*z
@@ -96,7 +115,7 @@ gradient_computer = LSGradient('temp', 'grad_temp', mesh, weighting = False, use
 diff_op = NonOthogonalDiffusion(data_name = 'temp', 
                                 grad_data_name = 'grad_temp',
                                 method = 'over_relaxed')
-for i in range(1): 
+for i in range(0): 
         mat, rhs = diff_op(mesh, 
                            boundary_conditions, 
                            diffusion_coeff=1.)
@@ -107,8 +126,4 @@ for i in range(1):
         mesh.set_bndfaces_data_from_bc('temp', boundary_conditions)
         gradient_computer.calculate_gradients()
         
-
-print(solution)
-print(np.mean(np.abs(mesh.elements_data['temp']-solution1)))
-
 mesh.save_vtk()

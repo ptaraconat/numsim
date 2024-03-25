@@ -67,7 +67,7 @@ class CentralDiffConvection(FaceComputer):
         surf_coeff = surface_area*np.dot(surface_vector,surface_velocity)
         return surf_coeff 
     
-    def calc_neumann_surface_coeff(self,centroid, surface_centroid,surface_area, surface_vector, surface_velocity, centroid_value, surface_gradient):
+    def calc_neumann_surface_coeff(self,centroid, surface_centroid,surface_area, surface_vector, surface_velocity, surface_gradient):
         '''
         arguments : 
         centroid ::: np.array(3,) ::: 
@@ -87,7 +87,7 @@ class CentralDiffConvection(FaceComputer):
         if sign < 0 : 
             surface_vector = - surface_vector
         centroids_distance = centroid - surface_centroid
-        surface_value = centroid_value - np.dot(surface_gradient,centroids_distance)
+        #surface_value = centroid_value - np.dot(surface_gradient,centroids_distance)
         rhs_comp =  np.dot(surface_gradient,centroids_distance)
         surf_coeff = surface_area*np.abs(np.dot(surface_vector,surface_velocity))
         return surf_coeff, rhs_comp
@@ -168,14 +168,13 @@ class CentralDiffConvection(FaceComputer):
                     surface_area = mesh._calc_surface_area(face_nodes)
                     surface_normal = mesh._calc_surface_normal(face_nodes)
                     surface_velocity =mesh.bndfaces_data[self.velocity_data][i]
-                    centroid_value = mesh.elements_data[self.convected_data][elem_ind]
+                    #centroid_value = mesh.elements_data[self.convected_data][elem_ind]
                     bc_neu_value =  bc_val
                     face_coeff, face_value = self.calc_neumann_surface_coeff(centroid, 
                                                                  surface_centroid,
                                                                  surface_area, 
                                                                  surface_normal, 
-                                                                 surface_velocity, 
-                                                                 centroid_value, 
+                                                                 surface_velocity,  
                                                                  bc_neu_value)
                     # rework ::: check sign
                     matrix[elem_ind,elem_ind] += face_coeff
