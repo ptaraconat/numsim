@@ -125,11 +125,11 @@ class CentralDiffConvection(FaceComputer):
                                                        velocity2)
             # Fill Matrix 
             #
-            matrix[ind_cent1,ind_cent1] += w1*surf_flux
-            matrix[ind_cent1,ind_cent2] += w2*surf_flux
+            matrix[ind_cent1,ind_cent1] += -w1*surf_flux
+            matrix[ind_cent1,ind_cent2] += -w2*surf_flux
             #
-            matrix[ind_cent2,ind_cent2] += -w2*surf_flux
-            matrix[ind_cent2,ind_cent1] += -w1*surf_flux
+            matrix[ind_cent2,ind_cent2] += +w2*surf_flux
+            matrix[ind_cent2,ind_cent1] += +w1*surf_flux
             #
             del centroid1, centroid2, velocity1, velocity2, w1, w2, ind_cent1, ind_cent2
             del coord_face, face_area, face_normal, face_centroid, surf_flux
@@ -159,7 +159,7 @@ class CentralDiffConvection(FaceComputer):
                     face_coeff = self.calc_dirichlet_surface_coeff(surface_area, surface_normal, surface_velocity, centroid, face_centroid)
                     bc_dir_value = bc_val
                     # rework ::: check sign
-                    rhs_vec[elem_ind] += -bc_dir_value*face_coeff 
+                    rhs_vec[elem_ind] += +bc_dir_value*face_coeff 
                     del surface_area, surface_normal, surface_velocity, face_coeff, bc_dir_value
                 if type == 'neumann' : 
                     # Treat a Von Neumann bc 
@@ -177,8 +177,8 @@ class CentralDiffConvection(FaceComputer):
                                                                  surface_velocity,  
                                                                  bc_neu_value)
                     # rework ::: check sign
-                    matrix[elem_ind,elem_ind] += face_coeff
-                    rhs_vec[elem_ind] += face_coeff*face_value
+                    matrix[elem_ind,elem_ind] += -face_coeff
+                    rhs_vec[elem_ind] += -face_coeff*face_value
         return matrix, rhs_vec
     
 class UpwindConvection(FaceComputer): 

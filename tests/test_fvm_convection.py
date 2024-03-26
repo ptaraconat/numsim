@@ -26,8 +26,8 @@ def mesh_fixture():
 @pytest.fixture
 def mesh_fixture1d():
     dx = 1. 
-    n_elem = 100
-    velocity = -0.2
+    n_elem = 20
+    velocity = 0.2
     #
     mesh = Mesh1D(dx,n_elem)
     mesh.physical_entities = {'inlet': np.array([1,   2]), 
@@ -224,10 +224,10 @@ def test_central_diff_operator(mesh_fixture4):
                            'wall' : {'type' : 'neumann',
                                      'value' : np.array([0,0,0])}}
     mat, rhs = operator(mesh_fixture4,boundary_conditions)
-    expected_mat = np.array([[-0.05, -0.05,  0.  ],
+    expected_mat = -np.array([[-0.05, -0.05,  0.  ],
                              [0.05,  0.,   -0.05],
                              [0.,    0.05,  0.05]])
-    expected_rhs = np.array([[-0.3],[0.],[0.]])
+    expected_rhs = -np.array([[-0.3],[0.],[0.]])
     #solution = np.dot(np.linalg.pinv(mat),rhs)
     assertion = np.all(np.abs(expected_mat - mat) < EPSILON) and np.all(np.abs(expected_rhs-rhs) < EPSILON)
     assert assertion 
@@ -245,12 +245,8 @@ def test_1d_conv_diff(mesh_fixture1d):
     mat_, rhs_ = diff_op(mesh_fixture1d, 
                        boundary_conditions, 
                        diffusion_coeff=1.)
-    #print(mat)
-    #print(mat_)
     mat += mat_
     rhs += rhs_
-    #print(mat)
-    #print(rhs)
     solution = np.dot(np.linalg.pinv(mat),rhs)
     print(solution)
     
