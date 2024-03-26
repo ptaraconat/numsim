@@ -382,6 +382,80 @@ class Mesh :
             face_paired_index = None 
         return bool_face, face_paired_index
 
+class Mesh1D(Mesh):
+    
+    def __init__(self,dx,n_elem,):
+        '''
+        '''
+        super().__init__(dimension = 1, type = 'hexa')
+        # Init first element 
+        nodes_list = [np.array([0, 0 ,0]),
+                    np.array([0, dx, 0]),
+                    np.array([0, dx, dx]),
+                    np.array([0, 0, dx]),
+                    np.array([dx, 0 ,0]),
+                    np.array([dx, dx, 0]),
+                    np.array([dx, dx, dx]),
+                    np.array([dx, 0, dx])]
+        elements_list = [np.array([0,1,2,3,4,5,6,7])]
+        intfaces_list = []
+        bndfaces_list = [np.array([0,1,2,3]),
+                        np.array([0,4,7,3]),
+                        np.array([1,5,6,2]),
+                        np.array([3,7,6,2]),
+                        np.array([0,4,5,1])]
+        bndfaces_tags_list = [1,2,2,2,2]    
+        elements_bndf_conn_list = [[0,1,2,3,4]]
+        intfaces_elem_conn_list = []
+        bndfaces_elem_conn_list = [0,0,0,0,0]
+        for i in range(n_elem-1): 
+            #print(i)
+            #print('add element', i+2)
+            # add dx (along x axis) to previous 4 nodes 
+            delta = np.array([dx,0,0])
+            last_nodes = nodes_list[-4:]
+            add_nodes = [node + delta for node in last_nodes]
+            nodes_list += add_nodes
+            # add new element 
+            last_el = elements_list[-1]
+            add_el = [last_el+4]
+            elements_list +=add_el
+            # add new internal face 
+            add_intf = last_el[-4:]
+            intfaces_list += [add_intf]
+            add_intf_el_conn = [[len(elements_list)-2,len(elements_list)-1]]
+            intfaces_elem_conn_list += add_intf_el_conn
+            # add new bndfaces 
+            last_bndfaces = bndfaces_list[-4:]
+            add_bndfaces = [bndface + 4 for bndface in last_bndfaces]
+            bndfaces_list +=add_bndfaces
+            bndfaces_tags_list += [2,2,2,2]
+            elem_id = len(elements_list)-1
+            add_bndf_el_conn = [elem_id,elem_id,elem_id,elem_id]
+            bndfaces_elem_conn_list += add_bndf_el_conn
+            # elem_bndf_conn 
+            last_elem_bndf_conn = elements_bndf_conn_list[-1][-4:]
+            add_elem_bndf_conn = np.asarray(last_elem_bndf_conn)+4
+            elements_bndf_conn_list += [add_elem_bndf_conn.tolist()]
+        # Add outlet to bndfaces_list
+        outlet_bndface = [elements_list[-1][-4:]]
+        bndfaces_list += outlet_bndface
+        bndfaces_tags_list += [3]
+        bndfaces_elem_conn_list += [elem_id]
+        #
+        self.nodes = np.asarray(nodes_list)
+        self.elements = np.asarray(elements_list)
+        self.bndfaces = np.asarray(bndfaces_list)
+        self.intfaces = np.asarray(intfaces_list)
+        self.intfaces_elem_conn = np.asarray(intfaces_elem_conn_list)
+        self.elements_bndf_conn = elements_bndf_conn_list
+        self.bndfaces_elem_conn = np.expand_dims(np.asarray(bndfaces_elem_conn_list),axis = 1)
+        self.bndfaces_tags = np.asarray(bndfaces_tags_list)
+        #
+        self.set_elements_intfaces_connectivity()
+        self.set_elements_centroids()
+        
+
 class HexaMesh(Mesh) : 
     
     def __init__(self):
