@@ -60,7 +60,7 @@ def function(x,y,z):
 mesh.set_elements_data('T', function)
 mesh.set_bndfaces_data('T', function)
 # set data 
-velocity = 1 
+velocity = 0.1
 arr_tmp = np.zeros([np.size(mesh.elements,0),3])
 arr_tmp[:,0] = velocity
 mesh.elements_data['velocity'] = arr_tmp
