@@ -57,10 +57,10 @@ print('Number of boundary faces :',np.shape(mesh.bndfaces))
 print('Number of internal faces :', np.shape(mesh.intfaces))
 # set data 
 arr_tmp = np.zeros([np.size(mesh.elements,0),3])
-arr_tmp[:,0] = velocity
+arr_tmp[:,2] = velocity
 mesh.elements_data['velocity'] = arr_tmp
 arr_tmp = np.zeros([np.size(mesh.bndfaces,0),3])
-arr_tmp[:,0] = velocity
+arr_tmp[:,2] = velocity
 mesh.bndfaces_data['velocity'] = arr_tmp
 
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',
