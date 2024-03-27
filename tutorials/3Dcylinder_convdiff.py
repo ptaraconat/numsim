@@ -11,7 +11,7 @@ gmsh.initialize()
 gmsh.model.add('test_model')
 
 diffusion_coeff = 1.
-velocity = 0.1
+velocity = 5
 radius = 0.5
 height = 1 
 mesh_size = 0.25
@@ -81,3 +81,4 @@ mesh.elements_data['convdiff_solution'] = solution
 
 print(mesh.elements_data['convdiff_solution'] )
 mesh.save_vtk(output_file = '3Dcyl_convdiff_dump.vtk')
+print(np.mean(mesh.elements_data['convdiff_solution'] ))
