@@ -232,23 +232,3 @@ def test_central_diff_operator(mesh_fixture4):
     assertion = np.all(np.abs(expected_mat - mat) < EPSILON) and np.all(np.abs(expected_rhs-rhs) < EPSILON)
     assert assertion 
     
-def test_1d_conv_diff(mesh_fixture1d):
-    operator = CentralDiffConvection(velocity_data= 'velocity',convected_data = 'temp')
-    diff_op = OrthogonalDiffusion()
-    boundary_conditions = {'inlet' : {'type' : 'dirichlet',
-                                      'value' : 3},
-                           'outlet' : {'type' : 'dirichlet',
-                                       'value' : 0},
-                           'wall' : {'type' : 'neumann',
-                                     'value' : np.array([0,0,0])}}
-    mat, rhs = operator(mesh_fixture1d,boundary_conditions)
-    mat_, rhs_ = diff_op(mesh_fixture1d, 
-                       boundary_conditions, 
-                       diffusion_coeff=1.)
-    mat += mat_
-    rhs += rhs_
-    solution = np.dot(np.linalg.pinv(mat),rhs)
-    print(solution)
-    
-    assertion = False 
-    assert assertion 
