@@ -67,4 +67,4 @@ solution = np.linalg.solve(mat,rhs_vec)
 mesh.elements_data['orthodiff_solution'] = solution
 
 print(mesh.elements_data['orthodiff_solution'] )
-mesh.save_vtk()
+mesh.save_vtk(output_file = '3Dcyl_diff_dump.vtk')

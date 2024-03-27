@@ -80,4 +80,4 @@ solution = np.linalg.solve(mat,rhs_vec)
 mesh.elements_data['convdiff_solution'] = solution
 
 print(mesh.elements_data['convdiff_solution'] )
-mesh.save_vtk()
+mesh.save_vtk(output_file = '3Dcyl_convdiff_dump.vtk')
