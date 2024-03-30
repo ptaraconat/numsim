@@ -9,6 +9,17 @@ def mesh_fixture():
     mesh = Mesh1D(3,3)
     return mesh
 
+@pytest.fixture
+def mesh_fixture2():
+    n_elem = 11
+    dx = 3
+    mesh = Mesh1D(dx,n_elem)
+    # set data 
+    arr_tmp = np.zeros((n_elem,))
+    arr_tmp[5] = 3.5
+    mesh.elements_data['source'] = arr_tmp
+    return mesh
+
 def test_source_term(mesh_fixture):
     el_ind = 0
     #
@@ -23,4 +34,11 @@ def test_source_term(mesh_fixture):
                                                       source_value)
     print(source_coeff)
     assertion = source_coeff == 94.5
+    assert assertion 
+    
+def test_source_operator(mesh_fixture2): 
+    source_operator = SourceTerm(data_name = 'source')
+    rhs_vec = source_operator(mesh_fixture2)
+    print(rhs_vec)
+    assertion = False 
     assert assertion 

@@ -19,3 +19,22 @@ class SourceTerm():
         '''
         element_volume = Mesh()._calc_element_volume(element_faces,element_centroid)
         return element_volume*source_value 
+    
+    def __call__(self, mesh) : 
+        '''
+        arguments 
+        mesh ::: numsim.meshe.mesh.Mesh ::: mesh on which the diffusion operator is calculated
+        returns 
+        rhs_vec ::: np.array(n_elem,) :::
+        '''
+        n_elem = np.size(mesh.elements,0)
+        rhs_vec = np.zeros((n_elem,1))
+        for ind_elem, element in enumerate(mesh.elements):
+            element_faces = mesh._get_element_bounding_faces(ind_elem)
+            element_centroid = mesh._calc_centroid(element)
+            source_value = mesh.elements_data[self.data_name][ind_elem]
+            el_coeff = self.calc_element_coeff(element_faces,
+                                               element_centroid,
+                                               source_value)
+            rhs_vec[ind_elem] += el_coeff  
+        return rhs_vec
