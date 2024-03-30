@@ -12,16 +12,7 @@ def mesh_fixture():
 def test_source_term(mesh_fixture):
     el_ind = 0
     #
-    intf_ind = mesh_fixture.elements_intf_conn[el_ind]
-    intfaces = mesh_fixture.intfaces[intf_ind]
-    bndf_ind = mesh_fixture.elements_bndf_conn[el_ind]
-    bndfaces = mesh_fixture.bndfaces[bndf_ind]
-    element_faces_ind = np.concatenate((intfaces , bndfaces),axis = 0)
-    element_surfaces = []
-    for i in range(np.size(element_faces_ind,0)) : 
-        ind = element_faces_ind[i,:]
-        face_tmp = mesh_fixture.nodes[ind]
-        element_surfaces.append(face_tmp)
+    element_surfaces = mesh_fixture._get_element_bounding_faces(el_ind)
     #
     source_value = 3.5
     element = mesh_fixture.nodes[mesh_fixture.elements[el_ind]]

@@ -358,6 +358,27 @@ class Mesh :
             volume = volume + volflux
         return volume
     
+    def _get_element_bounding_faces(self,el_ind):
+        '''
+        arguments 
+        el_ind ::: int ::: index of the element 
+        returns 
+        element_surfaces ::: list of np.array(n_node,3) ::: list of arrays 
+        containing the coordinates of surface nodes
+        '''
+        intf_ind = self.elements_intf_conn[el_ind]
+        intfaces = self.intfaces[intf_ind]
+        bndf_ind = self.elements_bndf_conn[el_ind]
+        bndfaces = self.bndfaces[bndf_ind]
+        element_faces_ind = np.concatenate((intfaces , bndfaces),axis = 0)
+        element_surfaces = []
+        for i in range(np.size(element_faces_ind,0)) : 
+            ind = element_faces_ind[i,:]
+            face_tmp = self.nodes[ind]
+            element_surfaces.append(face_tmp)
+        
+        return element_surfaces
+    
     def _surface_checker_(self, face, surfaces_list,order_list = True):
         '''
         Check if face belongs to surfaces_list 
