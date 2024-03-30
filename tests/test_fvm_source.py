@@ -39,6 +39,6 @@ def test_source_term(mesh_fixture):
 def test_source_operator(mesh_fixture2): 
     source_operator = SourceTerm(data_name = 'source')
     rhs_vec = source_operator(mesh_fixture2)
-    expected_rhs = np.array([[0],[0],[94.5],[0],[0]])
+    expected_rhs = np.array([[0],[0],[-94.5],[0],[0]])
     assertion = np.all(rhs_vec == expected_rhs)
     assert assertion 

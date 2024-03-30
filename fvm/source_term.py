@@ -36,5 +36,5 @@ class SourceTerm():
             el_coeff = self.calc_element_coeff(element_faces,
                                                element_centroid,
                                                source_value)
-            rhs_vec[ind_elem] += el_coeff  
+            rhs_vec[ind_elem] += - el_coeff  
         return rhs_vec
