@@ -144,8 +144,6 @@ def test_calc_element_volume(mesh_fixture) :
     centroid = mesh_fixture._calc_centroid(mesh_fixture.nodes[mesh_fixture.elements[0]])
     volume = mesh_fixture._calc_element_volume(element_faces,centroid)
     expected = 1/6
-    print(element_faces)
-    print(volume)
     assertion = volume == expected
     assert assertion 
 
