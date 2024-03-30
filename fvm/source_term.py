@@ -31,7 +31,7 @@ class SourceTerm():
         rhs_vec = np.zeros((n_elem,1))
         for ind_elem, element in enumerate(mesh.elements):
             element_faces = mesh._get_element_bounding_faces(ind_elem)
-            element_centroid = mesh._calc_centroid(element)
+            element_centroid = mesh._calc_centroid(mesh.nodes[element])
             source_value = mesh.elements_data[self.data_name][ind_elem]
             el_coeff = self.calc_element_coeff(element_faces,
                                                element_centroid,

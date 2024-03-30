@@ -11,12 +11,12 @@ def mesh_fixture():
 
 @pytest.fixture
 def mesh_fixture2():
-    n_elem = 11
+    n_elem = 5
     dx = 3
     mesh = Mesh1D(dx,n_elem)
     # set data 
     arr_tmp = np.zeros((n_elem,))
-    arr_tmp[5] = 3.5
+    arr_tmp[2] = 3.5
     mesh.elements_data['source'] = arr_tmp
     return mesh
 
@@ -39,6 +39,6 @@ def test_source_term(mesh_fixture):
 def test_source_operator(mesh_fixture2): 
     source_operator = SourceTerm(data_name = 'source')
     rhs_vec = source_operator(mesh_fixture2)
-    print(rhs_vec)
-    assertion = False 
+    expected_rhs = np.array([[0],[0],[94.5],[0],[0]])
+    assertion = np.all(rhs_vec == expected_rhs)
     assert assertion 
