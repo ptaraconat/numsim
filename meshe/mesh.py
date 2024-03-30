@@ -353,7 +353,7 @@ class Mesh :
         '''
         #centroid = self._calc_centroid(element)
         volume = 0 
-        for element_surface in element_surfaces : 
+        for element_surface in element_surfaces :
             volflux = self._calc_surface_volflux(element_surface,centroid)
             volume = volume + volflux
         return volume
@@ -442,6 +442,7 @@ class Mesh1D(Mesh):
         bndfaces_list += outlet_bndface
         bndfaces_tags_list += [3]
         bndfaces_elem_conn_list += [elem_id]
+        elements_bndf_conn_list[-1].append(len(bndfaces_list)-1)
         #
         self.nodes = np.asarray(nodes_list)
         self.elements = np.asarray(elements_list)
