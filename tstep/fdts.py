@@ -57,5 +57,6 @@ class EulerScheme(TimeSteping):
         one_over_vol = 1. / mesh.elements_volumes
         implicit_contrib = np.dot(implicit_contribution,current_array)
         explicit_contrib = explicit_contribution
-        advanced_arry = current_array + self.dt*one_over_vol *(implicit_contrib + explicit_contrib)
+        advanced_array = current_array + self.dt*one_over_vol *(implicit_contrib + explicit_contrib)
+        return advanced_array
     
