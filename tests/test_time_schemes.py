@@ -28,10 +28,10 @@ def mesh_fixture():
     #mesh.bndfaces_data['velocity'] =   velocity * arr_tmp 
     return mesh
 
-def test_euler_diffusion(mesh_fixture):
+def test_forward_euler_diffusion(mesh_fixture):
     diffusion_coeff = 1.
     dt = 0.1
-    tstepper = EulerScheme()
+    tstepper = ForwardEulerScheme()
     tstepper.set_timestep(dt)
     diffop = OrthogonalDiffusion()
     boundary_conditions = {'inlet' : {'type' : 'dirichlet',
@@ -60,4 +60,34 @@ def test_euler_diffusion(mesh_fixture):
     #
     assertion = np.all(np.abs(static_sol - current_array) < 1e-3)
     assert assertion
-    
+
+
+def test_backward_euler_diffusion(mesh_fixture):
+    diffusion_coeff = 1.
+    dt = 1
+    tstepper = BackwardEulerScheme()
+    tstepper.set_timestep(dt)
+    diffop = OrthogonalDiffusion()
+    boundary_conditions = {'inlet' : {'type' : 'dirichlet',
+                                      'value' : 3},
+                           'outlet' : {'type' : 'dirichlet',
+                                       'value' : 0},
+                           'wall' : {'type' : 'neumann',
+                                     'value' : np.array([0,0,0])}}
+    #
+    mat_d, rhs_d = diffop(mesh_fixture,
+                          boundary_conditions, 
+                          diffusion_coeff = diffusion_coeff)
+    static_sol = np.linalg.solve(mat_d,rhs_d)
+    #
+    current_array = mesh_fixture.elements_data['temp']
+    implicit_contribution = -mat_d
+    explicit_contribution =  rhs_d
+    n_ite = 100
+    for _ in range(n_ite):
+        current_array = tstepper.step(current_array, mesh_fixture, implicit_contribution, explicit_contribution)
+    print(current_array)
+    print(np.abs(static_sol - current_array))
+    #
+    assertion = np.all(np.abs(static_sol - current_array) < 1e-3)
+    assert assertion
