@@ -23,18 +23,27 @@ class TimeSteping :
         returns 
         dt ::: float ::: time step 
         '''
+        # cfl = (velocity*Deltat)/Deltax
         pass
     
-    def _calc_dt_diff(self,fourier_number,diffusivity_array, meshsize_array):
+    def _calc_dt_diff(self,fourier_number,diffusivity_array, rho_array, meshsize_array):
         '''
         arguments 
         fourier_number ::: float ::: fourier number
         diffusivity_array ::: np.array(n_elem,1) ::: diffusivities array
+        rho_array ::: np.array(n_elem,1) ::: density array 
         meshsize_array ::: np.array(n_elem,1) ::: array of elements size 
         returns 
         dt ::: float ::: time step 
         '''
-        pass
+        # fourier = (diff_coeff*Deltat)/(rho*Deltax^2)
+        # Deltat = (fourier * rho * Deltax^2)/(diff_coeff)
+        oo_diffusivity_array = 1/diffusivity_array
+        deltat_array =fourier_number * np.multiply(np.multiply(rho_array,
+                                                               meshsize_array**2),
+                                                   oo_diffusivity_array)
+        dt = np.min(deltat_array)
+        return dt 
     
 class ForwardEulerScheme(TimeSteping):
     
