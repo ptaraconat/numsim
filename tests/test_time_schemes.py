@@ -42,6 +42,20 @@ def test_calc_diff_dt():
     print(dt)
     assertion = np.abs(dt - 0.01) < 1e-16
     assert assertion 
+    
+def test_calc_conv_dt():
+    tstepper = TimeSteping()
+    cfl = 0.5
+    n_elem = 5
+    velocity_array = np.zeros((n_elem,3))
+    velocity_array[:,0] = 5
+    meshsize_array = 0.01*np.ones((n_elem,1))
+    dt = tstepper._calc_dt_conv(cfl,
+                                velocity_array,
+                                meshsize_array)
+    print(dt)
+    assertion = dt == 0.001
+    assert assertion 
 
 def test_forward_euler_diffusion(mesh_fixture):
     diffusion_coeff = 1.

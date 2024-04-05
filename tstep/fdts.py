@@ -24,7 +24,12 @@ class TimeSteping :
         dt ::: float ::: time step 
         '''
         # cfl = (velocity*Deltat)/Deltax
-        pass
+        # Deltat = (cfl*Deltax)/velocity
+        velocity_mag = np.linalg.norm(velocity_array,axis = 1)
+        oo_velocity_array = 1./velocity_mag
+        deltat_array = cfl_number * np.multiply(meshsize_array,oo_velocity_array)
+        dt = np.min(deltat_array)
+        return dt 
     
     def _calc_dt_diff(self,fourier_number,diffusivity_array, rho_array, meshsize_array):
         '''
@@ -38,7 +43,7 @@ class TimeSteping :
         '''
         # fourier = (diff_coeff*Deltat)/(rho*Deltax^2)
         # Deltat = (fourier * rho * Deltax^2)/(diff_coeff)
-        oo_diffusivity_array = 1/diffusivity_array
+        oo_diffusivity_array = 1./diffusivity_array
         deltat_array =fourier_number * np.multiply(np.multiply(rho_array,
                                                                meshsize_array**2),
                                                    oo_diffusivity_array)
