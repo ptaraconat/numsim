@@ -53,7 +53,7 @@ def test_forward_euler_diffusion(mesh_fixture):
     n_ite = 1000 
     for i in range(n_ite):
         implicit_contribution = mat_d
-        explicit_contribution = -rhs_d
+        explicit_contribution = rhs_d
         current_array = tstepper.step(current_array, mesh_fixture, implicit_contribution, explicit_contribution)
     print(current_array)
     print(np.abs(static_sol - current_array))
@@ -81,9 +81,40 @@ def test_backward_euler_diffusion(mesh_fixture):
     static_sol = np.linalg.solve(mat_d,rhs_d)
     #
     current_array = mesh_fixture.elements_data['temp']
-    implicit_contribution = -mat_d
+    implicit_contribution = mat_d
     explicit_contribution =  rhs_d
     n_ite = 100
+    for _ in range(n_ite):
+        current_array = tstepper.step(current_array, mesh_fixture, implicit_contribution, explicit_contribution)
+    print(current_array)
+    print(np.abs(static_sol - current_array))
+    #
+    assertion = np.all(np.abs(static_sol - current_array) < 1e-3)
+    assert assertion
+    
+
+def test_cn_diffusion(mesh_fixture):
+    diffusion_coeff = 1.
+    dt = 2
+    tstepper = CNScheme()
+    tstepper.set_timestep(dt)
+    diffop = OrthogonalDiffusion()
+    boundary_conditions = {'inlet' : {'type' : 'dirichlet',
+                                      'value' : 3},
+                           'outlet' : {'type' : 'dirichlet',
+                                       'value' : 0},
+                           'wall' : {'type' : 'neumann',
+                                     'value' : np.array([0,0,0])}}
+    #
+    mat_d, rhs_d = diffop(mesh_fixture,
+                          boundary_conditions, 
+                          diffusion_coeff = diffusion_coeff)
+    static_sol = np.linalg.solve(mat_d,rhs_d)
+    #
+    current_array = mesh_fixture.elements_data['temp']
+    implicit_contribution = mat_d
+    explicit_contribution =  rhs_d
+    n_ite = 50
     for _ in range(n_ite):
         current_array = tstepper.step(current_array, mesh_fixture, implicit_contribution, explicit_contribution)
     print(current_array)

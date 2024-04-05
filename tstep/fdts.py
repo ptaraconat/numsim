@@ -53,6 +53,7 @@ class ForwardEulerScheme(TimeSteping):
         returns 
         advanced_array ::: np.array(n_elem,1) ::: 
         '''
+        explicit_contribution = - explicit_contribution
         # f_n+1 = f_n + (dt/V)*(IMP*f_n + EXP)
         one_over_vol = 1. / mesh.elements_volumes
         implicit_contrib = np.dot(implicit_contribution,current_array)
@@ -77,6 +78,7 @@ class BackwardEulerScheme(TimeSteping):
         returns 
         advanced_array ::: np.array(n_elem,1) ::: 
         '''
+        implicit_contribution = - implicit_contribution
         # (f_n+1 - f_n)*(V/dt) + (IMP*f_n+1 +EXP)= 0
         # ((V/dt) + IMP)*f_n+1 = (V/dt)*f_n - EXP 
         add_mat = np.diag(np.squeeze(mesh.elements_volumes/self.dt))
@@ -85,3 +87,29 @@ class BackwardEulerScheme(TimeSteping):
         rhs = add_rhs - explicit_contribution
         advanced_array = np.linalg.solve(mat,rhs)
         return advanced_array
+
+class CNScheme(TimeSteping):
+    
+    def __init__(self):
+        '''
+        '''
+        super().__init__()
+    
+    def step(self,current_array, mesh, implicit_contribution, explicit_contribution):
+        '''
+        arguments 
+        current_array ::: np.array(n_elem,1) ::: 
+        mesh ::: numsim.meshe.mesh.Mesh :::
+        implicit_contribution ::: np.array(n_elem,n_elem) :::
+        explicit_contribution ::: np.array(n_elem,1) :::
+        returns 
+        advanced_array ::: np.array(n_elem,1) ::: 
+        '''
+        backward_scheme = BackwardEulerScheme()
+        backward_scheme.set_timestep(self.dt/2)
+        forward_scheme = ForwardEulerScheme()
+        forward_scheme.set_timestep(self.dt/2)
+        intermed_array = backward_scheme.step(current_array,mesh,implicit_contribution,explicit_contribution)
+        advanced_array = forward_scheme.step(intermed_array,mesh,implicit_contribution,explicit_contribution)
+        return advanced_array
+        
