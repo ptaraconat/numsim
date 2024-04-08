@@ -4,7 +4,7 @@ FROM python:3.9
 ENV TEST_DIR=/app/tests
 ENV MESHE_DIR=/app/meshe
 ENV FVM_DIR=/app/fvm
-ENV TSTEP_DIR = /app/tstep
+ENV TSTEP_DIR=/app/tstep
 ENV TEST_FILE=test_layers.py.py
 # Set the working directory inside the container
 WORKDIR /app
