@@ -26,6 +26,7 @@ class Mesh :
         self.nodes = None 
         # data 
         self.elements_centroids = None 
+        self.elements_volumes = None
         self.bndfaces_centroids = None 
         self.elements_data = {}
         self.bndfaces_data = {}
@@ -376,8 +377,20 @@ class Mesh :
             ind = element_faces_ind[i,:]
             face_tmp = self.nodes[ind]
             element_surfaces.append(face_tmp)
-        
+
         return element_surfaces
+    
+    def set_elements_volumes(self):
+        '''
+        '''
+        n_elem = np.size(self.elements,0)
+        volumes_arr = np.zeros((n_elem,1))
+        for ind_elem, element in enumerate(self.elements):
+            element_faces = self._get_element_bounding_faces(ind_elem)
+            element_centroid = self._calc_centroid(self.nodes[element])
+            element_volume = self._calc_element_volume(element_faces,element_centroid)
+            volumes_arr[ind_elem] = element_volume
+        self.elements_volumes = volumes_arr
     
     def _surface_checker_(self, face, surfaces_list,order_list = True):
         '''
