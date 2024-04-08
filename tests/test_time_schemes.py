@@ -3,11 +3,13 @@ import sys as sys
 sys.path.append('.')
 from tstep.fdts import * 
 from fvm.diffusion import OrthogonalDiffusion
+from fvm.convection import CentralDiffConvection
 from meshe.mesh import *
 
 @pytest.fixture()
 def mesh_fixture():
     dx = 1
+    velocity = 0.8
     n_elem = 10
     mesh = Mesh1D(dx,n_elem)
     #
@@ -19,13 +21,13 @@ def mesh_fixture():
     # set data 
     mesh.elements_data['temp'] = np.zeros((n_elem,1))
     #
-    #arr_tmp = np.zeros((n_elem,3))
-    #arr_tmp[:,0] = 1. 
-    #mesh.elements_data['velocity'] = velocity * arr_tmp
-    #n_bndf = np.size(mesh.bndfaces,0)
-    #arr_tmp = np.zeros((n_bndf,3))
-    #arr_tmp[:,0] = 1. 
-    #mesh.bndfaces_data['velocity'] =   velocity * arr_tmp 
+    arr_tmp = np.zeros((n_elem,3))
+    arr_tmp[:,0] = 1. 
+    mesh.elements_data['velocity'] = velocity * arr_tmp
+    n_bndf = np.size(mesh.bndfaces,0)
+    arr_tmp = np.zeros((n_bndf,3))
+    arr_tmp[:,0] = 1. 
+    mesh.bndfaces_data['velocity'] =   velocity * arr_tmp 
     return mesh
 
 def test_calc_diff_dt():
@@ -148,6 +150,51 @@ def test_cn_diffusion(mesh_fixture):
         current_array = tstepper.step(current_array, mesh_fixture, implicit_contribution, explicit_contribution)
     print(current_array)
     print(np.abs(static_sol - current_array))
+    #
+    assertion = np.all(np.abs(static_sol - current_array) < 1e-3)
+    assert assertion
+
+
+def test_forward_euler_convdiff(mesh_fixture):
+    diffusion_coeff = 0.9
+    fourier = 0.49
+    cfl = 0.6
+    tstepper = ForwardEulerScheme()
+    meshsize = mesh_fixture.elements_volumes**(1/3)
+    velocity_array = mesh_fixture.elements_data['velocity']
+    dt_diff = tstepper._calc_dt_diff(fourier,diffusion_coeff,1,meshsize)
+    dt_conv = tstepper._calc_dt_conv(cfl,velocity_array, meshsize)
+    dt = np.min([dt_diff, dt_conv])
+    tstepper.set_timestep(dt)
+    diffop = OrthogonalDiffusion()
+    convop = CentralDiffConvection(velocity_data= 'velocity',convected_data = 'temp')
+    boundary_conditions = {'inlet' : {'type' : 'dirichlet',
+                                      'value' : 3},
+                           'outlet' : {'type' : 'dirichlet',
+                                       'value' : 0},
+                           'wall' : {'type' : 'neumann',
+                                     'value' : np.array([0,0,0])}}
+    #
+    mat_d, rhs_d = diffop(mesh_fixture,
+                          boundary_conditions, 
+                          diffusion_coeff = diffusion_coeff)
+    mat_c, rhs_c = convop(mesh_fixture, 
+                          boundary_conditions)
+    mat = mat_d + mat_c
+    rhs = rhs_d + rhs_c
+    static_sol = np.linalg.solve(mat,rhs)
+    #
+    current_array = mesh_fixture.elements_data['temp']
+    n_ite = 1000 
+    for i in range(n_ite):
+        implicit_contribution = mat
+        explicit_contribution = rhs
+        current_array = tstepper.step(current_array, mesh_fixture, implicit_contribution, explicit_contribution)
+    print(static_sol)
+    print(current_array)
+    print(np.abs(static_sol - current_array))
+    print(dt_diff, dt_conv)
+    print(dt)
     #
     assertion = np.all(np.abs(static_sol - current_array) < 1e-3)
     assert assertion
