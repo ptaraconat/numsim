@@ -5,6 +5,7 @@ ENV TEST_DIR=/app/tests
 ENV MESHE_DIR=/app/meshe
 ENV FVM_DIR=/app/fvm
 ENV TSTEP_DIR=/app/tstep
+ENV SOLVER_DIR=/app/solver
 ENV TEST_FILE=test_layers.py.py
 # Set the working directory inside the container
 WORKDIR /app
@@ -14,6 +15,7 @@ COPY tests $TEST_DIR
 COPY meshe $MESHE_DIR
 COPY fvm $FVM_DIR
 COPY tstep $TSTEP_DIR
+COPY solver $SOLVER_DIR
 COPY requirements.txt /app/
 COPY __init__.py /app/__init__.py
 
