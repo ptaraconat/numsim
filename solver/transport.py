@@ -17,6 +17,7 @@ class TransportSolver():
         velocity ::: str ::: name of the velocity data 
         diffusivity ::: str ::: name of the diffusivity data 
         '''
+        self.constant_operator = True
         self.trans_data = transported_data
         self.velocity_data = velocity 
         self.diffusivity_data = diffusivity
@@ -72,7 +73,7 @@ class TransportSolver():
         '''
         # calc dt 
         meshsize = mesh.elements_volumes**(1/3)
-        velocity_array = mesh.element_data[self.velocity_data]
+        velocity_array = mesh.elements_data[self.velocity_data]
         # must be improved 
         rho = 1
         if self.diffusivity_data != None : 
@@ -91,7 +92,8 @@ class TransportSolver():
         dt = np.min([dt_diff,dt_conv])
         self.timeop.set_timestep(dt)
         #
-        self._set_operators(mesh, boundary_conditions)
+        if not self.constant_operator : 
+            self._set_operators(mesh, boundary_conditions)
         implicit_contribution = self.mat_conv + self.mat_diff
         explicit_contribution = self.rhs_conv + self.rhs_diff
         current_array = mesh.elements_data[self.trans_data]
@@ -126,17 +128,25 @@ class TransportSolver():
             arr_tmp = np.zeros((n_bndfaces,1))
             mesh.bndfaces_data[self.diffusivity_data] = arr_tmp
         
-    def set_constant_velocity(self,mesh):
+    def set_constant_velocity(self,mesh, velocity):
         '''
         arguments 
         mesh ::: meshe.mesh :::
+        velocity ::: np.array (3,1) ::: 
         '''
-        pass 
+        n_elem = np.size(mesh.elements,0)
+        n_bndfaces = np.size(mesh.bndfaces,0)
+        element_velocity = np.tile(velocity, (n_elem, 1))
+        bndfaces_velocity = np.tile(velocity, (n_bndfaces, 1))
+        mesh.elements_data[self.velocity_data] = element_velocity
+        mesh.bndfaces_data[self.velocity_data] = bndfaces_velocity
     
-    def set_constant_diffusivity(self,mesh):
+    def set_constant_diffusivity(self,mesh, diffusion_coeff):
         '''
         arguments 
         mesh ::: meshe.mesh :::
+        diffusion_coeff ::: float ::: 
         '''
-        pass 
+        mesh.elements_data[self.diffusivity_data] = diffusion_coeff
+        mesh.bndfaces_data[self.diffusivity_data] = diffusion_coeff
         
