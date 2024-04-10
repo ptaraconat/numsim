@@ -7,7 +7,7 @@ from meshe.mesh import *
 @pytest.fixture()
 def mesh_fixture():
     dx = 1
-    n_elem = 10
+    n_elem = 21
     mesh = Mesh1D(dx,n_elem)
     #
     mesh = Mesh1D(dx,n_elem)
@@ -22,6 +22,15 @@ def solver_fixture():
     solver = TransportSolver('temp',
                              'velocity',
                              'diffusivity',
+                             diffusion_coeff= 1)
+    return solver
+
+@pytest.fixture()
+def solver_fixture2(): 
+    solver = TransportSolver('temp',
+                             'velocity',
+                             'diffusivity',
+                             'source',
                              diffusion_coeff= 1)
     return solver
     
@@ -68,6 +77,22 @@ def test_set_constant_diffusivity(mesh_fixture, solver_fixture):
                  np.all(mesh_fixture.bndfaces_data['diffusivity'] == exp_bf_diff)] 
     assert assertion  
     
+def test_set_constant_source(mesh_fixture, solver_fixture2):
+    solver_fixture2.initialize_data(mesh_fixture)
+    #
+    n_elem = np.size(mesh_fixture.elements,0)
+    n_bndf = np.size(mesh_fixture.bndfaces,0)
+    #
+    source_term = 3.5
+    exp_elem_diff = source_term * np.ones((n_elem,1))
+    exp_bf_diff = source_term * np.ones((n_bndf,1))
+    #
+    solver_fixture2.set_constant_source(mesh_fixture,source_term)
+    #
+    assertion = [np.all(mesh_fixture.elements_data['source'] == exp_elem_diff),
+                 np.all(mesh_fixture.bndfaces_data['source'] == exp_bf_diff)] 
+    assert assertion  
+    
 def test_convdiff_solver(mesh_fixture,solver_fixture):
     velocity = np.array([0.8,0,0])
     diff_coeff = 1
@@ -96,4 +121,43 @@ def test_convdiff_solver(mesh_fixture,solver_fixture):
     print(static_sol)
     #
     assertion = np.all(np.abs(static_sol - mesh_fixture.elements_data['temp']) < 1e-3)
+    assert assertion 
+
+def test_convdiff_solver_wsource(mesh_fixture,solver_fixture2):
+    source_val = 1
+    source_loc = 10
+    velocity = np.array([0.5,0,0])
+    diff_coeff = 2
+    boundary_conditions = {'inlet' : {'type' : 'dirichlet',
+                                      'value' : 0},
+                           'outlet' : {'type' : 'dirichlet',
+                                       'value' : 0},
+                           'wall' : {'type' : 'neumann',
+                                     'value' : np.array([0,0,0])}}
+    #
+    solver_fixture2.initialize_data(mesh_fixture)
+    solver_fixture2.set_constant_velocity(mesh_fixture,velocity)
+    # source term 
+    n_elem = np.size(mesh_fixture.elements,0)
+    arr_tmp = np.zeros((n_elem,1))
+    arr_tmp[source_loc] = source_val
+    mesh_fixture.elements_data['source'] = arr_tmp
+    del arr_tmp
+    # not required atm 
+    solver_fixture2.set_constant_diffusivity(mesh_fixture,diff_coeff)
+    solver_fixture2.diffusion_coeff = diff_coeff
+    solver_fixture2._set_operators(mesh_fixture, boundary_conditions)
+    # steady solution 
+    mat = solver_fixture2.mat_diff + solver_fixture2.mat_conv + solver_fixture2.mat_source
+    rhs = solver_fixture2.rhs_diff + solver_fixture2.rhs_conv + solver_fixture2.rhs_source
+    static_sol = np.linalg.solve(mat,rhs)
+    # Temporal Loop 
+    n_ite = 500
+    for i in range(n_ite):
+        solver_fixture2.step(mesh_fixture, boundary_conditions)
+    print(mesh_fixture.elements_data['temp'])
+    print(static_sol)
+    print(100*np.abs(static_sol - mesh_fixture.elements_data['temp'])/static_sol)
+    # consider relative error in % 
+    assertion = np.all(100*np.abs(static_sol - mesh_fixture.elements_data['temp'])/static_sol < 1)
     assert assertion 
