@@ -7,9 +7,9 @@ from tstep.fdts import *
 class TransportSolver():
     '''
     '''
-    def __init__(self, transported_data, velocity = None, diffusivity = None, 
+    def __init__(self, transported_data, velocity = None, diffusivity = None, source = None,
                  time_scheme = 'backward_euler', diffusion_scheme = 'orthogonal_diffusion',
-                 convection_scheme = 'central_differencing',
+                 convection_scheme = 'central_differencing', source_scheme = 'implicit_source',
                  diffusion_coeff = 1., fourier = 0.3, cfl = 0.6):
         '''
         arguments 
@@ -21,9 +21,11 @@ class TransportSolver():
         self.trans_data = transported_data
         self.velocity_data = velocity 
         self.diffusivity_data = diffusivity
+        self.source_data = source
         self.time_scheme = time_scheme
         self.diffusion_scheme = diffusion_scheme
         self.convection_scheme = convection_scheme
+        self.source_scheme = source_scheme
         self.fourier = fourier
         self.cfl = cfl 
         # must be replaced with the diffusivity data 
@@ -36,6 +38,9 @@ class TransportSolver():
         if self.diffusivity_data != None : 
             if self.diffusion_scheme == 'orthogonal_diffusion' : 
                 self.diffop = OrthogonalDiffusion()
+        if self.source_data != None :
+            if self.source_scheme == 'implicit_source':
+                self.sourceop = SourceTerm(data_name = self.source_data)
         if self.time_scheme == 'backward_euler' : 
             self.timeop = BackwardEulerScheme()
     
@@ -63,6 +68,18 @@ class TransportSolver():
             rhs = np.zeros((n_elem,1))
         self.mat_diff = mat 
         self.rhs_diff = rhs 
+        del mat, rhs 
+        #
+        if self.source_data != None : 
+            mat = np.zeros((n_elem,n_elem))
+            rhs = self.sourceop(mesh)
+            print('source term')
+            print(rhs)
+        else : 
+            mat = np.zeros((n_elem,n_elem))
+            rhs = np.zeros((n_elem,1))
+        self.mat_source = mat
+        self.rhs_source = rhs
         del mat, rhs 
     
     def step(self,mesh, boundary_conditions ):
@@ -94,8 +111,8 @@ class TransportSolver():
         #
         if not self.constant_operator : 
             self._set_operators(mesh, boundary_conditions)
-        implicit_contribution = self.mat_conv + self.mat_diff
-        explicit_contribution = self.rhs_conv + self.rhs_diff
+        implicit_contribution = self.mat_conv + self.mat_diff + self.mat_source
+        explicit_contribution = self.rhs_conv + self.rhs_diff + self.rhs_source
         current_array = mesh.elements_data[self.trans_data]
         next_array = self.timeop.step(current_array, 
                                          mesh, 
@@ -127,6 +144,12 @@ class TransportSolver():
             mesh.elements_data[self.diffusivity_data] = arr_tmp
             arr_tmp = np.zeros((n_bndfaces,1))
             mesh.bndfaces_data[self.diffusivity_data] = arr_tmp
+        # init source data 
+        if self.source_data != None : 
+            arr_tmp = np.zeros((n_elem,1))
+            mesh.elements_data[self.source_data] = arr_tmp
+            arr_tmp = np.zeros((n_bndfaces,1))
+            mesh.bndfaces_data[self.source_data] = arr_tmp
         
     def set_constant_velocity(self,mesh, velocity):
         '''
@@ -147,6 +170,15 @@ class TransportSolver():
         mesh ::: meshe.mesh :::
         diffusion_coeff ::: float ::: 
         '''
-        mesh.elements_data[self.diffusivity_data] = diffusion_coeff
-        mesh.bndfaces_data[self.diffusivity_data] = diffusion_coeff
+        mesh.elements_data[self.diffusivity_data][:,0] = diffusion_coeff
+        mesh.bndfaces_data[self.diffusivity_data][:,0] = diffusion_coeff
+    
+    def set_constant_source(self, mesh, source_term):
+        '''
+        arguments 
+        mesh ::: meshe.mesh :::
+        source_term ::: float :::
+        '''
+        mesh.elements_data[self.source_data][:,0] = source_term
+        mesh.bndfaces_data[self.source_data][:,0] = source_term
         
