@@ -276,17 +276,17 @@ def test_nonortho_diff_intface():
     face_area = 2.
     face_vector = np.array([3.,4,0])
     diffusion = 1. 
-    non_orthodiff = NonOthogonalDiffusion()
+    non_orthodiff = NonOthogonalDiffusion('diffusion')
     face_coeff = non_orthodiff.cal_surface_coef(face_gradient,
                                                 face_area,
                                                 face_vector,
-                                                diffusion_coeff=diffusion)
+                                                diffusion)
     print(face_coeff)
     assertion = face_coeff == 24
     assert assertion
 
 def test_over_relaxed_decomp():
-    diff_op = NonOthogonalDiffusion(method = 'over_relaxed')
+    diff_op = NonOthogonalDiffusion('diffusion',method = 'over_relaxed')
     face = np.array([[0, 0, 0.],
                      [0, 1., 0.],
                      [1., 1., 0.],
@@ -310,8 +310,7 @@ def test_ortho_diff_operator_orthomesh(mesh_fixture4):
     
     print(mesh_fixture4.bndfaces_tags)
     mat, rhs = diff_op(mesh_fixture4, 
-                       boundary_conditions, 
-                       diffusion_coeff=1.)
+                       boundary_conditions)
     print(mat)
     print(rhs)
     solution = np.linalg.solve(mat,rhs)
@@ -325,8 +324,8 @@ def test_ortho_diff_operator_orthomesh(mesh_fixture4):
     
     assert assertion 
 
-def test_nonortho_diff_operator(mesh_fixture4):
-    diff_op = NonOthogonalDiffusion(data_name = 't', 
+def test_nonortho_diff_operator1(mesh_fixture4):
+    diff_op = NonOthogonalDiffusion('diffusion',data_name = 't', 
                                     grad_data_name = 'gradt',
                                     method = 'over_relaxed')
     boundary_conditions = {'inlet' : {'type' : 'dirichlet',
@@ -337,8 +336,7 @@ def test_nonortho_diff_operator(mesh_fixture4):
                                      'value' : np.array([0,0,0])}}
     
     mat, rhs = diff_op(mesh_fixture4, 
-                       boundary_conditions, 
-                       diffusion_coeff=1.)
+                       boundary_conditions)
     print(mat)
     print(rhs)
     solution = np.linalg.solve(mat,rhs)
@@ -363,8 +361,7 @@ def test_ortho_diff_operator_on_nonorthomesh(mesh_fixture5):
     
     print(mesh_fixture5.bndfaces_tags)
     mat, rhs = diff_op(mesh_fixture5, 
-                       boundary_conditions, 
-                       diffusion_coeff=1.)
+                       boundary_conditions)
     print(mat)
     print(rhs)
     solution = np.linalg.solve(mat,rhs)
@@ -383,7 +380,7 @@ def test_nonortho_diff_operator2(mesh_fixture5):
                                    mesh_fixture5, 
                                    weighting = False,
                                    use_boundaries = True)
-    diff_op = NonOthogonalDiffusion(data_name = 'temp', 
+    diff_op = NonOthogonalDiffusion('diffusion',data_name = 'temp', 
                                     grad_data_name = 'grad_temp',
                                     method = 'over_relaxed')
     boundary_conditions = {'inlet' : {'type' : 'dirichlet',
@@ -391,12 +388,10 @@ def test_nonortho_diff_operator2(mesh_fixture5):
                            'outlet' : {'type' : 'dirichlet',
                                        'value' : 3},
                            'wall' : {'type' : 'neumann',
-                                     'value' : np.array([0,0,0])}}
-    
+                                     'value' : np.array([0,0,0])}}  
     for i in range(30): 
         mat, rhs = diff_op(mesh_fixture5, 
-                        boundary_conditions, 
-                        diffusion_coeff=1.)
+                        boundary_conditions)
         print('########### ', i)
         print(mat)
         print(rhs)

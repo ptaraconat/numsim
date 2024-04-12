@@ -11,10 +11,11 @@ class NonOthogonalDiffusion(FaceComputer):
     '''
     '''
     
-    def __init__(self, data_name = '', grad_data_name = '',method = 'over_relaxed'):
+    def __init__(self, diffusion_data, data_name = '', grad_data_name = '',method = 'over_relaxed'):
         super().__init__('Non-Orto_diffusion', 'explicit')
+        self.diffusion_data = diffusion_data
         self.method = method
-        self.ortho_calculator = OrthogonalDiffusion()
+        self.ortho_calculator = OrthogonalDiffusion(diffusion_data)
         self.data_name = data_name
         self.grad_data_name = grad_data_name
     
@@ -56,12 +57,11 @@ class NonOthogonalDiffusion(FaceComputer):
             nonortho_component = face_area*face_normal - ortho_component
         return ortho_component, nonortho_component 
     
-    def __call__(self,mesh,boundary_conditions,diffusion_coeff = 1):
+    def __call__(self,mesh,boundary_conditions):
         '''
         arguments 
         mesh ::: numsim.meshe.mesh.Mesh ::: mesh on which the diffusion operator is calculated
         boundary_conditions ::: dictionnary ::: dictionnary that specifies the boundary conditions 
-        diffusion_coeff ::: float ::: 
         returns 
         matrix ::: np.array (n_elem,n_elem) :::
         '''
@@ -86,12 +86,18 @@ class NonOthogonalDiffusion(FaceComputer):
             face_normal_ortho_comp /= face_ortho_comp_area
             if face_nonortho_comp_area != 0. :
                 face_normal_nonortho_comp /= face_nonortho_comp_area
+            #
+            face_vertex = mesh._calc_centroid(coord_face)
+            diffusion1 = mesh.elements_data[self.diffusion_data][ind_cent1]
+            diffusion2 = mesh.elements_data[self.diffusion_data][ind_cent2]
             # Treat orthogonal component 
             surf_flux = self.ortho_calculator.calc_surface_coef(centroid1, 
                                                                 centroid2, 
                                                                 face_ortho_comp_area, 
                                                                 face_normal_ortho_comp, 
-                                                                diffusion_coeff=diffusion_coeff)
+                                                                face_vertex,
+                                                                diffusion1,
+                                                                diffusion2)
             # diagonal terms
             matrix[ind_cent1,ind_cent1] += -surf_flux
             matrix[ind_cent2,ind_cent2] += -surf_flux
@@ -108,6 +114,10 @@ class NonOthogonalDiffusion(FaceComputer):
                                                                value1, value2, 
                                                                grad_value1, grad_value2, 
                                                                face_centroid)
+            from .interpolation import FaceInterpolattion
+            diffusion_coeff = FaceInterpolattion().face_computation(centroid1, centroid2, 
+                                                                    diffusion1, diffusion2, 
+                                                                    face_vertex)
             surf_flux = self.cal_surface_coef(face_gradient,
                                               face_nonortho_comp_area, 
                                               face_normal_nonortho_comp,
@@ -131,6 +141,7 @@ class NonOthogonalDiffusion(FaceComputer):
             for i in surfaces_indices :
                 # get face nodes 
                 bnd_face = mesh.bndfaces[i]
+                surface_diffusion = mesh.bndfaces_data[self.diffusion_data][i]
                 elem_ind = int(mesh.bndfaces_elem_conn[i][0])
                 face_nodes = mesh.nodes[bnd_face]
                 if type == 'dirichlet':
@@ -144,7 +155,7 @@ class NonOthogonalDiffusion(FaceComputer):
                                                                                       face_centroid, 
                                                                                       surface_area, 
                                                                                       surface_normal, 
-                                                                                      diffusion_coeff = diffusion_coeff)
+                                                                                      surface_diffusion)
                     ######
                     #face_normal_ortho_comp, face_normal_nonortho_comp = self._decompose_normal(face_nodes, 
                     #                                                                           centroid, 
@@ -247,7 +258,7 @@ class OrthogonalDiffusion(FaceComputer):
         surf_flux = surface_area*np.dot(surface_vector,surface_flux)
         return surf_flux
     
-    def __call__(self,mesh,boundary_conditions,diffusion_coeff = 1):
+    def __call__(self,mesh,boundary_conditions):
         '''
         arguments 
         mesh ::: numsim.meshe.mesh.Mesh ::: mesh on which the diffusion operator is calculated
