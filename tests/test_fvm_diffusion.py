@@ -42,6 +42,14 @@ def mesh_fixture2():
     mesh.elements = np.array([[0, 1, 2, 3, 4, 5, 6, 7]])
     mesh.bndfaces = np.array([[0, 1, 2, 3]])
     mesh.elements_intf_conn = []
+    
+    n_elem = np.size(mesh.elements,0)
+    n_bf = np.size(mesh.bndfaces,0)
+    arr_tmp = np.ones((n_elem,1))
+    mesh.elements_data['diffusion'] = arr_tmp
+    arr_tmp = np.ones((n_bf,1))
+    mesh.bndfaces_data['diffusion'] = arr_tmp
+    
     return mesh 
     
 @pytest.fixture 
@@ -103,6 +111,13 @@ def mesh_fixture4():
                          [4,0,0]])
     mesh.elements_data['gradt'] = grad_tmp
     
+    n_elem = np.size(mesh.elements,0)
+    n_bf = np.size(mesh.bndfaces,0)
+    arr_tmp = np.ones((n_elem,1))
+    mesh.elements_data['diffusion'] = arr_tmp
+    arr_tmp = np.ones((n_bf,1))
+    mesh.bndfaces_data['diffusion'] = arr_tmp
+    
     return mesh
   
 @pytest.fixture 
@@ -162,11 +177,18 @@ def mesh_fixture5():
         return 0*x + 0*y + 0*z
     mesh.set_elements_data('temp', function)
     mesh.set_elements_data('grad_temp', function)
+    
+    n_elem = np.size(mesh.elements,0)
+    n_bf = np.size(mesh.bndfaces,0)
+    arr_tmp = np.ones((n_elem,1))
+    mesh.elements_data['diffusion'] = arr_tmp
+    arr_tmp = np.ones((n_bf,1))
+    mesh.bndfaces_data['diffusion'] = arr_tmp
 
     return mesh
  
 def test_orto_diff_face(mesh_fixture):
-    diff_op = OrthogonalDiffusion()
+    diff_op = OrthogonalDiffusion('diffusion')
     face = mesh_fixture.intfaces[0]
     ind_cent1 = mesh_fixture.intfaces_elem_conn[0][0]
     ind_cent2 = mesh_fixture.intfaces_elem_conn[0][1]
@@ -177,6 +199,10 @@ def test_orto_diff_face(mesh_fixture):
     face_area = mesh_fixture._calc_surface_area(coord_face)
     face_normal = mesh_fixture._calc_surface_normal(coord_face)
     
+    diffusion1 = 1.
+    diffusion2 = 1.
+    face_vertex = mesh_fixture.nodes[face[0]]
+    
     print('centroid1 : ', centroid1)
     print('centroid2 : ',centroid2)
     print('centroids distance :', np.sqrt(np.sum((centroid1-centroid2)**2)))
@@ -184,14 +210,14 @@ def test_orto_diff_face(mesh_fixture):
     print('face normal :', face_normal)
     
     # expect diffusion_coeff*face_area*(1/centroids_distance)
-    surf_flux = diff_op.calc_surface_coef(centroid1, centroid2, face_area, face_normal, diffusion_coeff=1.)
+    surf_flux = diff_op.calc_surface_coef(centroid1, centroid2, face_area, face_normal, face_vertex, diffusion1, diffusion2)
     print(surf_flux)
     
     assertion = surf_flux == 1.6
     assert assertion 
 
 def test_ortho_diff_drbnd(mesh_fixture2):
-    diff_op = OrthogonalDiffusion()
+    diff_op = OrthogonalDiffusion('diffusion')
     mesh_fixture2.set_boundary_faces()
     mesh_fixture2.set_elements_centroids()
     #
@@ -203,6 +229,7 @@ def test_ortho_diff_drbnd(mesh_fixture2):
     face_centroid = mesh_fixture2._calc_centroid(face_nodes)
     face_normal = mesh_fixture2._calc_surface_normal(face_nodes)
     face_area = mesh_fixture2._calc_surface_area(face_nodes)
+    surface_diffusion = 1.
     #
     print(face_nodes)
     print('centroid : ', centroid)
@@ -214,7 +241,7 @@ def test_ortho_diff_drbnd(mesh_fixture2):
                                                        face_centroid, 
                                                        face_area, 
                                                        face_normal, 
-                                                       diffusion_coeff = 1)
+                                                       surface_diffusion)
     print('surface flux : ', surf_flux)
     
     assertion = surf_flux == 2.
@@ -223,7 +250,7 @@ def test_ortho_diff_drbnd(mesh_fixture2):
  
 
 def test_ortho_diff_neumbnd(mesh_fixture2):
-    diff_op = OrthogonalDiffusion()
+    diff_op = OrthogonalDiffusion('diffusion')
     mesh_fixture2.set_boundary_faces()
     mesh_fixture2.set_elements_centroids()
     bnd_flux = np.array([0,0,2])
@@ -272,8 +299,8 @@ def test_over_relaxed_decomp():
     assertion = np.all(ortho == np.array([0,0,-1])) and np.all(nonortho == np.array([0,0,0]))
     assert assertion 
 
-def test_ortho_diff_operator(mesh_fixture4):
-    diff_op = OrthogonalDiffusion()
+def test_ortho_diff_operator_orthomesh(mesh_fixture4):
+    diff_op = OrthogonalDiffusion('diffusion')
     boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                       'value' : 0},
                            'outlet' : {'type' : 'dirichlet',
@@ -326,7 +353,7 @@ def test_nonortho_diff_operator(mesh_fixture4):
     assert assertion 
    
 def test_ortho_diff_operator_on_nonorthomesh(mesh_fixture5):
-    diff_op = OrthogonalDiffusion()
+    diff_op = OrthogonalDiffusion('diffusion')
     boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                       'value' : 0},
                            'outlet' : {'type' : 'dirichlet',

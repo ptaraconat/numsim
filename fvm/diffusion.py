@@ -190,10 +190,11 @@ class OrthogonalDiffusion(FaceComputer):
     '''
     '''
     
-    def __init__(self):
+    def __init__(self,diffusion_data):
         super().__init__('Orto_diffusion', 'implicit')
+        self.diffusion_data = diffusion_data
         
-    def calc_surface_coef(self, centroid1, centroid2, surface_area, surface_vector,diffusion_coeff = 1):
+    def calc_surface_coef(self, centroid1, centroid2, surface_area, surface_vector,face_vertex,diffusion1, diffusion2):
         '''
         arguments 
         centroid1 ::: np.array(3,) ::: coordinates of first node
@@ -201,30 +202,36 @@ class OrthogonalDiffusion(FaceComputer):
         surface_area ::: float ::: Area of face associated with the pair of nodes 
         centroid1/centroid2
         surface_vector ::: np.array(3,) ::: vector associated with that face
-        diffusion_coef ::: float ::: material parameter. Diffusion coefficient 
+        face_vertex ::: np.array(3,) ::: Point that belong to the face. Typically, its centroid 
+        diffusion1 ::: float ::: 
+        diffusion2 ::: float ::: 
         returns 
         surf_flux ::: float ::: surface flux through the surface induced associated with 
         the diffusion
         '''
+        from .interpolation import FaceInterpolattion
+        diffusion_coeff = FaceInterpolattion().face_computation(centroid1, centroid2, 
+                                                                diffusion1, diffusion2, 
+                                                                face_vertex)
         centroid_distance = np.sqrt(np.sum( (centroid1-centroid2)**2 ))
         gradf = (centroid1 - centroid2)/centroid_distance**2
         surf_flux = diffusion_coeff*surface_area*np.abs(np.dot(gradf,surface_vector))
         return surf_flux
     
-    def calc_dirchlet_bnd_surface_coef(self,centroid,surface_centroid,surface_area, surface_vector, diffusion_coeff = 1):
+    def calc_dirchlet_bnd_surface_coef(self,centroid,surface_centroid,surface_area, surface_vector, surface_diffusion):
         '''
         arguments 
         centroid ::: np.array(3,) ::: coordinates of first node
         surface_centroid ::: np.array(3,) ::: coordinates of the second node 
         surface_area ::: float ::: Area of the boundary face
         surface_vector ::: np.array(3,) ::: vector associated with that face
-        diffusion_coef ::: float ::: material parameter. Diffusion coefficient 
+        surface_diffusion ::: float ::: material parameter. Diffusion coefficient 
         returns 
         surf_flux ::: float ::: surface flux through the boundary surface
         '''
         centroids_distance = np.sqrt(np.sum( (centroid-surface_centroid)**2 ) )
         gradf = (centroid-surface_centroid)/centroids_distance**2.
-        surf_flux = diffusion_coeff*surface_area*np.abs(np.dot(gradf,surface_vector))
+        surf_flux = surface_diffusion*surface_area*np.abs(np.dot(gradf,surface_vector))
         return surf_flux
     
     def calc_neumann_bnd_surface_coef(self, surface_area, surface_vector, surface_flux):
@@ -262,11 +269,18 @@ class OrthogonalDiffusion(FaceComputer):
             face_area = mesh._calc_surface_area(coord_face)
             face_normal = mesh._calc_surface_normal(coord_face)
             #
+            face_vertex =  mesh._calc_centroid(coord_face)
+            diffusion1 = mesh.elements_data[self.diffusion_data][ind_cent1]
+            diffusion2 = mesh.elements_data[self.diffusion_data][ind_cent2]
+            #
             surf_flux = self.calc_surface_coef(centroid1, 
                                                centroid2, 
                                                face_area, 
                                                face_normal, 
-                                               diffusion_coeff=diffusion_coeff)
+                                               face_vertex,
+                                               diffusion1,
+                                               diffusion2)
+            
             # diagonal terms
             matrix[ind_cent1,ind_cent1] += -surf_flux
             matrix[ind_cent2,ind_cent2] += -surf_flux
@@ -287,6 +301,7 @@ class OrthogonalDiffusion(FaceComputer):
             for i in surfaces_indices :
                 # get face nodes 
                 bnd_face = mesh.bndfaces[i]
+                surface_diffusion = mesh.bndfaces_data[self.diffusion_data][i]
                 elem_ind = int(mesh.bndfaces_elem_conn[i][0])
                 face_nodes = mesh.nodes[bnd_face]
                 if type == 'dirichlet':
@@ -299,7 +314,7 @@ class OrthogonalDiffusion(FaceComputer):
                                                                      face_centroid, 
                                                                      surface_area, 
                                                                      surface_normal, 
-                                                                     diffusion_coeff = diffusion_coeff)
+                                                                     surface_diffusion)
                     bc_dir_value = bc_val
                     # rework ::: check sign
                     rhs_vec[elem_ind] += -bc_dir_value*face_coeff 
