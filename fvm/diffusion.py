@@ -88,8 +88,8 @@ class NonOthogonalDiffusion(FaceComputer):
                 face_normal_nonortho_comp /= face_nonortho_comp_area
             #
             face_vertex = mesh._calc_centroid(coord_face)
-            diffusion1 = mesh.elements_data[self.diffusion_data][ind_cent1]
-            diffusion2 = mesh.elements_data[self.diffusion_data][ind_cent2]
+            diffusion1 = mesh.elements_data[self.diffusion_data][ind_cent1,0]
+            diffusion2 = mesh.elements_data[self.diffusion_data][ind_cent2,0]
             # Treat orthogonal component 
             surf_flux = self.ortho_calculator.calc_surface_coef(centroid1, 
                                                                 centroid2, 
@@ -141,7 +141,7 @@ class NonOthogonalDiffusion(FaceComputer):
             for i in surfaces_indices :
                 # get face nodes 
                 bnd_face = mesh.bndfaces[i]
-                surface_diffusion = mesh.bndfaces_data[self.diffusion_data][i]
+                surface_diffusion = mesh.bndfaces_data[self.diffusion_data][i,0]
                 elem_ind = int(mesh.bndfaces_elem_conn[i][0])
                 face_nodes = mesh.nodes[bnd_face]
                 if type == 'dirichlet':
@@ -281,8 +281,8 @@ class OrthogonalDiffusion(FaceComputer):
             face_normal = mesh._calc_surface_normal(coord_face)
             #
             face_vertex =  mesh._calc_centroid(coord_face)
-            diffusion1 = mesh.elements_data[self.diffusion_data][ind_cent1]
-            diffusion2 = mesh.elements_data[self.diffusion_data][ind_cent2]
+            diffusion1 = mesh.elements_data[self.diffusion_data][ind_cent1,0]
+            diffusion2 = mesh.elements_data[self.diffusion_data][ind_cent2,0]
             #
             surf_flux = self.calc_surface_coef(centroid1, 
                                                centroid2, 
@@ -312,7 +312,7 @@ class OrthogonalDiffusion(FaceComputer):
             for i in surfaces_indices :
                 # get face nodes 
                 bnd_face = mesh.bndfaces[i]
-                surface_diffusion = mesh.bndfaces_data[self.diffusion_data][i]
+                surface_diffusion = mesh.bndfaces_data[self.diffusion_data][i,0]
                 elem_ind = int(mesh.bndfaces_elem_conn[i][0])
                 face_nodes = mesh.nodes[bnd_face]
                 if type == 'dirichlet':
