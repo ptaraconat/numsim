@@ -62,6 +62,11 @@ mesh.elements_data['velocity'] = arr_tmp
 arr_tmp = np.zeros([np.size(mesh.bndfaces,0),3])
 arr_tmp[:,2] = velocity
 mesh.bndfaces_data['velocity'] = arr_tmp
+#
+arr_tmp = np.ones((np.size(mesh.elements,0),1))
+mesh.elements_data['diffusion'] = diffusion_coeff * arr_tmp
+arr_tmp = np.ones((np.size(mesh.bndfaces,0),1))
+mesh.bndfaces_data['diffusion'] = diffusion_coeff * arr_tmp
 
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                   'value' : 10},
@@ -70,9 +75,9 @@ boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                        'wall' : {'type' : 'neumann',
                                  'value' : np.array([0,0,0])}}
 
-diffusion_op = OrthogonalDiffusion()
+diffusion_op = OrthogonalDiffusion(diffusion_data = 'diffusion')
 convection_op = CentralDiffConvection(velocity_data = 'velocity')
-mat, rhs_vec = diffusion_op(mesh,boundary_conditions,diffusion_coeff=diffusion_coeff)
+mat, rhs_vec = diffusion_op(mesh,boundary_conditions)
 mat_c, rhs_c = convection_op(mesh,boundary_conditions)
 mat += mat_c
 rhs_vec += rhs_c 

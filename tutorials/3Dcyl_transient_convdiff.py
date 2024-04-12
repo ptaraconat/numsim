@@ -68,6 +68,11 @@ mesh.elements_data['velocity'] = arr_tmp
 arr_tmp = np.zeros([np.size(mesh.bndfaces,0),3])
 arr_tmp[:,2] = velocity
 mesh.bndfaces_data['velocity'] = arr_tmp
+#
+arr_tmp = np.ones((np.size(mesh.elements,0),1))
+mesh.elements_data['diffusion'] = diffusion_coeff * arr_tmp
+arr_tmp = np.ones((np.size(mesh.bndfaces,0),1))
+mesh.bndfaces_data['diffusion'] = diffusion_coeff * arr_tmp
 
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                   'value' : 10},
@@ -76,18 +81,19 @@ boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                        'wall' : {'type' : 'neumann',
                                  'value' : np.array([0,0,0])}}
 
-diffusion_op = OrthogonalDiffusion()
+diffusion_op = OrthogonalDiffusion(diffusion_data = 'diffusion')
 convection_op = CentralDiffConvection(velocity_data = 'velocity')
 tstepper = BackwardEulerScheme() 
 #
 meshsize = mesh.elements_volumes**(1/3)
 velocity_array = mesh.elements_data['velocity']
-dt_diff = tstepper._calc_dt_diff(fourier,diffusion_coeff,1,meshsize)
+diffusion_array = mesh.elements_data['diffusion']
+dt_diff = tstepper._calc_dt_diff(fourier,diffusion_array,1,meshsize)
 dt_conv = tstepper._calc_dt_conv(cfl,velocity_array, meshsize)
 dt = np.min([dt_diff, dt_conv])
 tstepper.set_timestep(dt)
 #
-mat, rhs_vec = diffusion_op(mesh,boundary_conditions,diffusion_coeff=diffusion_coeff)
+mat, rhs_vec = diffusion_op(mesh,boundary_conditions)
 mat_c, rhs_c = convection_op(mesh,boundary_conditions)
 mat += mat_c
 rhs_vec += rhs_c 
@@ -100,10 +106,13 @@ n_ite = 300
 for i in range(n_ite):
     implicit_contribution = mat
     explicit_contribution = rhs_vec
-    current_array = tstepper.step(current_array, mesh, implicit_contribution, explicit_contribution)
+    current_array = tstepper.step(current_array, 
+                                  mesh, 
+                                  implicit_contribution, 
+                                  explicit_contribution)
     if i % 20 == 0 :
         print(i, ' dump solution')
-        data_name = 'temp'+str(n_ite)
+        data_name = 'temp'+str(i)
         mesh.elements_data[data_name] = current_array
 mesh.elements_data['convdiff_transient_solution'] = current_array
 print(current_array)
