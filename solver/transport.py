@@ -53,6 +53,7 @@ class TransportSolver():
         n_elem = np.size(mesh.elements,0)
         #
         if self.velocity_data != None :
+            print('clacl conv operator')
             mat, rhs = self.convop(mesh, boundary_conditions)
         else : 
             mat = np.zeros((n_elem,n_elem))
@@ -62,6 +63,7 @@ class TransportSolver():
         del mat, rhs
         #
         if self.diffusivity_data != None : 
+            print('calc diffusion operator')
             mat, rhs = self.diffop(mesh, boundary_conditions)
         else : 
             mat = np.zeros((n_elem,n_elem))
