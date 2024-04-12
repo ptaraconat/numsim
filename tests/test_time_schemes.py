@@ -173,7 +173,7 @@ def test_forward_euler_convdiff(mesh_fixture):
     dt = np.min([dt_diff, dt_conv])
     tstepper.set_timestep(dt)
     diffop = OrthogonalDiffusion('diffusion')
-    convop = CentralDiffConvection(velocity_data= 'velocity',convected_data = 'temp')
+    convop = CentralDiffConvection(velocity_data= 'velocity')
     boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                       'value' : 3},
                            'outlet' : {'type' : 'dirichlet',

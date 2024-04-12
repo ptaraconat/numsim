@@ -5,11 +5,10 @@ from .interpolation import FaceInterpolattion
 
 
 class ConvectionOperator(FaceComputer):
-    def __init__(self,velocity_data = '', convected_data = ''):
+    def __init__(self,velocity_data = ''):
         '''
         '''
         self.velocity_data = velocity_data
-        self.convected_data = convected_data
     
     def calc_dirichlet_surface_coeff(self, surface_area, surface_vector, surface_velocity,centroid,surface_centroid):
         '''
@@ -146,10 +145,10 @@ class ConvectionOperator(FaceComputer):
 
 class CentralDiffConvection(ConvectionOperator):
 
-    def __init__(self,velocity_data = '',convected_data = ''):
+    def __init__(self,velocity_data = ''):
         '''
         '''
-        super().__init__(velocity_data=velocity_data,convected_data=convected_data)
+        super().__init__(velocity_data=velocity_data)
 
     def calc_surface_coef(self, centroid1, centroid2, surface_area, surface_vector, face_vertex,velocity1, velocity2):
         '''
@@ -190,10 +189,10 @@ class CentralDiffConvection(ConvectionOperator):
   
 class UpwindConvection(ConvectionOperator): 
     
-    def __init__(self,velocity_data = '', convected_data = ''):
+    def __init__(self,velocity_data = ''):
         '''
         '''
-        super().__init__(velocity_data=velocity_data,convected_data=convected_data)
+        super().__init__(velocity_data=velocity_data)
     
     def calc_surface_coef(self,centroid1, centroid2, surface_area, surface_vector, face_vertex, velocity1, velocity2):
         '''

@@ -216,7 +216,7 @@ def test_conv_neum_central_diff():
     assert assertion 
     
 def test_central_diff_operator(mesh_fixture4):
-    operator = CentralDiffConvection(velocity_data= 'velocity',convected_data = 'temp')
+    operator = CentralDiffConvection(velocity_data= 'velocity')
     boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                       'value' : 3},
                            'outlet' : {'type' : 'dirichlet',
