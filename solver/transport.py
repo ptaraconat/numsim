@@ -37,7 +37,7 @@ class TransportSolver():
                 self.convop = CentralDiffConvection(velocity_data = self.velocity_data) 
         if self.diffusivity_data != None : 
             if self.diffusion_scheme == 'orthogonal_diffusion' : 
-                self.diffop = OrthogonalDiffusion()
+                self.diffop = OrthogonalDiffusion(self.diffusivity_data)
         if self.source_data != None :
             if self.source_scheme == 'implicit_source':
                 self.sourceop = SourceTerm(data_name = self.source_data)
@@ -53,6 +53,7 @@ class TransportSolver():
         n_elem = np.size(mesh.elements,0)
         #
         if self.velocity_data != None :
+            print('clacl conv operator')
             mat, rhs = self.convop(mesh, boundary_conditions)
         else : 
             mat = np.zeros((n_elem,n_elem))
@@ -62,7 +63,8 @@ class TransportSolver():
         del mat, rhs
         #
         if self.diffusivity_data != None : 
-            mat, rhs = self.diffop(mesh, boundary_conditions, self.diffusion_coeff)
+            print('calc diffusion operator')
+            mat, rhs = self.diffop(mesh, boundary_conditions)
         else : 
             mat = np.zeros((n_elem,n_elem))
             rhs = np.zeros((n_elem,1))

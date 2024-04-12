@@ -1,14 +1,18 @@
-import gmsh 
-import numpy as np 
 import sys as sys 
 sys.path.append('../')
-from meshe.mesh import * 
-from fvm.gradient import *
-from fvm.diffusion import * 
-from fvm.convection import * 
+from solver.transport import TransportSolver
+from meshe.mesh import TetraMesh
+import gmsh
+import numpy as np
+import os as os  
 
-gmsh.initialize()
-gmsh.model.add('test_model')
+# Parameters 
+savedir = '3D_cyl_transport_tuto/'
+
+n_ite = 300
+dump_ite = 20
+fourier = 0.49
+cfl = 0.6
 
 diffusion_coeff = 1.
 velocity = 5
@@ -16,6 +20,20 @@ radius = 0.5
 height = 1 
 mesh_size = 0.25
 
+boundary_conditions = {'inlet' : {'type' : 'dirichlet',
+                                  'value' : 10},
+                       'outlet' : {'type' : 'dirichlet',
+                                   'value' : 0},
+                       'wall' : {'type' : 'neumann',
+                                 'value' : np.array([0,0,0])}}
+# Create savedir 
+if os.path.exists(savedir):
+    print(savedir, ' already exists')
+else : 
+    os.mkdir(savedir)
+# Create mesh 
+gmsh.initialize()
+gmsh.model.add('test_model')
 factory = gmsh.model.geo
 factory.addPoint(0, 0, 0,  tag = 1)
 factory.addPoint(0, radius, 0,  tag = 2)
@@ -44,6 +62,7 @@ factory.synchronize()
 gmsh.model.mesh.generate(3)
 gmsh.write('test.msh')
 gmsh.finalize()
+
 # load mesh 
 mesh = TetraMesh()
 mesh.gmsh_reader('test.msh')
@@ -51,11 +70,13 @@ mesh.set_internal_faces()
 mesh.set_elements_intfaces_connectivity()
 mesh.set_boundary_faces()
 mesh.set_elements_centroids()
+mesh.set_elements_volumes()
 print('Number of nodes : ', np.shape(mesh.nodes))
 print('Number of elements :',np.shape(mesh.elements))
 print('Number of boundary faces :',np.shape(mesh.bndfaces))
 print('Number of internal faces :', np.shape(mesh.intfaces))
 # set data 
+mesh.elements_data['temp'] = np.zeros((np.size(mesh.elements,0),1))
 arr_tmp = np.zeros([np.size(mesh.elements,0),3])
 arr_tmp[:,2] = velocity
 mesh.elements_data['velocity'] = arr_tmp
@@ -67,23 +88,25 @@ arr_tmp = np.ones((np.size(mesh.elements,0),1))
 mesh.elements_data['diffusion'] = diffusion_coeff * arr_tmp
 arr_tmp = np.ones((np.size(mesh.bndfaces,0),1))
 mesh.bndfaces_data['diffusion'] = diffusion_coeff * arr_tmp
+#
+solver = TransportSolver('temp',
+                         velocity = 'velocity',
+                         diffusivity ='diffusion',
+                         fourier = fourier,
+                         cfl = cfl)
+# not required atm 
+solver._set_operators(mesh, boundary_conditions)
+# steady solution 
+mat = solver.mat_diff + solver.mat_conv
+rhs = solver.rhs_diff + solver.rhs_conv
+static_sol = np.linalg.solve(mat,rhs)
+# Temporal Loop 
+for i in range(n_ite):
+    if i % dump_ite == 0 :
+        save_path = savedir + f"output_{i:04d}.vtk"
+        print('dump solution : ', save_path)
+        mesh.save_vtk(output_file = save_path)
+    solver.step(mesh, boundary_conditions)
 
-boundary_conditions = {'inlet' : {'type' : 'dirichlet',
-                                  'value' : 10},
-                       'outlet' : {'type' : 'dirichlet',
-                                   'value' : 0},
-                       'wall' : {'type' : 'neumann',
-                                 'value' : np.array([0,0,0])}}
-
-diffusion_op = OrthogonalDiffusion(diffusion_data = 'diffusion')
-convection_op = CentralDiffConvection(velocity_data = 'velocity')
-mat, rhs_vec = diffusion_op(mesh,boundary_conditions)
-mat_c, rhs_c = convection_op(mesh,boundary_conditions)
-mat += mat_c
-rhs_vec += rhs_c 
-solution = np.linalg.solve(mat,rhs_vec)
-mesh.elements_data['convdiff_solution'] = solution
-
-print(mesh.elements_data['convdiff_solution'] )
-mesh.save_vtk(output_file = '3Dcyl_convdiff_dump.vtk')
-print(np.mean(mesh.elements_data['convdiff_solution'] ))
+print(np.mean(static_sol ))
+print(np.mean(mesh.elements_data['temp'] ))

@@ -93,7 +93,7 @@ def test_set_constant_source(mesh_fixture, solver_fixture2):
                  np.all(mesh_fixture.bndfaces_data['source'] == exp_bf_diff)] 
     assert assertion  
     
-def test_convdiff_solver(mesh_fixture,solver_fixture):
+def test_convdiff_solver1(mesh_fixture,solver_fixture):
     velocity = np.array([0.8,0,0])
     diff_coeff = 1
     boundary_conditions = {'inlet' : {'type' : 'dirichlet',

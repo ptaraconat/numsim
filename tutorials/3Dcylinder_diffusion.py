@@ -13,6 +13,7 @@ gmsh.model.add('test_model')
 radius = 0.5
 height = 1 
 mesh_size = 0.25
+diffusion_coeff = 1.
 
 factory = gmsh.model.geo
 factory.addPoint(0, 0, 0,  tag = 1)
@@ -53,6 +54,11 @@ print('NUmber of nodes : ', np.shape(mesh.nodes))
 print('Number of elements :',np.shape(mesh.elements))
 print('Number of boundary faces :',np.shape(mesh.bndfaces))
 print('Number of internal faces :', np.shape(mesh.intfaces))
+# set data 
+arr_tmp = np.ones((np.size(mesh.elements,0),1))
+mesh.elements_data['diffusion'] = diffusion_coeff * arr_tmp
+arr_tmp = np.ones((np.size(mesh.bndfaces,0),1))
+mesh.bndfaces_data['diffusion'] = diffusion_coeff * arr_tmp
 
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                   'value' : 10},
@@ -61,7 +67,7 @@ boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                        'wall' : {'type' : 'neumann',
                                  'value' : np.array([0,0,0])}}
 
-diffusion_op = OrthogonalDiffusion()
+diffusion_op = OrthogonalDiffusion(diffusion_data = 'diffusion')
 mat, rhs_vec = diffusion_op(mesh,boundary_conditions)
 solution = np.linalg.solve(mat,rhs_vec)
 mesh.elements_data['orthodiff_solution'] = solution
