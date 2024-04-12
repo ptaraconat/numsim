@@ -3,10 +3,14 @@ sys.path.append('../')
 from solver.transport import TransportSolver
 from meshe.mesh import TetraMesh
 import gmsh
-import numpy as np 
+import numpy as np
+import os as os  
 
 # Parameters 
-n_ite = 5
+savedir = '3D_cyl_transport_tuto/'
+
+n_ite = 300
+dump_ite = 20
 fourier = 0.49
 cfl = 0.6
 
@@ -22,7 +26,11 @@ boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                    'value' : 0},
                        'wall' : {'type' : 'neumann',
                                  'value' : np.array([0,0,0])}}
-
+# Create savedir 
+if os.path.exists(savedir):
+    print(savedir, ' already exists')
+else : 
+    os.mkdir(savedir)
 # Create mesh 
 gmsh.initialize()
 gmsh.model.add('test_model')
@@ -94,8 +102,10 @@ rhs = solver.rhs_diff + solver.rhs_conv
 static_sol = np.linalg.solve(mat,rhs)
 # Temporal Loop 
 for i in range(n_ite):
-    if i % 1 == 0 :
-        print(i, ' dump solution')
+    if i % dump_ite == 0 :
+        save_path = savedir + f"output_{i:04d}.vtk"
+        print('dump solution : ', save_path)
+        mesh.save_vtk(output_file = save_path)
     solver.step(mesh, boundary_conditions)
 
 print(np.mean(static_sol ))
