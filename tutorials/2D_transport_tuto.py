@@ -13,14 +13,14 @@ savedir = '2D_transport_tuto/'
 fourier = 0.5
 cfl = 0.6
 
-n_ite = 100
+n_ite = 300
 dump_ite = 20
 
 velocity = 0.6
 diffusion_coeff = 1.
 
 edge_len = 1 
-mesh_size = 0.1
+mesh_size = 0.05
 
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                   'value' : 10},
@@ -88,10 +88,12 @@ print(mesh.physical_entities)
 # set data 
 mesh.elements_data['temp'] = np.zeros((np.size(mesh.elements,0),1))
 arr_tmp = np.zeros([np.size(mesh.elements,0),3])
-arr_tmp[:,2] = velocity
+arr_tmp[:,0] = velocity
+arr_tmp[:,1] = velocity
 mesh.elements_data['velocity'] = arr_tmp
 arr_tmp = np.zeros([np.size(mesh.bndfaces,0),3])
-arr_tmp[:,2] = velocity
+arr_tmp[:,0] = velocity
+arr_tmp[:,1] = velocity
 mesh.bndfaces_data['velocity'] = arr_tmp
 #
 arr_tmp = np.ones((np.size(mesh.elements,0),1))
