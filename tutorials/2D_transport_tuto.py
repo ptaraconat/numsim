@@ -121,4 +121,3 @@ for i in range(n_ite):
 print(np.mean(static_sol ))
 print(np.mean(mesh.elements_data['temp'] ))
 ###############
-mesh.save_vtk(output_file = '2D_dump.vtk')
