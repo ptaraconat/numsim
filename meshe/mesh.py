@@ -416,6 +416,201 @@ class Mesh :
             face_paired_index = None 
         return bool_face, face_paired_index
 
+class Mesh2D(Mesh):
+    
+    def __init__(self):
+        '''
+        '''
+        super().__init__(dimension = 2, type = 'hexa')
+        #
+        self.nodes = None
+        self.elements = None 
+        self.bndfaces = None 
+        self.intfaces = None
+        self.intfaces_elem_conn = None 
+        self.elements_bndf_conn = None
+        self.bndfaces_elem_conn = None
+        self.bndfaces_tags = None
+        #
+        #self.set_elements_intfaces_connectivity()
+        #self.set_elements_centroids()
+    
+    def save_vtk(self,output_file = 'dump.vtk'):
+        '''
+        save the mesh into vtk format 
+        arguments 
+        output_file ::: str ::: name of the dumped file 
+        '''
+        # Create meshio.Mesh object
+        data = {}
+        for key,val in self.elements_data.items():
+            data[key] = [val.tolist()]
+        mesh = meshio.Mesh(
+            points=self.nodes,
+            cells=[("hexahedron", self.elements)],
+            cell_data=data
+        )
+        meshio.write(output_file, mesh, file_format="vtk")
+        
+    def set_mesh(self, mesh):
+        '''
+        arguments :
+        mesh ::: meshio mesh :::
+        '''
+        #mesh = meshio.read("mesh.msh")
+        # read mesh io 2D mesh 
+        nodes = mesh.points 
+        quad_element = []
+        line_element = []
+        line_element_tags = []
+        for i in range(len(mesh.cells)):
+            cell = mesh.cells[i]
+            elements_data = mesh.cell_data['gmsh:physical'][i]
+            print(cell.type)
+            if cell.type == 'line':
+                line_element.append(cell.data)
+                line_element_tags.append(elements_data)
+            if cell.type == 'quad':
+                quad_element.append(cell.data)
+        quad_element = np.concatenate(quad_element)
+        line_element = np.concatenate(line_element)
+        line_element_tags = np.concatenate(line_element_tags)
+        # define gemelus mesh 
+        n_nodes = np.size(nodes,0)
+        pair_nodes = nodes + np.array([0,0,1])
+        pair_quad_element = quad_element + int(n_nodes)
+        pair_line_element = line_element + int(n_nodes)
+        # 
+        nodes = np.concatenate((nodes,pair_nodes), axis = 0)
+        hexa_elements = np.concatenate((quad_element, pair_quad_element),axis = 1)
+        quad_from_lines = np.concatenate((line_element, pair_line_element), axis = 1)
+        bndfaces = np.concatenate((quad_element, 
+                                   pair_quad_element, 
+                                   quad_from_lines),
+                                  axis = 0)
+        back_front_tag = np.zeros(np.size(quad_element,0),dtype = int)
+        elements_tag = np.concatenate((back_front_tag, 
+                                       back_front_tag, 
+                                       line_element_tags), 
+                                      axis = 0)
+        # 
+        self.nodes = nodes
+        self.elements = hexa_elements
+        self.bndfaces = bndfaces
+        self.bndfaces_tags = elements_tag
+        #
+        physisical_entities = mesh.field_data
+        for key, val in physisical_entities.items():
+            val[1] +=1
+            physisical_entities[key] = val
+        physisical_entities['FrontBack'] = np.array([0, 2])
+        self.physical_entities = physisical_entities
+    
+    def _get_element_faces(self,element):
+        '''
+        argument 
+        element ::: np.array(n_nodes,) ::: array containing the nodes index that 
+        defines the element 
+        returns 
+        faces ::: list of lists of int ::: list of faces. Each face being defined 
+        as a list of nodes index
+        '''
+        node1, node2, node3, node4, node5, node6, node7, node8 = element 
+        face1 = [node1, node2, node3, node4]
+        face2 = [node5, node6, node7, node8]
+        face3 = [node1, node2, node6, node5]
+        face4 = [node3, node4, node8, node7]
+        face5 = [node1, node5, node8, node4]
+        face6 = [node2, node6, node7, node3]
+        faces = [face1, face2, face3, face4, face5, face6]
+        return faces
+    
+    def _get_elements_faces(self):
+        '''
+        returns 
+        surfaces ::: np.array (N_surfaces, 3) ::: surfaces elements 
+        N_surfaces shall equal 0.5*(4*Nelements+N_bnd_faces)
+        surfaces_connectivity ::: np.array (N_surfaces, 2) ::: Elements index to 
+        which the surface belong to 
+        elements_face_connectivity ::: np.array(N_elements, 4) ::: index of faces 
+        that bound the mesh elements 
+        '''
+        surfaces = []
+        surfaces_connectivity = []
+        elements_face_connectivity = []
+        faces_count = 0 
+        # Elements loop 
+        for elem_index,element in enumerate(self.elements) : 
+            [face1, face2, face3, face4, face5, face6] = self._get_element_faces(element)
+            # Check surfaces 
+            bool_face1 = True
+            bool_face2 = True
+            bool_face3 = True
+            bool_face4 = True
+            bool_face5 = True 
+            bool_face6 = True 
+            if elem_index != 0 :
+                surfaces_tmp = np.sort(surfaces, axis = 1)
+                bool_face1, face1_paired_index = self._surface_checker_(face1,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
+                bool_face2, face2_paired_index = self._surface_checker_(face2,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
+                bool_face3, face3_paired_index = self._surface_checker_(face3,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
+                bool_face4, face4_paired_index = self._surface_checker_(face4,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
+                bool_face5, face5_paired_index = self._surface_checker_(face5,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
+                bool_face6, face6_paired_index = self._surface_checker_(face6,
+                                                                        surfaces_tmp, 
+                                                                        order_list= False)
+            # Add surfaces 
+            if bool_face1 : 
+                surfaces.append(face1)
+                faces_count +=1
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face1_paired_index].append(elem_index)
+            if bool_face2 : 
+                surfaces.append(face2)
+                faces_count +=1
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face2_paired_index].append(elem_index)
+            if bool_face3 : 
+                surfaces.append(face3)
+                faces_count +=1
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face3_paired_index].append(elem_index)
+            if bool_face4 : 
+                surfaces.append(face4)
+                faces_count +=1
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face4_paired_index].append(elem_index)
+            if bool_face5 : 
+                surfaces.append(face5)
+                faces_count +=1
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face5_paired_index].append(elem_index)
+            if bool_face6 : 
+                surfaces.append(face6)
+                faces_count +=1
+                surfaces_connectivity.append([elem_index])
+            else : 
+                surfaces_connectivity[face6_paired_index].append(elem_index)
+        surfaces = np.asarray(surfaces)
+        print('Number of surfaces :',np.shape(surfaces))
+        print('Number of surfaces :',faces_count)
+        return surfaces, surfaces_connectivity
+
 class Mesh1D(Mesh):
     
     def __init__(self,dx,n_elem,):
@@ -527,9 +722,6 @@ class HexaMesh(Mesh) :
         '''
         index_list = [i for i,el_conn in enumerate(self.elements_intf_conn) if  len(el_conn) < 6]
         return index_list
-        
-    
-    
 
 class TetraMesh(Mesh): 
 
