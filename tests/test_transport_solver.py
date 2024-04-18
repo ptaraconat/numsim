@@ -21,8 +21,7 @@ def mesh_fixture():
 def solver_fixture(): 
     solver = TransportSolver('temp',
                              'velocity',
-                             'diffusivity',
-                             diffusion_coeff= 1)
+                             'diffusivity')
     return solver
 
 @pytest.fixture()
@@ -30,8 +29,7 @@ def solver_fixture2():
     solver = TransportSolver('temp',
                              'velocity',
                              'diffusivity',
-                             'source',
-                             diffusion_coeff= 1)
+                             'source')
     return solver
     
 
