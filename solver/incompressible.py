@@ -73,23 +73,27 @@ class IncompressibleSolver():
                 vx = bc_val[0]
                 vy = bc_val[1]
                 vz = bc_val[2]
-                #
+                # Impose the velocity on inlet faces (BC use in velocity pred)
                 vx_bc[key] = {'type' : 'dirichlet' , 'value' : vx}
                 vy_bc[key] = {'type' : 'dirichlet' , 'value' : vy}
                 vz_bc[key] = {'type' : 'dirichlet' , 'value' : vz}
+                # Don't know how to set pressure (when solving Poisson Eq.)
                 p_bc[key] = {'type' : '' , 'value' : None} # to complete 
             if bc_type == 'wall' : 
-                #
+                # Shall have zero velocity on wall faces (BC use in velocity pred)
                 vx_bc[key] = {'type' : 'dirichlet' , 'value' : 0}
                 vy_bc[key] = {'type' : 'dirichlet' , 'value' : 0}
                 vz_bc[key] = {'type' : 'dirichlet' , 'value' : 0}
-                p_bc[key] = {'type' : '' , 'value' : None} # to complete 
+                # Shall impose gradP.n = 0 on the boundary face (BC used in Poisson Eq)
+                p_bc[key] = {'type' : 'neumann' , 'value' : np.array([0,0,0])} # to complete 
             if bc_type == 'outlet':
-                #
-                vx_bc[key] = {'type' : '' , 'value' : None}
+                p_val = val['value']
+                # Don't know how to set velocity (BC used in velocity pred )
+                vx_bc[key] = {'type' : '' , 'value' : None} # Don't know how to set velocity ? 
                 vy_bc[key] = {'type' : '' , 'value' : None}
                 vz_bc[key] = {'type' : '' , 'value' : None}
-                p_bc[key] = {'type' : '' , 'value' : None} # to complete 
+                # Shall impose a pressure value at the outlet (BC used in Poisson Eq.)
+                p_bc[key] = {'type' : 'dirichlet' , 'value' : p_val} #
         self.velocityx_bc = vx_bc
         self.velocityy_bc = vy_bc
         self.velocityz_bc = vz_bc
