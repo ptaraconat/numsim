@@ -217,8 +217,6 @@ class IncompressibleSolver():
                                    mesh, 
                                    implicit_contribution, 
                                    explicit_contribution)
-        #print(implicit_contribution)
-        #print(explicit_contribution)
         # Advance Uy
         implicit_contribution = self.mat_convy + self.mat_viscoy 
         explicit_contribution = self.rhs_convy + self.rhs_viscoy 
@@ -241,7 +239,6 @@ class IncompressibleSolver():
         next_array[:,1] = np.squeeze(next_uy)
         next_array[:,2] = np.squeeze(next_uz)
         mesh.elements_data[self.velocity_data] = next_array
-        print(mesh.elements_data[self.velocity_data])
         pass 
     
     def set_constant_density(self,mesh,density_value):
@@ -268,8 +265,35 @@ class IncompressibleSolver():
         #
         arr_tmp = (dyna_visco/density_value)*np.ones((n_bndfaces,1))
         mesh.bndfaces_data[self.viscosity_data] = arr_tmp 
-        
+    
+    def update_boundary_velocity(self, mesh, boundary_conditions):
+        '''
+        arguments 
+        mesh ::: meshe.mesh :::
+        boundary_conditions ::: dict :::
+        '''
+        velocity_arr = np.zeros((np.size(mesh.bndfaces,0),3))
+        # Loop over different boundary conditions 
+        for bc_key,val in boundary_conditions.items():
+            bc_index = mesh._get_bc_index(bc_key)
+            type = val['type']
+            bc_val = val['value']
+            # get index associated with the current bondary condition 
+            surfaces_indices =np.squeeze(np.argwhere(mesh.bndfaces_tags == bc_index))
+            #if surfaces_indices.shape == () : 
+            #    surfaces_indices = [surfaces_indices]         
+            if type == 'inlet' : 
+                velocity_arr[surfaces_indices,:] = bc_val
+            if type == 'wall' : 
+                velocity_arr[surfaces_indices,:] = [0, 0, 0]
+            if type == 'outlet' : 
+                # get bounding elements indices
+                bounding_el = mesh.bndfaces_elem_conn[surfaces_indices]
+                bounding_el_velocities = mesh.elements_data[self.velocity_data][bounding_el]
+                velocity_arr[surfaces_indices,:] = bounding_el_velocities
+        mesh.bndfaces_data[self.velocity_data] = velocity_arr
 
+        
     def step(self,mesh):
         '''
         arguments 
