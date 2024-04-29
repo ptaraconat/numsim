@@ -79,6 +79,24 @@ def test_advance_velocity(mesh_fixture, solver_fixture):
     for _ in range(n_ite):
         print(_)
         solver_fixture.advance_velocity(mesh_fixture)
-        print(mesh_fixture.elements_data[solver_fixture.velocity_data])
+        solver_fixture.update_boundary_velocity(mesh_fixture, 
+                                                boundary_conditions)
+    print(mesh_fixture.elements_data[solver_fixture.velocity_data])
+    print(np.mean(mesh_fixture.elements_data[solver_fixture.velocity_data],axis = 0))
+    assertion = False
+    assert assertion 
+    
+def test_pressure_lapl(mesh_fixture, solver_fixture):
+    boundary_conditions = {'inlet' : {'type' : 'inlet',
+                                      'value' : np.array([1,0,0])},
+                           'outlet' : {'type' : 'outlet',
+                                       'value' : 1000},
+                           'wall' : {'type' : 'wall',
+                                     'value' : None}}
+    solver_fixture.set_boundary_conditions(boundary_conditions)
+    solver_fixture.init_data(mesh_fixture)
+    solver_fixture._set_pl_operators(mesh_fixture)
+    print(solver_fixture.mat_pressure)
+    print(solver_fixture.rhs_pressure)
     assertion = False
     assert assertion 

@@ -46,6 +46,9 @@ class IncompressibleSolver():
         self.velocityz_bc ={}
         self.pressure_bc = {}
         #
+        self.lddummy_data = 'p_lapl_dummy'
+        self.plop = OrthogonalDiffusion(self.lddummy_data)
+        #
         if self.velocity_data != None : 
             if self.convection_scheme == 'central_differencing' :
                 self.convop = CentralDiffConvection(velocity_data = self.velocity_data) 
@@ -117,6 +120,11 @@ class IncompressibleSolver():
         ''' 
         n_elem = np.size(mesh.elements,0)
         n_bndfaces = np.size(mesh.bndfaces,0)
+        # init pressure laplacian dummy data 
+        arr_tmp = np.ones([n_elem,1])
+        mesh.elements_data[self.lddummy_data] = arr_tmp
+        arr_tmp = np.ones([n_bndfaces,1])
+        mesh.bndfaces_data[self.lddummy_data] = arr_tmp
         # init velocity data 
         if self.velocity_data != None : 
             arr_tmp = np.zeros([n_elem,3])
@@ -147,6 +155,24 @@ class IncompressibleSolver():
             mesh.elements_data[self.density_data] = arr_tmp
             arr_tmp = np.zeros((n_bndfaces,1))
             mesh.bndfaces_data[self.density_data] = arr_tmp
+        pass 
+    
+    def _set_pl_operators(self,mesh):
+        '''
+        arguments 
+        mesh ::: meshe.mesh :::
+        '''
+        #
+        mat, rhs = self.plop(mesh, self.pressure_bc)
+        self.mat_pressure = mat
+        self.rhs_pressure = rhs 
+    
+    def _set_udotap(self,mesh):
+        '''
+        arguments 
+        mesh ::: meshe.mesh :::
+        '''
+        ### calculate divergence of velocity field 
         pass 
     
     def _set_operators(self, mesh):
@@ -188,7 +214,7 @@ class IncompressibleSolver():
         meshsize = mesh.elements_volumes**(1/3)
         velocity_array = mesh.elements_data[self.velocity_data]
         viscosity_array = mesh.elements_data[self.viscosity_data]
-        density_array = mesh.elements_data[self.density_data]
+        density_array = 1. #mesh.elements_data[self.density_data]
         if self.viscosity_data != None : 
             dt_diff = self.timeop._calc_dt_diff(self.fourier,
                                                 viscosity_array,
@@ -204,9 +230,9 @@ class IncompressibleSolver():
             dt_conv = np.inf 
         dt = np.min([dt_diff,dt_conv])
         # need a fix 
-        #self.timeop.set_timestep(dt)
+        self.timeop.set_timestep(dt)
         print(dt_diff,dt_conv)
-        self.timeop.set_timestep(1)
+        #self.timeop.set_timestep(1)
         # MISS SOMETHINGS : explicit contribution for the different axis (x, y and z)
         self._set_operators(mesh)
         # Advance Ux 
