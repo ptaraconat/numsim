@@ -39,6 +39,25 @@ def test_surface_flowrate(divop_fixture):
     assertion = flow_rate == 1.5
     assert assertion
 
+def test_surface_flowrate2(divop_fixture):
+    centroid1 = np.array([0,0,-1])
+    centroid2 = np.array([0,0,3])
+    surface_centroid = np.array([0,0,0])
+    surface_area = 0.5
+    surface_normal = np.array([0,0,1])
+    data1 = np.array([0,0,1])
+    data2 = np.array([0,0,8])
+    flow_rate = divop_fixture.calc_surface_flowrate(centroid1,
+                                                    centroid2,
+                                                    surface_area,
+                                                    surface_normal,
+                                                    surface_centroid,
+                                                    data1,
+                                                    data2)
+    print(flow_rate)
+    assertion = flow_rate == 1.375
+    assert assertion
+
 def test_surface_dataoutflux(divop_fixture):
     centroid1 = np.array([0,0,-1])
     centroid2 = np.array([0,0,1])

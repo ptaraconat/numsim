@@ -37,19 +37,16 @@ class DivergenceComputer :
                                                               velocity1, velocity2, 
                                                               face_vertex)
         #
-        # Calculate distances between centroids and pair_nodes/face intersection 
-        distance1 = np.sqrt(np.sum( (face_vertex-centroid1)**2. ))
-        distance2 = np.sqrt(np.sum( (face_vertex-centroid2)**2. ))
-        # Calculate distances between centroid sharing the face 
-        centroids_distance = distance1 + distance2 #np.sqrt(np.sum( (centroid1-centroid2)**2. ))
-        # Calculate centroids weights 
-        weight1 = distance2/centroids_distance
-        weight2 = distance1/centroids_distance
-        #
         sign = np.sign(np.dot(surface_vector,centroid2-centroid1))
         if sign < 0 : 
             surface_vector = - surface_vector
         #
         flow_rate = surface_area*np.dot(surface_vector,face_velocity)
         return flow_rate
+    
+    def calc_bndface_flowrate():
+        '''
+        arguments
+        '''
+        pass 
     
