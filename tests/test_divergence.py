@@ -76,3 +76,33 @@ def test_surface_dataoutflux(divop_fixture):
     print(flux)
     assertion = np.all(flux == np.array([0, 0, 1.5])) 
     assert assertion 
+    
+def test_calc_bndface_flux(divop_fixture):
+    el_centroid = np.array([0, 0, -0.5])
+    face_centroid = np.array([0, 0, 0])
+    face_normal = np.array([0, 0, 1])
+    face_area = 0.5
+    face_data = np.array([1,2,3])
+    flux = divop_fixture.calc_bndface_flowrate(el_centroid, 
+                                               face_data,
+                                               face_centroid, 
+                                               face_area, 
+                                               face_normal)
+    print(flux)
+    assertion = flux == 1.5
+    assert assertion 
+    
+def test_calc_bndface_flux2(divop_fixture):
+    el_centroid = np.array([0, 0, 0.5])
+    face_centroid = np.array([0, 0, 0])
+    face_normal = np.array([0, 0, -1])
+    face_area = 0.5
+    face_data = np.array([1,2,3])
+    flux = divop_fixture.calc_bndface_flowrate(el_centroid, 
+                                               face_data,
+                                               face_centroid, 
+                                               face_area, 
+                                               face_normal)
+    print(flux)
+    assertion = flux == - 1.5
+    assert assertion 
