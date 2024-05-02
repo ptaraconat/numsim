@@ -7,17 +7,27 @@ from meshe.mesh import *
 @pytest.fixture()
 def mesh_fixture():
     dx = 1
-    n_elem = 21
+    n_elem = 10
     mesh = Mesh1D(dx,n_elem)
     mesh.physical_entities = {'inlet': np.array([1,   2]), 
                               'outlet': np.array([3,   2]), 
                               'wall': np.array([2,   2])}
     mesh.set_elements_volumes()
+    #
+    velocity = 1. 
+    arr_tmp = np.zeros((n_elem,3))
+    arr_tmp[:,0] = velocity * 1. 
+    mesh.elements_data['velocity'] =  arr_tmp
+    n_bndf = np.size(mesh.bndfaces,0)
+    arr_tmp = np.zeros((n_bndf,3))
+    arr_tmp[:,0] = velocity * 1. 
+    arr_tmp[0,0] = 10
+    mesh.bndfaces_data['velocity'] =    arr_tmp 
     return mesh 
 
 @pytest.fixture()
 def divop_fixture():
-    operator = DivergenceComputer('data','divergence')
+    operator = DivergenceComputer('velocity','divergence')
     return operator
 
 def test_surface_flowrate(divop_fixture):
@@ -105,4 +115,12 @@ def test_calc_bndface_flux2(divop_fixture):
                                                face_normal)
     print(flux)
     assertion = flux == - 1.5
+    assert assertion 
+    
+def test_divop(divop_fixture, mesh_fixture):
+    divop_fixture(mesh_fixture)
+    print(mesh_fixture.elements_data['divergence'])
+    divergence = mesh_fixture.elements_data['divergence']
+    expected = np.array([[-9], [0], [0], [0], [0], [0], [0], [0], [0], [0]])
+    assertion = np.all(expected == divergence)
     assert assertion 
