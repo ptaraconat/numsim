@@ -1,5 +1,6 @@
 import numpy as np
 from meshe.mesh import Mesh 
+from .interpolation import FaceInterpolattion
 
 class ElementsGradientComputer : 
 
@@ -27,6 +28,70 @@ class ElementsGradientComputer :
             gradients.append(grad)
         gradients = np.asarray(gradients)
         self.mesh.elements_data[self.gdataname] = gradients
+
+class CellBasedGradient(ElementsGradientComputer):
+    '''
+    '''
+    def __init__(self,dataname, grad_dataname):
+        '''
+        arguments 
+        dataname ::: str ::: name of the data 
+        grad_dataname ::: str ::: name of the gradient data 
+        '''
+        self.dataname = dataname
+        self.grad_dataname = grad_dataname
+    
+    def calc_surface_component(self, centroid1, centroid2, 
+                               surface_area, surface_vector, 
+                               face_vertex,
+                               data1, data2):
+        '''
+        arguments 
+        centroid1 ::: np.array(3,) ::: coordinates of first node
+        centroid2 ::: np.array(3,) ::: coordinates of the second node 
+        surface_area ::: float ::: Area of face associated with the pair of nodes 
+        centroid1/centroid2
+        surface_vector ::: np.array(3,) ::: vector associated with that face
+        face_vertex ::: np.array(3,) ::: Point that belong to the face. Typically, its centroid 
+        data1 ::: float or np.array(data_dim,) ::: Convective velocity at centroid1
+        data2 ::: float or np.array(data_dim,) ::: Convective velocity at centroid2
+        returns 
+        face_component ::: float ::: 
+        '''
+        face_data = FaceInterpolattion().face_computation(centroid1, centroid2, 
+                                                              data1, data2, 
+                                                              face_vertex)
+        #
+        sign = np.sign(np.dot(surface_vector,centroid2-centroid1))
+        if sign < 0 : 
+            surface_vector = - surface_vector
+        #
+        #face_component = surface_area*np.dot(face_data,surface_vector)
+        face_data = np.transpose(np.expand_dims(face_data,axis = 0))
+        face_component = surface_area*face_data*surface_vector
+        return face_component
+    
+    def calc_bndface_component(self,centroid, face_data,face_centroid, face_area, face_normal):
+        '''
+        arguments
+        centroid ::: np.array(3,) ::: coordinates of the element to which the boundary 
+        face belongs to 
+        face_data ::: float or np.array(data_dim,) ::: data for which the face flux 
+        is computed 
+        face_centroid ::: np.array(3,) ::: coordinate of the boundary face centroid
+        face_area ::: float ::: area of the boundary face  
+        face_normal ::: np.array(3,) ::: face normal vector
+        returns 
+        face_component ::: np.array() :::
+        '''
+        #
+        sign = np.sign(np.dot(face_normal,centroid-face_centroid))
+        if sign > 0 : 
+            face_normal = - face_normal
+        #flux = face_area * np.dot(face_normal,face_data)
+        face_data = np.transpose(np.expand_dims(face_data,axis = 0))
+        face_component = face_area*face_data*face_normal
+        return face_component
 
 class LSGradient(ElementsGradientComputer): 
     
