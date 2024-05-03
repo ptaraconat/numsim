@@ -92,6 +92,67 @@ class CellBasedGradient(ElementsGradientComputer):
         face_data = np.transpose(np.expand_dims(face_data,axis = 0))
         face_component = face_area*face_data*face_normal
         return face_component
+    
+    def __call__(self,mesh):
+        '''
+        arguments 
+        mesh ::: meshe.mesh :::
+        '''
+        n_elem = np.size(mesh.elements,0)
+        divergence = np.zeros((n_elem,1))
+        # Loop over internal faces 
+        for ind_face,face in enumerate(mesh.intfaces) : 
+            ind_cent1 = mesh.intfaces_elem_conn[ind_face][0]
+            ind_cent2 = mesh.intfaces_elem_conn[ind_face][1]
+            centroid1 = mesh.elements_centroids[ind_cent1]
+            centroid2 = mesh.elements_centroids[ind_cent2]
+            #
+            coord_face = mesh.nodes[face]
+            face_area = mesh._calc_surface_area(coord_face)
+            face_normal = mesh._calc_surface_normal(coord_face)
+            face_centroid = mesh._calc_centroid(coord_face)
+            #
+            data1 = mesh.elements_data[self.dataname][ind_cent1]
+            data2 = mesh.elements_data[self.dataname][ind_cent2]
+            #
+            element1_volume = mesh.elements_volumes[ind_cent1]
+            element2_volume = mesh.elements_volumes[ind_cent2]
+            #
+            component = self.calc_surface_component(centroid1,
+                                                    centroid2,
+                                                    face_area,
+                                                    face_normal,
+                                                    face_centroid,
+                                                    data1,
+                                                    data2)
+            #
+            divergence[ind_cent1] += component/element1_volume
+            divergence[ind_cent2] += -component/element2_volume
+            del ind_cent1, ind_cent2, centroid1, centroid2
+            del coord_face, face_area, face_normal, face_centroid
+            del data1, data2, element_volume, component
+        # Loop over boundary faces 
+        for ind_face,face in enumerate(mesh.bndfaces) :
+            ind_centroid = mesh.bndfaces_elem_conn[ind_face][0]
+            el_centroid = mesh.elements_centroids[ind_centroid]
+            face_data = mesh.bndfaces_data[self.dataname][ind_face]
+            #
+            coord_face = mesh.nodes[face]
+            face_area = mesh._calc_surface_area(coord_face)
+            face_normal = mesh._calc_surface_normal(coord_face)
+            face_centroid = mesh._calc_centroid(coord_face)
+            #
+            element_volume = mesh.elements_volumes[ind_centroid]
+            #
+            component = self.calc_bndface_component(el_centroid,
+                                                    face_data,
+                                                    face_centroid,
+                                                    face_area,
+                                                    face_normal) 
+            component = component/element_volume
+            #
+            divergence[ind_centroid] += component 
+        mesh.elements_data[self.divdataname] = divergence
 
 class LSGradient(ElementsGradientComputer): 
     
