@@ -99,7 +99,7 @@ class CellBasedGradient(ElementsGradientComputer):
         mesh ::: meshe.mesh :::
         '''
         n_elem = np.size(mesh.elements,0)
-        divergence = np.zeros((n_elem,1))
+        gradient = np.zeros((n_elem,3))
         # Loop over internal faces 
         for ind_face,face in enumerate(mesh.intfaces) : 
             ind_cent1 = mesh.intfaces_elem_conn[ind_face][0]
@@ -115,8 +115,8 @@ class CellBasedGradient(ElementsGradientComputer):
             data1 = mesh.elements_data[self.dataname][ind_cent1]
             data2 = mesh.elements_data[self.dataname][ind_cent2]
             #
-            element1_volume = mesh.elements_volumes[ind_cent1]
-            element2_volume = mesh.elements_volumes[ind_cent2]
+            element1_volume = mesh.elements_volumes[ind_cent1][0]
+            element2_volume = mesh.elements_volumes[ind_cent2][0]
             #
             component = self.calc_surface_component(centroid1,
                                                     centroid2,
@@ -126,11 +126,11 @@ class CellBasedGradient(ElementsGradientComputer):
                                                     data1,
                                                     data2)
             #
-            divergence[ind_cent1] += component/element1_volume
-            divergence[ind_cent2] += -component/element2_volume
+            gradient[ind_cent1,:] += component/element1_volume
+            gradient[ind_cent2,:] += -component/element2_volume
             del ind_cent1, ind_cent2, centroid1, centroid2
             del coord_face, face_area, face_normal, face_centroid
-            del data1, data2, element_volume, component
+            del data1, data2, element1_volume, element2_volume, component
         # Loop over boundary faces 
         for ind_face,face in enumerate(mesh.bndfaces) :
             ind_centroid = mesh.bndfaces_elem_conn[ind_face][0]
@@ -151,8 +151,8 @@ class CellBasedGradient(ElementsGradientComputer):
                                                     face_normal) 
             component = component/element_volume
             #
-            divergence[ind_centroid] += component 
-        mesh.elements_data[self.divdataname] = divergence
+            gradient[ind_centroid] += component 
+        mesh.elements_data[self.grad_dataname] = gradient
 
 class LSGradient(ElementsGradientComputer): 
     

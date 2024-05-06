@@ -4,6 +4,9 @@ sys.path.append('.')
 from fvm.gradient import CellBasedGradient
 from meshe.mesh import *
 
+
+EPSILON = 1e-10
+
 @pytest.fixture()
 def mesh_fixture():
     dx = 1
@@ -23,11 +26,16 @@ def mesh_fixture():
     arr_tmp[:,0] = velocity * 1. 
     arr_tmp[0,0] = 10
     mesh.bndfaces_data['velocity'] =    arr_tmp 
+    #
+    def function(x,y,z):
+        return 4*x + 0*y + 0*z
+    mesh.set_elements_data('data', function)
+    mesh.set_bndfaces_data('data', function)
     return mesh 
 
 @pytest.fixture()
 def gradop_fixture():
-    operator = CellBasedGradient('velocity','divergence')
+    operator = CellBasedGradient('data','grad_data')
     return operator
 
 def test_surface_component(gradop_fixture):
@@ -87,4 +95,14 @@ def test_calc_bndface_flux(gradop_fixture):
                          [0., 0., 2.5],
                          [0., 0., 1.5]])
     assertion = np.all(face_component == expected)
+    assert assertion 
+
+def test_gradop(gradop_fixture, mesh_fixture):
+    gradop_fixture(mesh_fixture)
+    gradient = mesh_fixture.elements_data['grad_data']
+    n_elem = np.size(mesh_fixture.elements,0)
+    expected = np.zeros((n_elem,3))
+    expected[:,0] = 4.
+    print(np.abs(gradient - expected))
+    assertion = np.all(np.abs(gradient - expected) < EPSILON)
     assert assertion 
