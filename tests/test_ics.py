@@ -29,6 +29,16 @@ def mesh_fixture():
                               'outlet': np.array([3,   2]), 
                               'wall': np.array([2,   2])}
     mesh.set_elements_volumes()
+    #
+    velocity = 1. 
+    arr_tmp = np.zeros((n_elem,3))
+    arr_tmp[:,0] = velocity * 1. 
+    mesh.elements_data['velocity'] =  arr_tmp
+    n_bndf = np.size(mesh.bndfaces,0)
+    arr_tmp = np.zeros((n_bndf,3))
+    arr_tmp[:,0] = velocity * 1. 
+    arr_tmp[0,0] = 10
+    mesh.bndfaces_data['velocity'] =    arr_tmp 
     return mesh 
 
 def test_set_bnd_velocity(simple_mesh_fixture, solver_fixture):
@@ -99,4 +109,45 @@ def test_pressure_lapl(mesh_fixture, solver_fixture):
     print(solver_fixture.mat_pressure)
     print(solver_fixture.rhs_pressure)
     assertion = False
+    assert assertion 
+
+def test_velocity_divergence(mesh_fixture, solver_fixture):
+    density = 1000 
+    dyna_visco = 1e-3
+    dt = 1.
+    solver_fixture.set_constant_density(mesh_fixture, density)
+    solver_fixture.set_constant_kinematic_viscosity(mesh_fixture, density, dyna_visco)
+    solver_fixture._update_velocity_div(mesh_fixture)
+    solver_fixture.timeop.set_timestep(dt)
+    udiv = mesh_fixture.elements_data['div_velocity']
+    print(udiv)
+    assertion = False 
+    assert assertion 
+
+def test_calc_pressure(mesh_fixture, solver_fixture):
+    density = 1000 
+    dyna_visco = 1e-3
+    dt = 1.
+    boundary_conditions = {'inlet' : {'type' : 'inlet',
+                                      'value' : np.array([1,0,0])},
+                           'outlet' : {'type' : 'outlet',
+                                       'value' : 1000},
+                           'wall' : {'type' : 'wall',
+                                     'value' : None}}
+    #
+    solver_fixture.set_boundary_conditions(boundary_conditions)
+    solver_fixture.init_data(mesh_fixture)
+    solver_fixture.update_boundary_velocity(mesh_fixture, boundary_conditions)
+    solver_fixture.set_constant_density(mesh_fixture, density)
+    solver_fixture.set_constant_kinematic_viscosity(mesh_fixture, density, dyna_visco)
+    #
+    solver_fixture._update_velocity_div(mesh_fixture)
+    solver_fixture.timeop.set_timestep(dt)
+    solver_fixture._set_pl_operators(mesh_fixture)
+    rhs = mesh_fixture.elements_data['div_velocity']
+    mat = solver_fixture.mat_pressure
+    expl = solver_fixture.rhs_pressure
+    pressure = np.linalg.solve(mat,rhs+expl)
+    print(pressure)
+    assertion = False 
     assert assertion 

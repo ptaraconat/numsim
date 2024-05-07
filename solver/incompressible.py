@@ -2,6 +2,7 @@ from meshe.mesh import *
 from fvm.convection import * 
 from fvm.diffusion import * 
 from fvm.source_term import * 
+from fvm.divergence import DivergenceComputer
 from tstep.fdts import * 
 
 class IncompressibleSolver():
@@ -60,6 +61,7 @@ class IncompressibleSolver():
                 self.sourceop = SourceTerm(data_name = self.source_data)
         if self.time_scheme == 'backward_euler' : 
             self.timeop = BackwardEulerScheme()
+        self.divop = DivergenceComputer(self.velocity_data, 'div_'+self.velocity_data)
     
     def set_boundary_conditions(self,boundary_conditions):
         '''
@@ -72,7 +74,6 @@ class IncompressibleSolver():
         vz_bc = {}
         p_bc = {}
         for key, val in boundary_conditions.items():
-            print(val)
             bc_type = val['type']
             if bc_type == 'inlet':
                 bc_val = val['value']
@@ -167,14 +168,20 @@ class IncompressibleSolver():
         self.mat_pressure = mat
         self.rhs_pressure = rhs 
     
-    def _set_udotap(self,mesh):
+    def _update_velocity_div(self,mesh):
         '''
         arguments 
         mesh ::: meshe.mesh :::
         '''
         ### calculate divergence of velocity field 
-        pass 
-    
+        self.divop(mesh)
+        udiv = mesh.elements_data['div_'+self.velocity_data]
+        # Multiply by rho divide by deltat
+        deltat = 1#self.timeop.dt
+        density_array = mesh.elements_data[self.density_data]
+        udiv = (1/deltat)*np.multiply(density_array, udiv)
+        mesh.elements_data['div_'+self.velocity_data] = udiv
+          
     def _set_operators(self, mesh):
         '''
         arguments 
