@@ -3,6 +3,7 @@ from fvm.convection import *
 from fvm.diffusion import * 
 from fvm.source_term import * 
 from fvm.divergence import DivergenceComputer
+from fvm.gradient import CellBasedGradient
 from tstep.fdts import * 
 
 class IncompressibleSolver():
@@ -62,6 +63,7 @@ class IncompressibleSolver():
         if self.time_scheme == 'backward_euler' : 
             self.timeop = BackwardEulerScheme()
         self.divop = DivergenceComputer(self.velocity_data, 'div_'+self.velocity_data)
+        self.gradop = CellBasedGradient(self.pressure_data, 'grad_'+self.pressure_data)
     
     def set_boundary_conditions(self,boundary_conditions):
         '''
@@ -168,16 +170,16 @@ class IncompressibleSolver():
         self.mat_pressure = mat
         self.rhs_pressure = rhs 
     
-    def _update_velocity_div(self,mesh):
+    def _update_velocity_div(self,mesh, deltat = 1.):
         '''
         arguments 
         mesh ::: meshe.mesh :::
+        deltat ::: float ::: 
         '''
         ### calculate divergence of velocity field 
         self.divop(mesh)
         udiv = mesh.elements_data['div_'+self.velocity_data]
         # Multiply by rho divide by deltat
-        deltat = 1#self.timeop.dt
         density_array = mesh.elements_data[self.density_data]
         udiv = (1/deltat)*np.multiply(density_array, udiv)
         mesh.elements_data['div_'+self.velocity_data] = udiv
@@ -321,11 +323,33 @@ class IncompressibleSolver():
                 velocity_arr[surfaces_indices,:] = [0, 0, 0]
             if type == 'outlet' : 
                 # get bounding elements indices
-                bounding_el = mesh.bndfaces_elem_conn[surfaces_indices]
+                bounding_el = np.squeeze(mesh.bndfaces_elem_conn[surfaces_indices])
                 bounding_el_velocities = mesh.elements_data[self.velocity_data][bounding_el]
                 velocity_arr[surfaces_indices,:] = bounding_el_velocities
         mesh.bndfaces_data[self.velocity_data] = velocity_arr
-
+    
+    def update_boundary_pressure(self, mesh, boundary_conditions):
+        '''
+        arguments 
+        mesh ::: meshe.mesh :::
+        boundary_conditions ::: dict :::
+        '''
+        pressure_array = np.zeros((np.size(mesh.bndfaces,0),1))
+        # Loop over different boundary conditions 
+        for bc_key,val in boundary_conditions.items():
+            bc_index = mesh._get_bc_index(bc_key)
+            type = val['type']
+            bc_val = val['value']
+            # get index associated with the current bondary condition 
+            surfaces_indices =np.squeeze(np.argwhere(mesh.bndfaces_tags == bc_index))       
+            if type == 'inlet' or type == 'wall': 
+                # get bounding elements indices
+                bounding_el = np.squeeze(mesh.bndfaces_elem_conn[surfaces_indices])
+                bounding_el_pressure = mesh.elements_data[self.pressure_data][bounding_el]
+                pressure_array[surfaces_indices,:] = bounding_el_pressure
+            if type == 'outlet' : 
+                pressure_array[surfaces_indices,:] = bc_val
+        mesh.bndfaces_data[self.pressure_data] = pressure_array 
         
     def step(self,mesh):
         '''

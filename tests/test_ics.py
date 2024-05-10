@@ -117,19 +117,17 @@ def test_velocity_divergence(mesh_fixture, solver_fixture):
     dt = 1.
     solver_fixture.set_constant_density(mesh_fixture, density)
     solver_fixture.set_constant_kinematic_viscosity(mesh_fixture, density, dyna_visco)
-    solver_fixture._update_velocity_div(mesh_fixture)
-    solver_fixture.timeop.set_timestep(dt)
+    solver_fixture._update_velocity_div(mesh_fixture, deltat = dt)
     udiv = mesh_fixture.elements_data['div_velocity']
-    print(udiv)
     assertion = False 
     assert assertion 
 
 def test_calc_pressure(mesh_fixture, solver_fixture):
     density = 1000 
     dyna_visco = 1e-3
-    dt = 1.
+    deltat = 1
     boundary_conditions = {'inlet' : {'type' : 'inlet',
-                                      'value' : np.array([1,0,0])},
+                                      'value' : np.array([0.001,0,0])},
                            'outlet' : {'type' : 'outlet',
                                        'value' : 1000},
                            'wall' : {'type' : 'wall',
@@ -137,17 +135,52 @@ def test_calc_pressure(mesh_fixture, solver_fixture):
     #
     solver_fixture.set_boundary_conditions(boundary_conditions)
     solver_fixture.init_data(mesh_fixture)
-    solver_fixture.update_boundary_velocity(mesh_fixture, boundary_conditions)
     solver_fixture.set_constant_density(mesh_fixture, density)
     solver_fixture.set_constant_kinematic_viscosity(mesh_fixture, density, dyna_visco)
-    #
-    solver_fixture._update_velocity_div(mesh_fixture)
-    solver_fixture.timeop.set_timestep(dt)
+    # Solve Pressure 
+    solver_fixture.update_boundary_velocity(mesh_fixture, boundary_conditions)
+    solver_fixture._update_velocity_div(mesh_fixture, deltat = deltat )
     solver_fixture._set_pl_operators(mesh_fixture)
     rhs = mesh_fixture.elements_data['div_velocity']
     mat = solver_fixture.mat_pressure
     expl = solver_fixture.rhs_pressure
-    pressure = np.linalg.solve(mat,rhs+expl)
-    print(pressure)
+    mesh_fixture.elements_data['pressure'] = np.linalg.solve(mat,rhs+expl)
+    print(mat)
+    print(expl)
+    print(rhs)
+    print(mesh_fixture.elements_data['pressure'])
+    # Velocity correction 
+    solver_fixture.update_boundary_pressure(mesh_fixture, boundary_conditions)
+    solver_fixture.gradop(mesh_fixture)
+    oo_rho = 1./mesh_fixture.elements_data['rho']
+    corrector = -deltat*np.multiply(oo_rho,mesh_fixture.elements_data['grad_pressure'])
+    mesh_fixture.elements_data['velocity'] = mesh_fixture.elements_data['velocity'] + corrector
+    print(mesh_fixture.elements_data['grad_pressure'])
+    print(mesh_fixture.elements_data['velocity'] )
+    #
+    for _ in range(10) :
+        # Advance Velocity
+        solver_fixture.advance_velocity(mesh_fixture)
+        # Solve Pressure
+        deltat = solver_fixture.timeop.dt
+        solver_fixture.update_boundary_velocity(mesh_fixture, boundary_conditions)
+        solver_fixture._update_velocity_div(mesh_fixture, deltat = deltat )
+        solver_fixture._set_pl_operators(mesh_fixture)
+        rhs = mesh_fixture.elements_data['div_velocity']
+        mat = solver_fixture.mat_pressure
+        expl = solver_fixture.rhs_pressure
+        mesh_fixture.elements_data['pressure'] = np.linalg.solve(mat,rhs+expl)
+        # Velocity correction 
+        solver_fixture.update_boundary_pressure(mesh_fixture, boundary_conditions)
+        solver_fixture.gradop(mesh_fixture)
+        oo_rho = 1./mesh_fixture.elements_data['rho']
+        corrector = -deltat*np.multiply(oo_rho,mesh_fixture.elements_data['grad_pressure'])
+        mesh_fixture.elements_data['velocity'] = mesh_fixture.elements_data['velocity'] + corrector
+    print(mesh_fixture.elements_data['pressure'])
+    print(mesh_fixture.elements_data['velocity'] )
+
+    
+    
+    
     assertion = False 
     assert assertion 

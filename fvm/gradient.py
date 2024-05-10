@@ -126,8 +126,8 @@ class CellBasedGradient(ElementsGradientComputer):
                                                     data1,
                                                     data2)
             #
-            gradient[ind_cent1,:] += component/element1_volume
-            gradient[ind_cent2,:] += -component/element2_volume
+            gradient[ind_cent1,:] += np.squeeze(component)/element1_volume
+            gradient[ind_cent2,:] += -np.squeeze(component)/element2_volume
             del ind_cent1, ind_cent2, centroid1, centroid2
             del coord_face, face_area, face_normal, face_centroid
             del data1, data2, element1_volume, element2_volume, component
@@ -149,7 +149,7 @@ class CellBasedGradient(ElementsGradientComputer):
                                                     face_centroid,
                                                     face_area,
                                                     face_normal) 
-            component = component/element_volume
+            component = np.squeeze(component)/element_volume
             #
             gradient[ind_centroid] += component 
         mesh.elements_data[self.grad_dataname] = gradient
