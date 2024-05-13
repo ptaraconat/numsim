@@ -106,6 +106,12 @@ class IncompressibleSolver():
                 vz_bc[key] = {'type' : 'neumann' , 'value' : np.array([0,0,0])}
                 # Shall impose a pressure value at the outlet (BC used in Poisson Eq.)
                 p_bc[key] = {'type' : 'dirichlet' , 'value' : p_val} #
+            if bc_type == 'FrontBack' : 
+                vx_bc[key] = {'type' : 'neumann' , 'value' : np.array([0,0,0])}  
+                vy_bc[key] = {'type' : 'neumann' , 'value' : np.array([0,0,0])}
+                vz_bc[key] = {'type' : 'neumann' , 'value' : np.array([0,0,0])}
+                # 
+                p_bc[key] = {'type' : 'neumann' , 'value' : np.array([0,0,0])} 
         self.velocityx_bc = vx_bc
         self.velocityy_bc = vy_bc
         self.velocityz_bc = vz_bc
@@ -324,6 +330,13 @@ class IncompressibleSolver():
             if type == 'outlet' : 
                 # get bounding elements indices
                 bounding_el = np.squeeze(mesh.bndfaces_elem_conn[surfaces_indices])
+                bounding_el = bounding_el.astype(int)
+                bounding_el_velocities = mesh.elements_data[self.velocity_data][bounding_el]
+                velocity_arr[surfaces_indices,:] = bounding_el_velocities
+            if type == 'FrontBack' : 
+                # get bounding elements indices
+                bounding_el = np.squeeze(mesh.bndfaces_elem_conn[surfaces_indices])
+                bounding_el = bounding_el.astype(int)
                 bounding_el_velocities = mesh.elements_data[self.velocity_data][bounding_el]
                 velocity_arr[surfaces_indices,:] = bounding_el_velocities
         mesh.bndfaces_data[self.velocity_data] = velocity_arr
@@ -342,9 +355,10 @@ class IncompressibleSolver():
             bc_val = val['value']
             # get index associated with the current bondary condition 
             surfaces_indices =np.squeeze(np.argwhere(mesh.bndfaces_tags == bc_index))       
-            if type == 'inlet' or type == 'wall': 
+            if type == 'inlet' or type == 'wall' or type == 'FrontBack': 
                 # get bounding elements indices
                 bounding_el = np.squeeze(mesh.bndfaces_elem_conn[surfaces_indices])
+                bounding_el = bounding_el.astype(int)
                 bounding_el_pressure = mesh.elements_data[self.pressure_data][bounding_el]
                 pressure_array[surfaces_indices,:] = bounding_el_pressure
             if type == 'outlet' : 

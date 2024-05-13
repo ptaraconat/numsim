@@ -134,6 +134,7 @@ class CellBasedGradient(ElementsGradientComputer):
         # Loop over boundary faces 
         for ind_face,face in enumerate(mesh.bndfaces) :
             ind_centroid = mesh.bndfaces_elem_conn[ind_face][0]
+            ind_centroid = ind_centroid.astype(int)
             el_centroid = mesh.elements_centroids[ind_centroid]
             face_data = mesh.bndfaces_data[self.dataname][ind_face]
             #
