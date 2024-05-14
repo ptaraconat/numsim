@@ -16,12 +16,12 @@ cfl = 0.6
 n_ite = 300
 dump_ite = 20
 
-velocity = 0.001
+velocity = 0.0001
 dynamic_viscosity = 1e-3
 rho = 1000 
 
-edge_len = 1 
-mesh_size = 0.05
+edge_len = 10
+mesh_size = 1
 
 
 boundary_conditions = {'inlet' : {'type' : 'inlet',
@@ -113,6 +113,9 @@ solver.gradop(mesh)
 oo_rho = 1./mesh.elements_data['rho']
 corrector = -deltat*np.multiply(oo_rho,mesh.elements_data['grad_pressure'])
 mesh.elements_data['velocity'] = mesh.elements_data['velocity'] + corrector
+#issue_arg = np.where(mesh.elements_data['grad_pressure'][:,1]>0)[0]
+#print(issue_arg)
+#print(mesh.elements_data['grad_pressure'][issue_arg])
 print(mesh.elements_data['grad_pressure'])
 print(mesh.elements_data['velocity'])
    

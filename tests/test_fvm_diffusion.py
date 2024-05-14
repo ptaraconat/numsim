@@ -377,7 +377,6 @@ def test_ortho_diff_operator_on_nonorthomesh(mesh_fixture5):
 
 def test_nonortho_diff_operator2(mesh_fixture5):
     gradient_computer = LSGradient('temp', 'grad_temp', 
-                                   mesh_fixture5, 
                                    weighting = False,
                                    use_boundaries = True)
     diff_op = NonOthogonalDiffusion('diffusion',data_name = 'temp', 
@@ -398,7 +397,7 @@ def test_nonortho_diff_operator2(mesh_fixture5):
         solution = np.linalg.solve(mat,rhs)
         mesh_fixture5.elements_data['temp'] = solution
         mesh_fixture5.set_bndfaces_data_from_bc('temp', boundary_conditions)
-        gradient_computer.calculate_gradients()
+        gradient_computer(mesh_fixture5)
         print(mesh_fixture5.elements_data['grad_temp'])
         print(mesh_fixture5.elements_data['temp'])
     

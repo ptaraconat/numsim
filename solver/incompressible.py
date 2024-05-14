@@ -3,7 +3,7 @@ from fvm.convection import *
 from fvm.diffusion import * 
 from fvm.source_term import * 
 from fvm.divergence import DivergenceComputer
-from fvm.gradient import CellBasedGradient
+from fvm.gradient import CellBasedGradient, LSGradient
 from tstep.fdts import * 
 
 class IncompressibleSolver():
@@ -63,7 +63,8 @@ class IncompressibleSolver():
         if self.time_scheme == 'backward_euler' : 
             self.timeop = BackwardEulerScheme()
         self.divop = DivergenceComputer(self.velocity_data, 'div_'+self.velocity_data)
-        self.gradop = CellBasedGradient(self.pressure_data, 'grad_'+self.pressure_data)
+        #self.gradop = CellBasedGradient(self.pressure_data, 'grad_'+self.pressure_data)
+        self.gradop = LSGradient(self.pressure_data, 'grad_'+self.pressure_data)
     
     def set_boundary_conditions(self,boundary_conditions):
         '''
@@ -357,6 +358,7 @@ class IncompressibleSolver():
             surfaces_indices =np.squeeze(np.argwhere(mesh.bndfaces_tags == bc_index))       
             if type == 'inlet' or type == 'wall' or type == 'FrontBack': 
                 # get bounding elements indices
+                print(type)
                 bounding_el = np.squeeze(mesh.bndfaces_elem_conn[surfaces_indices])
                 bounding_el = bounding_el.astype(int)
                 bounding_el_pressure = mesh.elements_data[self.pressure_data][bounding_el]

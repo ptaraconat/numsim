@@ -4,7 +4,7 @@ from .interpolation import FaceInterpolattion
 
 class ElementsGradientComputer : 
 
-    def __init__(self,dataname, gdataname, mesh):
+    def __init__(self,dataname, gdataname):
         '''
         arguments 
         dataname ::: string ::: name of the data for which 
@@ -15,19 +15,20 @@ class ElementsGradientComputer :
         '''
         self.dataname = dataname 
         self.gdataname = gdataname
-        self.mesh = mesh
     
-    def calculate_gradients(self):
+    def __call__(self, mesh):
         '''
         Calculate data gradient at elements centroids and update 
         the mesh elements_data attribute
+        arguments 
+        mesh ::: meshe.mesh ::: 
         '''
         gradients = []
-        for i in range(len(self.mesh.elements)):
-            grad = self.calc_element_gradient(i)
+        for i in range(len(mesh.elements)):
+            grad = self.calc_element_gradient(i, mesh)
             gradients.append(grad)
         gradients = np.asarray(gradients)
-        self.mesh.elements_data[self.gdataname] = gradients
+        mesh.elements_data[self.gdataname] = gradients
 
 class CellBasedGradient(ElementsGradientComputer):
     '''
@@ -125,6 +126,21 @@ class CellBasedGradient(ElementsGradientComputer):
                                                     face_centroid,
                                                     data1,
                                                     data2)
+            #if ind_cent1 == 97 : 
+            #    print('Int surf ')
+            #    print('element ' + str(ind_cent1))
+            #    print('#################')
+            #    print('current val :', gradient[ind_cent1,:])
+            #    print('face component :', component/element1_volume)
+            #    print('face normal : ', face_normal)
+            
+            #if ind_cent2 == 97 : 
+            #    print('Int surf ')
+            #    print('element ' + str(ind_cent2))
+            #    print('#################')
+            #    print('current val :', gradient[ind_cent2,:])
+            #    print('face component :', component/element2_volume)
+            #    print('face normal : ', face_normal)
             #
             gradient[ind_cent1,:] += np.squeeze(component)/element1_volume
             gradient[ind_cent2,:] += -np.squeeze(component)/element2_volume
@@ -151,13 +167,27 @@ class CellBasedGradient(ElementsGradientComputer):
                                                     face_area,
                                                     face_normal) 
             component = np.squeeze(component)/element_volume
+            #if ind_centroid == 97 :
+            #    print('Ext surf ') 
+            #    print('element ' + str(ind_centroid))
+            #    print('#################')
+            #    print('current val :', gradient[ind_centroid,:])
+            #    print('face component :', component)
+            #    print('face data : ', face_data)
+            #    print('face normal : ', face_normal)
             #
-            gradient[ind_centroid] += component 
+            gradient[ind_centroid,:] += component 
+            del ind_centroid, el_centroid, face_data, coord_face, face_area
+            del face_normal, face_centroid, element_volume, component
+        #print('Final value of el 97 : ', gradient[97,:])
+        #issue_arg = np.where(gradient[:,1]>0)[0]
+        #print(issue_arg)
+        #print(gradient[issue_arg])
         mesh.elements_data[self.grad_dataname] = gradient
 
 class LSGradient(ElementsGradientComputer): 
     
-    def __init__(self,dataname, gdataname, mesh, weighting = False, use_boundaries = False): 
+    def __init__(self,dataname, gdataname, weighting = False, use_boundaries = False): 
         '''
         arguments 
         dataname ::: string ::: name of the data for which 
@@ -169,11 +199,11 @@ class LSGradient(ElementsGradientComputer):
         for calculating gradients. 
         use_boundaries ::: bool ::: 
         '''
-        super().__init__(dataname, gdataname, mesh)
+        super().__init__(dataname, gdataname)
         self.weighting = weighting
         self.use_boundaries = use_boundaries
 
-    def calc_element_gradient(self,elem_indice ):
+    def calc_element_gradient(self,elem_indice, mesh ):
         '''
         When considering fixed mesh, this routine may be opptimized by precomputing 
         the element/neighbors distance, 
@@ -182,23 +212,23 @@ class LSGradient(ElementsGradientComputer):
         elem_indice ::: int ::: index of the element 
         '''
         # 
-        el_centroid = self.mesh.elements_centroids[elem_indice]
-        el_data = self.mesh.elements_data[self.dataname][elem_indice]
+        el_centroid = mesh.elements_centroids[elem_indice]
+        el_data = mesh.elements_data[self.dataname][elem_indice]
         # loop over neighbors
-        el_face_conn = self.mesh.elements_intf_conn[elem_indice]
+        el_face_conn = mesh.elements_intf_conn[elem_indice]
         distance_matrix = []
         delta_data_vector = []
         weights_vector = []
         for face_index in el_face_conn :
             # Find neighboor element 
-            index_el1, index_el2 = self.mesh.intfaces_elem_conn[face_index]
+            index_el1, index_el2 = mesh.intfaces_elem_conn[face_index]
             if index_el1 == elem_indice : 
                 neigh_indice = index_el2
             elif index_el2 == elem_indice : 
                 neigh_indice = index_el1
             # get neighbor centroid and data value 
-            neigh_centroid = self.mesh.elements_centroids[neigh_indice]
-            neigh_data = self.mesh.elements_data[self.dataname][neigh_indice]
+            neigh_centroid = mesh.elements_centroids[neigh_indice]
+            neigh_data = mesh.elements_data[self.dataname][neigh_indice]
             # Update distance matrix and delta vector (delta of data)
             distance = neigh_centroid - el_centroid
             delta_data = neigh_data - el_data
@@ -208,13 +238,13 @@ class LSGradient(ElementsGradientComputer):
             delta_data_vector.append(delta_data)
             weights_vector.append(weight)
         if self.use_boundaries : 
-            el_bndface_conn = self.mesh.elements_bndf_conn[elem_indice]
+            el_bndface_conn = mesh.elements_bndf_conn[elem_indice]
             for face_index in el_bndface_conn : 
-                neigh_bndf_indices = self.mesh.bndfaces[face_index]
-                neigh_bndf = self.mesh.nodes[neigh_bndf_indices]
+                neigh_bndf_indices = mesh.bndfaces[face_index]
+                neigh_bndf = mesh.nodes[neigh_bndf_indices]
                 # get neighbor centroid and data value
-                neigh_centroid = self.mesh._calc_centroid(neigh_bndf)
-                neigh_data = self.mesh.bndfaces_data[self.dataname][face_index]
+                neigh_centroid = mesh._calc_centroid(neigh_bndf)
+                neigh_data = mesh.bndfaces_data[self.dataname][face_index]
                 if neigh_data != None : 
                     # Update distance matrix and delta vector (delta of data)
                     distance = neigh_centroid - el_centroid
