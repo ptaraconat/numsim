@@ -64,7 +64,7 @@ class IncompressibleSolver():
             self.timeop = BackwardEulerScheme()
         self.divop = DivergenceComputer(self.velocity_data, 'div_'+self.velocity_data)
         #self.gradop = CellBasedGradient(self.pressure_data, 'grad_'+self.pressure_data)
-        self.gradop = LSGradient(self.pressure_data, 'grad_'+self.pressure_data)
+        self.gradop = LSGradient(self.pressure_data, 'grad_'+self.pressure_data, use_boundaries = True)
     
     def set_boundary_conditions(self,boundary_conditions):
         '''

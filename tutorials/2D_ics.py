@@ -89,11 +89,12 @@ print(mesh.physical_entities)
 ###############
 
 solver = IncompressibleSolver()
-#
+## Init
 solver.set_boundary_conditions(boundary_conditions)
 solver.init_data(mesh)
 solver.set_constant_density(mesh, rho)
 solver.set_constant_kinematic_viscosity(mesh, rho, dynamic_viscosity)
+## 
 # Solve Pressure 
 solver.update_boundary_velocity(mesh, boundary_conditions)
 deltat = 1.
@@ -103,23 +104,50 @@ rhs = mesh.elements_data['div_velocity']
 mat = solver.mat_pressure
 expl = solver.rhs_pressure
 mesh.elements_data['pressure'] = np.linalg.solve(mat,rhs+expl)
-print(mat)
-print(expl)
-print(rhs)
-print(mesh.elements_data['pressure'])
 # Velocity correction 
 solver.update_boundary_pressure(mesh, boundary_conditions)
 solver.gradop(mesh)
 oo_rho = 1./mesh.elements_data['rho']
 corrector = -deltat*np.multiply(oo_rho,mesh.elements_data['grad_pressure'])
 mesh.elements_data['velocity'] = mesh.elements_data['velocity'] + corrector
-#issue_arg = np.where(mesh.elements_data['grad_pressure'][:,1]>0)[0]
-#print(issue_arg)
-#print(mesh.elements_data['grad_pressure'][issue_arg])
+print(mesh.elements_data['pressure'])
 print(mesh.elements_data['grad_pressure'])
 print(mesh.elements_data['velocity'])
-   
+issue_arg = np.where(mesh.elements_data['grad_pressure'][:,1]>0)[0]
+print(issue_arg)
+#print(mesh.elements_data['grad_pressure'][issue_arg])
+## dump initial solution 
 i = 0
 save_path = savedir + f"output_{i:04d}.vtk"
 print('dump solution : ', save_path)
 mesh.save_vtk(output_file = save_path)
+## Temporal Loop
+for _ in range(40) :
+    # Advance Velocity
+    solver.advance_velocity(mesh)
+    # Solve Pressure
+    deltat = solver.timeop.dt
+    solver.update_boundary_velocity(mesh, boundary_conditions)
+    solver._update_velocity_div(mesh, deltat = deltat )
+    solver._set_pl_operators(mesh)
+    rhs = mesh.elements_data['div_velocity']
+    mat = solver.mat_pressure
+    expl = solver.rhs_pressure
+    mesh.elements_data['pressure'] = np.linalg.solve(mat,rhs+expl)
+    # Velocity correction 
+    solver.update_boundary_pressure(mesh, boundary_conditions)
+    solver.gradop(mesh)
+    oo_rho = 1./mesh.elements_data['rho']
+    corrector = -deltat*np.multiply(oo_rho,mesh.elements_data['grad_pressure'])
+    mesh.elements_data['velocity'] = mesh.elements_data['velocity'] + corrector
+    # dump 
+    i = i + 1 
+    save_path = savedir + f"output_{i:04d}.vtk"
+    print('dump solution : ', save_path)
+    mesh.save_vtk(output_file = save_path)
+    #
+    print(mesh.elements_data['pressure'])
+    print(mesh.elements_data['grad_pressure'])
+    print(mesh.elements_data['velocity'])
+    issue_arg = np.where(mesh.elements_data['grad_pressure'][:,1]>0)[0]
+    print(issue_arg)
