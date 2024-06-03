@@ -28,7 +28,8 @@ class SourceTerm():
         rhs_vec ::: np.array(n_elem,) :::
         '''
         n_elem = np.size(mesh.elements,0)
-        rhs_vec = np.zeros((n_elem,1))
+        n_dim = np.size(mesh.elements_data[self.data_name],1)
+        rhs_vec = np.zeros((n_elem,n_dim))
         for ind_elem, element in enumerate(mesh.elements):
             element_faces = mesh._get_element_bounding_faces(ind_elem)
             element_centroid = mesh._calc_centroid(mesh.nodes[element])

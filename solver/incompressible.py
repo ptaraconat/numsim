@@ -54,6 +54,8 @@ class IncompressibleSolver():
         if self.velocity_data != None : 
             if self.convection_scheme == 'central_differencing' :
                 self.convop = CentralDiffConvection(velocity_data = self.velocity_data) 
+            if self.convection_scheme == 'upwind' :
+                self.convop = UpwindConvection(velocity_data = self.velocity_data)
         if self.viscosity_data != None : 
             if self.diffusion_scheme == 'orthogonal_diffusion' : 
                 self.diffop = OrthogonalDiffusion(self.viscosity_data)
@@ -62,6 +64,9 @@ class IncompressibleSolver():
                 self.sourceop = SourceTerm(data_name = self.source_data)
         if self.time_scheme == 'backward_euler' : 
             self.timeop = BackwardEulerScheme()
+        else : 
+            if self.time_scheme == 'forward_euler':
+                self.timeop = ForwardEulerScheme()
         self.divop = DivergenceComputer(self.velocity_data, 'div_'+self.velocity_data)
         #self.gradop = CellBasedGradient(self.pressure_data, 'grad_'+self.pressure_data)
         self.gradop = LSGradient(self.pressure_data, 'grad_'+self.pressure_data, use_boundaries = False)
