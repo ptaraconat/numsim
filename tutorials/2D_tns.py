@@ -17,7 +17,7 @@ n_ite = 300
 dump_ite = 20
 
 velocity = 0.0001
-dynamic_viscosity = 1e-3
+dynamic_viscosity = 1#1e-3
 rho = 1000 
 
 edge_len = 10
@@ -112,4 +112,5 @@ for _ in range(40):
     #
     #issue_arg = np.where(mesh.elements_data['grad_pressure'][:,1]>0)[0]
     #print(issue_arg)
+    print(mesh.elements_data[solver.ustar_data])
     print(mesh.elements_data[solver.velocity_data])
