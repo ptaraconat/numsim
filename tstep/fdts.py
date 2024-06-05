@@ -25,8 +25,9 @@ class TimeSteping :
         '''
         # cfl = (velocity*Deltat)/Deltax
         # Deltat = (cfl*Deltax)/velocity
+        EPSILON = 1e-16
         velocity_mag = np.linalg.norm(velocity_array,axis = 1)
-        oo_velocity_array = 1./velocity_mag
+        oo_velocity_array = 1./(velocity_mag+EPSILON)
         deltat_array = cfl_number * np.multiply(meshsize_array,oo_velocity_array)
         dt = np.min(deltat_array)
         return dt 
@@ -67,6 +68,7 @@ class ForwardEulerScheme(TimeSteping):
         returns 
         advanced_array ::: np.array(n_elem,1) ::: 
         '''
+        print('time_step :', self.dt)
         explicit_contribution = - explicit_contribution
         # f_n+1 = f_n + (dt/V)*(IMP*f_n + EXP)
         one_over_vol = 1. / mesh.elements_volumes
@@ -92,6 +94,7 @@ class BackwardEulerScheme(TimeSteping):
         returns 
         advanced_array ::: np.array(n_elem,1) ::: 
         '''
+        print('time_step :', self.dt)
         implicit_contribution = - implicit_contribution
         # (f_n+1 - f_n)*(V/dt) + (IMP*f_n+1 +EXP)= 0
         # ((V/dt) + IMP)*f_n+1 = (V/dt)*f_n - EXP 
@@ -119,6 +122,7 @@ class CNScheme(TimeSteping):
         returns 
         advanced_array ::: np.array(n_elem,1) ::: 
         '''
+        print('time_step :', self.dt)
         backward_scheme = BackwardEulerScheme()
         backward_scheme.set_timestep(self.dt/2)
         forward_scheme = ForwardEulerScheme()

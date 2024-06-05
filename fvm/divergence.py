@@ -42,6 +42,8 @@ class DivergenceComputer :
             surface_vector = - surface_vector
         #
         flow_rate = surface_area*np.dot(surface_vector,face_velocity)
+        #if flow_rate != 0. : 
+        #    print(flow_rate)
         return flow_rate
     
     def calc_bndface_flowrate(self,centroid, face_data,face_centroid, face_area, face_normal):
@@ -60,6 +62,8 @@ class DivergenceComputer :
         sign = np.sign(np.dot(face_normal,centroid-face_centroid))
         if sign > 0 : 
             flux = - flux
+        #if flux != 0.: 
+        #    print(flux)
         return flux 
     
     def __call__(self,mesh):
