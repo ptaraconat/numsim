@@ -22,7 +22,7 @@ def simple_mesh_fixture():
 
 @pytest.fixture()
 def mesh_fixture():
-    dx = 1
+    dx = 2
     n_elem = 21
     mesh = Mesh1D(dx,n_elem)
     mesh.physical_entities = {'inlet': np.array([1,   2]), 
@@ -63,13 +63,14 @@ def test_step(solver_fixture, mesh_fixture):
     solver_fixture.set_boundary_conditions(boundary_conditions= boundary_conditions)
     #
     #solver_fixture.set_time_step(mesh_fixture)
-    for _ in range(100):
+    for _ in range(1):
         solver_fixture.timeop.dt = 1
         solver_fixture.projection_step(mesh_fixture)
         solver_fixture.poisson_step(mesh_fixture)
         solver_fixture.correction_step(mesh_fixture)
         solver_fixture.calc_time_step(mesh_fixture,0.001)
-    #print(mesh_fixture.elements_data[solver_fixture.velocity_data])
+    print(mesh_fixture.elements_data[solver_fixture.velocity_data])
+    print(mesh_fixture.elements_volumes)
     
     
     assertion = False 

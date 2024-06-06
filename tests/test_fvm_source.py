@@ -15,7 +15,7 @@ def mesh_fixture2():
     dx = 3
     mesh = Mesh1D(dx,n_elem)
     # set data 
-    arr_tmp = np.zeros((n_elem,))
+    arr_tmp = np.zeros((n_elem,1))
     arr_tmp[2] = 3.5
     mesh.elements_data['source'] = arr_tmp
     return mesh

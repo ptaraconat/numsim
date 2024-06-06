@@ -63,7 +63,10 @@ class DivergenceComputer :
         if sign > 0 : 
             flux = - flux
         #if flux != 0.: 
-        #    print(flux)
+        #    print('############')
+        #    print('face_area : ', face_area)
+        #    print('face data : ', face_data)
+        #    print('flux : ', flux)
         return flux 
     
     def __call__(self,mesh):
@@ -110,8 +113,11 @@ class DivergenceComputer :
             #
             coord_face = mesh.nodes[face]
             face_area = mesh._calc_surface_area(coord_face)
+            #print(coord_face)
+            #print(face_area)
             face_normal = mesh._calc_surface_normal(coord_face)
             face_centroid = mesh._calc_centroid(coord_face)
+            #print(face_centroid)
             #
             flux = self.calc_bndface_flowrate(el_centroid,
                                               face_data,
