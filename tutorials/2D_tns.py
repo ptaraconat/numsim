@@ -27,7 +27,7 @@ mesh_size = 1
 boundary_conditions = {'inlet' : {'type' : 'inlet',
                                   'value' : np.array([0,velocity,0])},
                         'outlet' : {'type' : 'outlet',
-                                    'value' : 0},
+                                    'value' : 1000},
                         'wall' : {'type' : 'wall',
                                   'value' : None},
                         'FrontBack' : {'type' : 'FrontBack',
@@ -99,7 +99,7 @@ print('dump solution : ', save_path)
 mesh.save_vtk(output_file = save_path)
 ##
 for _ in range(40):
-    solver.timeop.dt = 20
+    solver.timeop.dt = 100
     solver.projection_step(mesh)
     solver.poisson_step(mesh)
     solver.correction_step(mesh)
@@ -110,7 +110,8 @@ for _ in range(40):
     print('dump solution : ', save_path)
     mesh.save_vtk(output_file = save_path)
     #
-    #issue_arg = np.where(mesh.elements_data['grad_pressure'][:,1]>0)[0]
-    #print(issue_arg)
-    print(mesh.elements_data[solver.ustar_data])
+    #print(mesh.elements_data[solver.ustar_data])
+    #print(mesh.elements_data[solver.div_ustar_data])
     print(mesh.elements_data[solver.velocity_data])
+    print(mesh.elements_data[solver.pressure_data])
+
