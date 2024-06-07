@@ -4,6 +4,8 @@ sys.path.append('.')
 from solver.ns_transient import TNSSolver
 from meshe.mesh import *
 
+EPSILON = 1e-5
+
 @pytest.fixture()
 def solver_fixture(): 
     solver = TNSSolver(time_scheme = 'forward_euler')#, convection_scheme = 'upwind')
@@ -41,19 +43,12 @@ def mesh_fixture():
     mesh.bndfaces_data['velocity'] =    arr_tmp 
     return mesh 
 
-def test_sourceop(solver_fixture, mesh_fixture):
-    solver_fixture.initialize_data(mesh_fixture)
-    solver_fixture.set_constant_kinematic_viscosity(mesh_fixture, 1000, 1e-3)
-    solver_fixture.set_source_operators(mesh_fixture)
-    assertion = False 
-    assert assertion 
-    
-
 def test_step(solver_fixture, mesh_fixture):
     density = 1000 
     dyna_visco = 1e-0
+    velocity = 0.001
     boundary_conditions = {'inlet' : {'type' : 'inlet',
-                                      'value' : np.array([0.001,0,0])},
+                                      'value' : np.array([velocity,0,0])},
                            'outlet' : {'type' : 'outlet',
                                        'value' : 1000},
                            'wall' : {'type' : 'wall',
@@ -63,16 +58,19 @@ def test_step(solver_fixture, mesh_fixture):
     solver_fixture.set_boundary_conditions(boundary_conditions= boundary_conditions)
     #
     #solver_fixture.set_time_step(mesh_fixture)
-    for _ in range(1):
+    for _ in range(5):
         solver_fixture.timeop.dt = 1
         solver_fixture.projection_step(mesh_fixture)
         solver_fixture.poisson_step(mesh_fixture)
         solver_fixture.correction_step(mesh_fixture)
         solver_fixture.calc_time_step(mesh_fixture,0.001)
+    print(mesh_fixture.elements_data[solver_fixture.pressure_data])
     print(mesh_fixture.elements_data[solver_fixture.velocity_data])
-    print(mesh_fixture.elements_volumes)
-    
-    
-    assertion = False 
+    n_elem = np.size(mesh_fixture.elements_data[solver_fixture.velocity_data],0)
+    expected_velocity = np.zeros((n_elem,3))
+    expected_velocity[:,0] = velocity
+    diff = np.abs(expected_velocity - mesh_fixture.elements_data[solver_fixture.velocity_data])
+    print(diff)
+    assertion = np.all(diff < EPSILON)
     
     assert assertion 
