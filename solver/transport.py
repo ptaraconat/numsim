@@ -10,7 +10,7 @@ class TransportSolver():
     def __init__(self, transported_data, velocity = None, diffusivity = None, source = None,
                  time_scheme = 'backward_euler', diffusion_scheme = 'orthogonal_diffusion',
                  convection_scheme = 'central_differencing', source_scheme = 'implicit_source',
-                 diffusion_coeff = 1., fourier = 0.3, cfl = 0.6):
+                 fourier = 0.3, cfl = 0.6):
         '''
         arguments 
         transported_data ::: str ::: name of the transported data 
@@ -28,9 +28,6 @@ class TransportSolver():
         self.source_scheme = source_scheme
         self.fourier = fourier
         self.cfl = cfl 
-        # must be replaced with the diffusivity data 
-        # some changes are needed in the diffusion schemes
-        self.diffusion_coeff = diffusion_coeff
         #
         if self.velocity_data != None : 
             if self.convection_scheme == 'central_differencing' :
@@ -93,11 +90,12 @@ class TransportSolver():
         # calc dt 
         meshsize = mesh.elements_volumes**(1/3)
         velocity_array = mesh.elements_data[self.velocity_data]
+        diffusion_array = mesh.elements_data[self.diffusivity_data]
         # must be improved 
         rho = 1
         if self.diffusivity_data != None : 
             dt_diff = self.timeop._calc_dt_diff(self.fourier,
-                                                self.diffusion_coeff,
+                                                diffusion_array,
                                                 rho,
                                                 meshsize)
         else : 

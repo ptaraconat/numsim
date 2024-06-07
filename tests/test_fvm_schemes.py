@@ -7,8 +7,8 @@ from fvm.interpolation import *
 
 EPSILON = 1e-10
 
-@pytest.fixture 
-def lsgrad_fixture():
+@pytest.fixture
+def mesh_fixture():
     mesh = TetraMesh()
     mesh.nodes = np.array([[0, 0, 0],
                            [0, 1, 0],
@@ -31,30 +31,34 @@ def lsgrad_fixture():
         return 4*x + 0*y + 0*z
     mesh.set_elements_data('T', function)
     mesh.set_bndfaces_data('T', function)
-    grad_computer = LSGradient('T','gradT', mesh)
+    return mesh
+
+@pytest.fixture 
+def lsgrad_fixture():
+    grad_computer = LSGradient('T','gradT')
     return grad_computer
 
 
-def test_ls_gradient(lsgrad_fixture): 
-    gradient0 = lsgrad_fixture.calc_element_gradient(0)
-    gradient1 = lsgrad_fixture.calc_element_gradient(1)
+def test_ls_gradient(lsgrad_fixture, mesh_fixture): 
+    gradient0 = lsgrad_fixture.calc_element_gradient(0, mesh_fixture)
+    gradient1 = lsgrad_fixture.calc_element_gradient(1, mesh_fixture)
     expected_grad = np.array([4, 0, 0])
     assertion = np.all(gradient0 == expected_grad) and np.all(gradient1 == expected_grad)
     assert assertion 
 
-def test_ls_gradient2(lsgrad_fixture): 
-    lsgrad_fixture.calculate_gradients()
-    gradients = lsgrad_fixture.mesh.elements_data['gradT']
+def test_ls_gradient2(lsgrad_fixture, mesh_fixture): 
+    lsgrad_fixture(mesh_fixture)
+    gradients = mesh_fixture.elements_data['gradT']
     expected_grad = np.array([[4., 0, 0],
                               [4., 0, 0]])
     print(gradients)
     assertion = np.all(gradients == expected_grad)
     assert assertion 
       
-def test_ls_gradient_withweights(lsgrad_fixture):
+def test_ls_gradient_withweights(lsgrad_fixture, mesh_fixture):
     lsgrad_fixture.weighting = True 
-    gradient0 = lsgrad_fixture.calc_element_gradient(0)
-    gradient1 = lsgrad_fixture.calc_element_gradient(1)
+    gradient0 = lsgrad_fixture.calc_element_gradient(0, mesh_fixture)
+    gradient1 = lsgrad_fixture.calc_element_gradient(1, mesh_fixture)
     expected_grad = np.array([4, 0, 0])
     print(gradient0,gradient1)
     assertion = assertion = np.all(gradient0 == expected_grad) and np.all(gradient1 == expected_grad)
@@ -114,10 +118,10 @@ def test_face_gradient_interpolation():
     assertion = np.all(interpolated_val == expected_value)
     assert assertion 
     
-def test_ls_gradient_with_bndval(lsgrad_fixture): 
+def test_ls_gradient_with_bndval(lsgrad_fixture, mesh_fixture): 
     lsgrad_fixture.use_boundaries = True
-    gradient0 = lsgrad_fixture.calc_element_gradient(0)
-    gradient1 = lsgrad_fixture.calc_element_gradient(1)
+    gradient0 = lsgrad_fixture.calc_element_gradient(0, mesh_fixture)
+    gradient1 = lsgrad_fixture.calc_element_gradient(1, mesh_fixture)
     expected_grad = np.array([4, 0, 0])
     print(gradient0)
     print(gradient1)

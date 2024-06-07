@@ -180,14 +180,12 @@ class Mesh :
                     count += 1
         self.elements_bndf_conn = el_bndf_conn
         self.bndfaces_elem_conn = bndf_el_conn
-        print(count)
 
     def set_elements_intfaces_connectivity(self) : 
         '''
         Set the elements to internal faces connectivity table 
         '''
         elem_intf_conn = [ [] for i in range(np.size(self.elements,0))]
-        print(len(elem_intf_conn))
         for surf_ind, intf_to_el in enumerate(self.intfaces_elem_conn) : 
             elem_ind1, elem_ind2 = intf_to_el
             elem_intf_conn[elem_ind1].append(surf_ind)
@@ -480,6 +478,7 @@ class Mesh2D(Mesh):
         pair_nodes = nodes + np.array([0,0,1])
         pair_quad_element = quad_element + int(n_nodes)
         pair_line_element = line_element + int(n_nodes)
+        pair_line_element[:, [1, 0]] = pair_line_element[:, [0, 1]]
         # 
         nodes = np.concatenate((nodes,pair_nodes), axis = 0)
         hexa_elements = np.concatenate((quad_element, pair_quad_element),axis = 1)
@@ -638,8 +637,6 @@ class Mesh1D(Mesh):
         intfaces_elem_conn_list = []
         bndfaces_elem_conn_list = [0,0,0,0,0]
         for i in range(n_elem-1): 
-            #print(i)
-            #print('add element', i+2)
             # add dx (along x axis) to previous 4 nodes 
             delta = np.array([dx,0,0])
             last_nodes = nodes_list[-4:]
@@ -738,7 +735,6 @@ class TetraMesh(Mesh):
         path ::: str ::: path of the gmsh mesh ('.msh' file)
         '''
         mesh = meshio.read("test.msh")
-        print(mesh)
         self.nodes = mesh.points
         surf_elements = []
         vol_elements = []

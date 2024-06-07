@@ -214,7 +214,6 @@ class UpwindConvection(ConvectionOperator):
         face_velocity = FaceInterpolattion().face_computation(centroid1, centroid2, 
                                                               velocity1, velocity2, 
                                                               face_vertex)
-        print(face_velocity)
         #
         centroids_vector = centroid2 - centroid1 
         sign = np.sign(np.dot(centroids_vector,face_velocity))
