@@ -63,27 +63,26 @@ class Tet4 :
         self.refel_gauss_weights = (1/24)*np.array([1.,1.,1.,1.])
         # basis function 
         # The same formalism as Code Aster has been used 
-        self.bfunc1 = tet4_basis1
-        self.bfunc2 = tet4_basis2
-        self.bfunc3 = tet4_basis3
-        self.bfunc4 = tet4_basis4
         self.basis_functions = [tet4_basis1,
                                 tet4_basis2,
                                 tet4_basis3,
                                 tet4_basis4]
         # Reference nodes coordinates 
         # Formalism of Code aster used here 
-        self.refnode1 = np.array([0, 1, 0])
-        self.refnode2 = np.array([0, 0, 1])
-        self.refnode3 = np.array([0, 0, 0])
-        self.refnode4 = np.array([1, 0, 0])
         self.refnodes = np.array([[0, 1, 0],
                                   [0, 0, 1],
                                   [0, 0, 0],
                                   [1, 0, 0]])
         # 
         self.nnodes = 4 
-        self.element_nodes = None
+        self.element_nodes = self.refnodes
+    
+    def set_element(self,element_nodes):
+        '''
+        arguments 
+        element_nodes ::: np.array(float) (nnodes,3) ::: global coordinates of the element
+        '''
+        self.element_nodes = element_nodes
     
     def get_bf_array(self,coordinates) : 
         '''
@@ -98,8 +97,7 @@ class Tet4 :
         psi = coordinates[2]
         #
         bf_arr = np.asarray([self.basis_functions[i](xi,eta,psi) for i in range(self.nnodes)])
-        print(bf_arr)
-        print(np.shape(bf_arr))
+        #bf_arr = np.expand_dims(bf_arr, axis = 1)
         return bf_arr
     
     def mapping(self, coordinates) : 
@@ -109,7 +107,12 @@ class Tet4 :
         returns 
         global_coords ::: float np.array (3) ::: global coordinates  
         '''
-        pass
+        bf_arr = self.get_bf_array(coordinates)
+        print(bf_arr)
+        print(self.element_nodes)
+        global_coords = np.dot(bf_arr, self.element_nodes)
+        print(global_coords)
+        return global_coords
         
         
         
