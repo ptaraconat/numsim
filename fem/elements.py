@@ -108,10 +108,7 @@ class Tet4 :
         global_coords ::: float np.array (3) ::: global coordinates  
         '''
         bf_arr = self.get_bf_array(coordinates)
-        print(bf_arr)
-        print(self.element_nodes)
         global_coords = np.dot(bf_arr, self.element_nodes)
-        print(global_coords)
         return global_coords
         
         
