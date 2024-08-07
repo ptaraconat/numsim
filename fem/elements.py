@@ -278,7 +278,8 @@ class Tet4 :
         print(np.shape(dbf_arr))
         print(self.element_nodes)
         print(np.shape(self.element_nodes))
-        jacobian = np.dot(np.transpose(dbf_arr),self.element_nodes)
+        #jacobian = np.dot(np.transpose(dbf_arr),self.element_nodes)
+        jacobian = np.dot(np.transpose(self.element_nodes),dbf_arr)
         det = np.linalg.det(jacobian)
         inv_jacobian = np.linalg.inv(jacobian)
         return jacobian, det, inv_jacobian

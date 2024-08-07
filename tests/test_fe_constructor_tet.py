@@ -62,15 +62,18 @@ def test_get_dbf(tet_fixture):
     assert assertion 
     
 def test_calc_jacobian(tet_fixture):
-    coords = np.array([0,1,0])
+    coords = np.array([1,1,0])
     element_coords = np.array([[0, 1, 0],
                                [0, 0, 1],
-                               [0., 0., 0],
+                               [0., 0.2, 0.1],
                                [1, 0, 0]])
     tet_fixture.set_element(element_coords)
     ret_arr, scalar, ret_arr2 = tet_fixture.calc_jacobian(coords)
     print(ret_arr)
     print(scalar)
     print(ret_arr2)
-    assertion = False 
+    expected_arr = np.array([[1,0,0], 
+                             [-0.2,0.8,-0.2],
+                             [-0.1,-0.1,0.9]])
+    assertion = np.all(ret_arr == expected_arr)
     assert assertion 
