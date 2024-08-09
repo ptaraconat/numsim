@@ -253,6 +253,25 @@ class Tet4 :
         dbf_arr = np.transpose(dbf_arr)
         return dbf_arr
     
+    def calc_global_dbf_array(self,coordinates, inv_jacobian):
+        '''
+        arguments 
+        coordinates ::: float np.array (3) ::: Local coordinates 
+        inv_jacobian ::: float np.array (3,3) ::: jacobian matrix evaluated at coordinates
+        returns 
+        global_dbf_arr ::: np.array(float) (nnodes,3) ::: derivatives of the basis functions. 
+        '''
+        # Calculate basis functions derivatives, with respect to local coordinates/reference frame (xi, eta, psi). 
+        local_dbf_array = self.get_dbf_array(coordinates)
+        # Tensor product with the inverse jacobian, in order to get the basis functions derivatives,
+        # with respect to global coordinates (x, y, z)
+        print(np.shape(local_dbf_array))
+        print(np.shape(inv_jacobian))
+        print(local_dbf_array)
+        print(inv_jacobian)
+        global_dbf_arr = np.dot(local_dbf_array, inv_jacobian)
+        return global_dbf_arr
+    
     def mapping(self, coordinates) : 
         '''
         arguments 
@@ -274,10 +293,6 @@ class Tet4 :
         inv_jacobian ::: float np.array (3,3) ::: Inverse of the Jacobian matrix
         '''
         dbf_arr = self.get_dbf_array(coordinates)
-        print(dbf_arr)
-        print(np.shape(dbf_arr))
-        print(self.element_nodes)
-        print(np.shape(self.element_nodes))
         #jacobian = np.dot(np.transpose(dbf_arr),self.element_nodes)
         jacobian = np.dot(np.transpose(self.element_nodes),dbf_arr)
         det = np.linalg.det(jacobian)

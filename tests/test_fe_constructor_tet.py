@@ -77,3 +77,23 @@ def test_calc_jacobian(tet_fixture):
                              [-0.1,-0.1,0.9]])
     assertion = np.all(ret_arr == expected_arr)
     assert assertion 
+    
+def test_calc_global_bf_derivatives(tet_fixture):
+    # test case setup 
+    element_coords = np.array([[0, 1, 0],
+                               [0, 0, 1],
+                               [0., 0., 0.],
+                               [1, 0, 0]])
+    tet_fixture.set_element(element_coords)
+    #
+    coords = np.array([1,1,0])
+    _, _, inv_jacobian = tet_fixture.calc_jacobian(coords)
+    ret_arr = tet_fixture.calc_global_dbf_array(coords,inv_jacobian)
+    print(np.shape(ret_arr))
+    print(ret_arr)
+    expected_arr = np.array([[0,1,0],
+                             [0,0,1],
+                             [-1,-1,-1],
+                             [1,0,0]])
+    assertion = np.all(ret_arr == expected_arr)
+    assert assertion 
