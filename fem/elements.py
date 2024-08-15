@@ -265,10 +265,6 @@ class Tet4 :
         local_dbf_array = self.get_dbf_array(coordinates)
         # Tensor product with the inverse jacobian, in order to get the basis functions derivatives,
         # with respect to global coordinates (x, y, z)
-        print(np.shape(local_dbf_array))
-        print(np.shape(inv_jacobian))
-        print(local_dbf_array)
-        print(inv_jacobian)
         global_dbf_arr = np.dot(local_dbf_array, inv_jacobian)
         return global_dbf_arr
     
@@ -298,6 +294,52 @@ class Tet4 :
         det = np.linalg.det(jacobian)
         inv_jacobian = np.linalg.inv(jacobian)
         return jacobian, det, inv_jacobian
+    
+    def calc_stifness_integrand(self, coordinates, state_matrix):
+        '''
+        arguments : 
+        coordinates ::: float np.array (3) ::: Local coordinates 
+        state_matrix ::: float np.array () ::: 
+        returns ::: 
+        integrand ::: float np.array (4,4) ::: integrand for the stifness matrix computation 
+        '''
+        _, det_jacobian, inv_jacobian = self.calc_jacobian(coordinates)
+        global_dbf = self.calc_global_dbf_array(coordinates, inv_jacobian)
+        integrand = np.dot(np.dot(global_dbf,state_matrix), np.transpose(global_dbf))
+        return integrand
+    
+    def set_state_matrices(self, state_arr):
+        '''
+        arguments : 
+        state_arr ::: float np.array (nnodes,3,3) or (3,3) ::: state matrix 
+        '''
+        if np.shape(state_arr) == (3,3) : 
+            state_mat = np.zeros((self.nnodes,3,3))
+            for i in range(self.nnodes):
+                state_mat[i,:,:] = state_arr
+            self.state_matrices = state_mat
+        else : 
+            if np.shape(state_arr) == (self.nnodes,3,3):
+                self.state_matrices = state_arr
+            else : 
+                print('The state matrix do not have the good shape : ', np.shape(state_arr))
+    
+    def calc_stifness_matrix(self):
+        '''
+        arguments : 
+        returns : 
+        el_stiffness_mat ::: float np.array (nnodes,nnodes) ::: Element stiffness matrix
+        '''
+        el_stiffness_mat = np.zeros((self.nnodes,self.nnodes))
+        for i in range(self.nnodes):
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            gauss_pt_weight = self.refel_gauss_weights[i]
+            state_matrix = self.state_matrices[i,:]
+            add = self.calc_stifness_integrand(gauss_pt_coordinates, state_matrix)
+            el_stiffness_mat += gauss_pt_weight*add
+            print(i)
+            print(add)
+        return el_stiffness_mat
         
         
         

@@ -97,3 +97,38 @@ def test_calc_global_bf_derivatives(tet_fixture):
                              [1,0,0]])
     assertion = np.all(ret_arr == expected_arr)
     assert assertion 
+
+def test_calc_stiff_integrand(tet_fixture):
+    # test case setup 
+    element_coords = np.array([[0, 1, 0],
+                               [0, 0, 1],
+                               [0., 0., 0.],
+                               [1, 0, 0]])
+    tet_fixture.set_element(element_coords)
+    #
+    coords = np.array([0,0,0])
+    state_mat = np.array([[1,0,0],
+                          [0,1,0],
+                          [0,0,1]])
+    ret_arr = tet_fixture.calc_stifness_integrand(coords, state_mat)
+    print(ret_arr)
+    assertion = False 
+    assert assertion 
+    
+def test_set_state_mat(tet_fixture): 
+    state_arr = np.array([[1,0,0],
+                          [0,1,0],
+                          [0,0,1]])
+    tet_fixture.set_state_matrices(state_arr)
+    assertion = False 
+    assert assertion
+    
+def test_stiffness_mat(tet_fixture):
+    state_arr = np.array([[1,0,0],
+                          [0,1,0],
+                          [0,0,1]])
+    tet_fixture.set_state_matrices(state_arr)
+    ret_arr = tet_fixture.calc_stifness_matrix()
+    print(ret_arr)
+    assertion = False 
+    assert assertion 
