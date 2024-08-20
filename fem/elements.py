@@ -305,7 +305,7 @@ class Tet4 :
         '''
         _, det_jacobian, inv_jacobian = self.calc_jacobian(coordinates)
         global_dbf = self.calc_global_dbf_array(coordinates, inv_jacobian)
-        integrand = np.dot(np.dot(global_dbf,state_matrix), np.transpose(global_dbf))
+        integrand = det_jacobian*np.dot(np.dot(global_dbf,state_matrix), np.transpose(global_dbf))
         return integrand
     
     def set_state_matrices(self, state_arr):
