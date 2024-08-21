@@ -340,6 +340,28 @@ class Tet4 :
             print(i)
             print(add)
         return el_stiffness_mat
+    
+    def calc_global_stiffness_matrix(self, mesh, state_data):
+        '''
+        arguments 
+        mesh ::: meshe.mesh
+        state_data ::: str ::: name of the state data 
+        returns 
+        global_stiffness :: 
+        '''
+        nnodes = np.size(mesh.nodes,0)
+        nelem = np.size(mesh.elements,0)
+        global_stiffness = np.zeros((nnodes,nnodes))
+        for i in range(nelem) : 
+            element = mesh.elements[i,:]
+            element_nodes = mesh.nodes[element]
+            state_matrix = mesh.nodes_data[state_data][i]
+            self.set_state_matrices(state_matrix)
+            self.set_element(element_nodes)
+            local_stiffness = self.calc_stifness_matrix()
+            global_stiffness[element,element] += local_stiffness
+        return global_stiffness
+        
         
         
         

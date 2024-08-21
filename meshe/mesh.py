@@ -31,6 +31,7 @@ class Mesh :
         self.elements_data = {}
         self.bndfaces_data = {}
         self.physical_entities = None
+        self.nodes_data = {}
         
     def save_vtk(self,output_file = 'dump.vtk'):
         '''
