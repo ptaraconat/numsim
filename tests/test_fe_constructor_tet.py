@@ -2,11 +2,23 @@ import pytest
 import sys as sys 
 sys.path.append('.')
 from fem.elements import * 
+from meshe.mesh import * 
 
 @pytest.fixture()
 def tet_fixture(): 
     constructor = Tet4()
     return constructor
+@pytest.fixture 
+def mesh_fixture():
+    mesh = TetraMesh()
+    mesh.nodes = np.array([[0, 0, 0],
+                           [0, 1, 0],
+                           [1, 0, 0],
+                           [0, 0, 1],
+                           [-1, 0, 0]])
+    mesh.elements = np.array([[0, 1, 2, 3],
+                              [0,4,1,3]])
+    return mesh 
 
 def test_get_bf(tet_fixture):
     coords = np.array([0,1,0])
@@ -129,6 +141,22 @@ def test_stiffness_mat(tet_fixture):
                           [0,0,1]])
     tet_fixture.set_state_matrices(state_arr)
     ret_arr = tet_fixture.calc_stifness_matrix()
+    print(ret_arr)
+    assertion = False 
+    assert assertion 
+    
+def test_global_stiffness(tet_fixture,mesh_fixture): 
+    # set state data 
+    state_data = 'conductivity'
+    nnodes = np.size(mesh_fixture.nodes,0)
+    ndim = 3
+    state = np.zeros((nnodes,ndim,ndim))
+    identity = np.identity(3)
+    for i in range(nnodes): 
+        state[i,:,:] = identity
+    mesh_fixture.nodes_data[state_data] = state
+    #
+    ret_arr = tet_fixture.calc_global_stiffness_matrix( mesh_fixture, state_data)
     print(ret_arr)
     assertion = False 
     assert assertion 

@@ -186,6 +186,7 @@ class Tet4 :
         '''
         # Gauss quadrature setting
         # Source : Code Aster documentation 
+        self.ngauss_pt = 4
         a = (5 - np.sqrt(5))/(20)
         b = (5+3*np.sqrt(5))/(20)
         self.refel_gauss_coords = np.array([[a,a,a],
@@ -308,6 +309,21 @@ class Tet4 :
         integrand = det_jacobian*np.dot(np.dot(global_dbf,state_matrix), np.transpose(global_dbf))
         return integrand
     
+    def interpolate_state_mat(self, state_arr): 
+        '''
+        arguments : 
+        state_arr ::: float np.array (nnodes,3,3) or (3,3) ::: state matrix 
+        '''
+        state_matrix = np.zeros((self.ngauss_pt,3,3))
+        for i in range(self.ngauss_pt): 
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            basis_functions = self.get_bf_array(gauss_pt_coordinates)
+            basis_functions = np.expand_dims(basis_functions,axis = (1,2))
+            gauss_pt_state_matrix = np.sum(basis_functions*state_arr,axis = 0)
+            state_matrix[i,:,:] = gauss_pt_state_matrix
+            # To be continued
+        return state_matrix
+    
     def set_state_matrices(self, state_arr):
         '''
         arguments : 
@@ -320,7 +336,8 @@ class Tet4 :
             self.state_matrices = state_mat
         else : 
             if np.shape(state_arr) == (self.nnodes,3,3):
-                self.state_matrices = state_arr
+                state_mat = self.interpolate_state_mat(state_arr)
+                self.state_matrices = state_mat
             else : 
                 print('The state matrix do not have the good shape : ', np.shape(state_arr))
     
@@ -331,14 +348,12 @@ class Tet4 :
         el_stiffness_mat ::: float np.array (nnodes,nnodes) ::: Element stiffness matrix
         '''
         el_stiffness_mat = np.zeros((self.nnodes,self.nnodes))
-        for i in range(self.nnodes):
+        for i in range(self.ngauss_pt):
             gauss_pt_coordinates = self.refel_gauss_coords[i,:]
             gauss_pt_weight = self.refel_gauss_weights[i]
             state_matrix = self.state_matrices[i,:]
             add = self.calc_stifness_integrand(gauss_pt_coordinates, state_matrix)
             el_stiffness_mat += gauss_pt_weight*add
-            print(i)
-            print(add)
         return el_stiffness_mat
     
     def calc_global_stiffness_matrix(self, mesh, state_data):
@@ -355,11 +370,15 @@ class Tet4 :
         for i in range(nelem) : 
             element = mesh.elements[i,:]
             element_nodes = mesh.nodes[element]
-            state_matrix = mesh.nodes_data[state_data][i]
+            state_matrix = mesh.nodes_data[state_data][element]
             self.set_state_matrices(state_matrix)
             self.set_element(element_nodes)
             local_stiffness = self.calc_stifness_matrix()
-            global_stiffness[element,element] += local_stiffness
+            global_stiffness[np.ix_(element, element)] += local_stiffness
+            #print(element)
+            #print(local_stiffness)
+            #print(global_stiffness)
+            #global_stiffness[element,element] += local_stiffness
         return global_stiffness
         
         
