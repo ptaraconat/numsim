@@ -43,10 +43,16 @@ class Mesh :
         data = {}
         for key,val in self.elements_data.items():
             data[key] = [val.tolist()]
+        node_data = {}
+        for key,val in self.nodes_data.items():
+            print(np.shape(val))
+            print(len(val.tolist()))
+            node_data[key] = val.tolist()
         mesh = meshio.Mesh(
             points=self.nodes,
             cells=[("tetra", self.elements)],
-            cell_data=data
+            cell_data=data,
+            point_data = node_data
         )
         meshio.write(output_file, mesh, file_format="vtk")
         
