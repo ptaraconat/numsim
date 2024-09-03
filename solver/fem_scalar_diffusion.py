@@ -9,7 +9,7 @@ class FemDiffusion():
         element_type ::: str ::: ID of the elements used
         '''
         if element_type == 'TET4' : 
-            self.constructor = Tet4()
+            self.constructor = Tet4Scalar()
             self.ndim = 3
         self.diffusion_data = 'diffusion_mat'
     

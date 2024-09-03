@@ -4,9 +4,11 @@ sys.path.append('.')
 from fem.elements import * 
 from meshe.mesh import * 
 
+EPSILON = 1e-8
+
 @pytest.fixture()
 def tet_fixture(): 
-    constructor = Tet4()
+    constructor = Tet4Scalar()
     return constructor
 @pytest.fixture 
 def mesh_fixture():
@@ -123,8 +125,11 @@ def test_calc_stiff_integrand(tet_fixture):
                           [0,1,0],
                           [0,0,1]])
     ret_arr = tet_fixture.calc_stifness_integrand(coords, state_mat)
-    print(ret_arr)
-    assertion = False 
+    expected_arr = np.array([[ 1.,  0., -1.,  0.],
+                             [ 0.,  1., -1.,  0.],
+                             [-1., -1.,  3., -1.],
+                             [ 0.,  0., -1.,  1.]])
+    assertion = np.all(ret_arr == expected_arr)
     assert assertion 
     
 def test_set_state_mat(tet_fixture): 
@@ -132,7 +137,12 @@ def test_set_state_mat(tet_fixture):
                           [0,1,0],
                           [0,0,1]])
     tet_fixture.set_state_matrices(state_arr)
-    assertion = False 
+    ret_arr = tet_fixture.state_matrices
+    expected_arr = np.zeros((4,3,3))
+    for i in range(4): 
+        expected_arr[i,:,:] = state_arr
+    print(ret_arr)
+    assertion = np.all(ret_arr == expected_arr)
     assert assertion
     
 def test_stiffness_mat(tet_fixture):
@@ -141,8 +151,13 @@ def test_stiffness_mat(tet_fixture):
                           [0,0,1]])
     tet_fixture.set_state_matrices(state_arr)
     ret_arr = tet_fixture.calc_stifness_matrix()
+    expected_arr = np.array([[ 0.16666667,  0.,         -0.16666667,  0.        ],
+                             [ 0.,          0.16666667, -0.16666667,  0.        ],
+                             [-0.16666667, -0.16666667,  0.5,        -0.16666667],
+                             [ 0.,          0.,         -0.16666667,  0.16666667]])
     print(ret_arr)
-    assertion = False 
+    print(np.abs(ret_arr-expected_arr))
+    assertion = np.all(np.abs(ret_arr-expected_arr)<EPSILON) 
     assert assertion 
     
 def test_global_stiffness(tet_fixture,mesh_fixture): 
@@ -157,6 +172,12 @@ def test_global_stiffness(tet_fixture,mesh_fixture):
     mesh_fixture.nodes_data[state_data] = state
     #
     ret_arr = tet_fixture.calc_global_stiffness_matrix( mesh_fixture, state_data)
+    expected_arr = np.array([[-1.,          0.33333333,  0.16666667,  0.33333333,  0.16666667],
+                             [ 0.33333333, -0.33333333,  0.,          0.,          0.,        ],
+                             [ 0.16666667,  0.,         -0.16666667,  0.,          0.,        ],
+                             [ 0.33333333,  0.,          0.,         -0.33333333,  0.,        ],
+                             [ 0.16666667,  0.,          0.,         0.,         -0.16666667]])
     print(ret_arr)
-    assertion = False 
+    print(np.abs(ret_arr-expected_arr))
+    assertion = np.all(np.abs(ret_arr-expected_arr)<EPSILON) 
     assert assertion 

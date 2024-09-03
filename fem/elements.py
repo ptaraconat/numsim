@@ -176,43 +176,24 @@ def tet4_basis4_dpsi(xi,eta,psi) :
     ''' 
     return 0 
 
-class Tet4 : 
+
+class FemConstructor():
     '''
     '''
-    def __init__(self) : 
+    def __init__(self):
         '''
-        arguments : 
-        
         '''
-        # Gauss quadrature setting
-        # Source : Code Aster documentation 
-        self.ngauss_pt = 4
-        a = (5 - np.sqrt(5))/(20)
-        b = (5+3*np.sqrt(5))/(20)
-        self.refel_gauss_coords = np.array([[a,a,a],
-                                            [a,a,b],
-                                            [a,b,a],
-                                            [b,a,a]])
-        self.refel_gauss_weights = (1/24)*np.array([1.,1.,1.,1.])
-        # basis function 
-        # The same formalism as Code Aster has been used 
-        self.basis_functions = [tet4_basis1,
-                                tet4_basis2,
-                                tet4_basis3,
-                                tet4_basis4]
-        self.basis_functions_derivatives = [[tet4_basis1_dxi,tet4_basis1_deta,tet4_basis1_dpsi],
-                                            [tet4_basis2_dxi,tet4_basis2_deta,tet4_basis2_dpsi],
-                                            [tet4_basis3_dxi,tet4_basis3_deta,tet4_basis3_dpsi],
-                                            [tet4_basis4_dxi,tet4_basis4_deta,tet4_basis4_dpsi]]
-        # Reference nodes coordinates 
-        # Formalism of Code aster used here 
-        self.refnodes = np.array([[0, 1, 0],
-                                  [0, 0, 1],
-                                  [0, 0, 0],
-                                  [1, 0, 0]])
-        # 
-        self.nnodes = 4 
-        self.element_nodes = self.refnodes
+        #
+        self.ngauss_pt = None 
+        self.refel_gauss_coords = None 
+        self.refel_gauss_weights = None 
+        #
+        self.basis_functions = None 
+        self.basis_functions_derivatives = None 
+        #
+        self.refnodes = None 
+        self.nnodes = None 
+        self.element_nodes = None 
     
     def set_element(self,element_nodes):
         '''
@@ -252,7 +233,7 @@ class Tet4 :
         ndim = 3
         dbf_arr = np.asarray([[self.basis_functions_derivatives[i][j](xi,eta,psi) for i in range(self.nnodes)] for j in range(ndim)])
         dbf_arr = np.transpose(dbf_arr)
-        return dbf_arr
+        return dbf_arr  
     
     def calc_global_dbf_array(self,coordinates, inv_jacobian):
         '''
@@ -308,6 +289,44 @@ class Tet4 :
         global_dbf = self.calc_global_dbf_array(coordinates, inv_jacobian)
         integrand = det_jacobian*np.dot(np.dot(global_dbf,state_matrix), np.transpose(global_dbf))
         return integrand
+
+class Tet4Scalar(FemConstructor) : 
+    '''
+    '''
+    def __init__(self) : 
+        '''
+        arguments : 
+        
+        '''
+        # Gauss quadrature setting
+        # Source : Code Aster documentation 
+        self.ngauss_pt = 4
+        a = (5 - np.sqrt(5))/(20)
+        b = (5+3*np.sqrt(5))/(20)
+        self.refel_gauss_coords = np.array([[a,a,a],
+                                            [a,a,b],
+                                            [a,b,a],
+                                            [b,a,a]])
+        self.refel_gauss_weights = (1/24)*np.array([1.,1.,1.,1.])
+        # basis function 
+        # The same formalism as Code Aster has been used 
+        self.basis_functions = [tet4_basis1,
+                                tet4_basis2,
+                                tet4_basis3,
+                                tet4_basis4]
+        self.basis_functions_derivatives = [[tet4_basis1_dxi,tet4_basis1_deta,tet4_basis1_dpsi],
+                                            [tet4_basis2_dxi,tet4_basis2_deta,tet4_basis2_dpsi],
+                                            [tet4_basis3_dxi,tet4_basis3_deta,tet4_basis3_dpsi],
+                                            [tet4_basis4_dxi,tet4_basis4_deta,tet4_basis4_dpsi]]
+        # Reference nodes coordinates 
+        # Formalism of Code aster used here 
+        self.refnodes = np.array([[0, 1, 0],
+                                  [0, 0, 1],
+                                  [0, 0, 0],
+                                  [1, 0, 0]])
+        # 
+        self.nnodes = 4 
+        self.element_nodes = self.refnodes
     
     def interpolate_state_mat(self, state_arr): 
         '''
