@@ -45,9 +45,14 @@ class Mesh :
             data[key] = [val.tolist()]
         node_data = {}
         for key,val in self.nodes_data.items():
-            print(np.shape(val))
-            print(len(val.tolist()))
-            node_data[key] = val.tolist()
+            data_shape = np.shape(val)
+            if len(data_shape) == 3:
+                for i in range(data_shape[1]):
+                    for j in range(data_shape[2]):
+                        key_tmp = key+str(i+1)+str(j+1)
+                        node_data[key_tmp] = val[:,i,j]
+            else : 
+                node_data[key] = val#np.asarray(val.tolist())
         mesh = meshio.Mesh(
             points=self.nodes,
             cells=[("tetra", self.elements)],

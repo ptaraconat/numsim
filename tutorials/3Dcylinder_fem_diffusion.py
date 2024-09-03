@@ -63,7 +63,7 @@ solver.build_discrete_operators(mesh,boundary_conditions)
 # Solve EDP
 solution = np.linalg.solve(solver.stiffness_matrix,solver.rhs_vector)
 mesh.nodes_data['solution'] = solution
-print(mesh.nodes_data)
+#print(mesh.nodes_data)
 #mesh.nodes_data.pop('diffusion_mat')
 mesh.save_vtk(output_file = '3Dcyl_fem_diff_dump.vtk')
-print(mesh.nodes_data)
+#print(mesh.nodes_data)
