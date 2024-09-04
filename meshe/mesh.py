@@ -31,6 +31,7 @@ class Mesh :
         self.elements_data = {}
         self.bndfaces_data = {}
         self.physical_entities = None
+        self.nodes_data = {}
         
     def save_vtk(self,output_file = 'dump.vtk'):
         '''
@@ -42,10 +43,21 @@ class Mesh :
         data = {}
         for key,val in self.elements_data.items():
             data[key] = [val.tolist()]
+        node_data = {}
+        for key,val in self.nodes_data.items():
+            data_shape = np.shape(val)
+            if len(data_shape) == 3:
+                for i in range(data_shape[1]):
+                    for j in range(data_shape[2]):
+                        key_tmp = key+str(i+1)+str(j+1)
+                        node_data[key_tmp] = val[:,i,j]
+            else : 
+                node_data[key] = val#np.asarray(val.tolist())
         mesh = meshio.Mesh(
             points=self.nodes,
             cells=[("tetra", self.elements)],
-            cell_data=data
+            cell_data=data,
+            point_data = node_data
         )
         meshio.write(output_file, mesh, file_format="vtk")
         
