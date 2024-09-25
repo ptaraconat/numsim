@@ -123,3 +123,21 @@ def test_stiffness_mat(tet_fixture):
     print(np.abs(ret_arr-expected_arr))
     assertion = np.all(np.abs(ret_arr-expected_arr)<EPSILON) 
     assert assertion 
+
+def test_global_stiffness(tet_fixture,mesh_fixture): 
+    # set state data 
+    state_data = 'conductivity'
+    nnodes = np.size(mesh_fixture.nodes,0)
+    ndim = 6
+    state = np.zeros((nnodes,ndim,ndim))
+    identity = np.identity(ndim)
+    for i in range(nnodes): 
+        state[i,:,:] = identity
+    mesh_fixture.nodes_data[state_data] = state
+    #
+    ret_arr = tet_fixture.calc_global_stiffness_matrix( mesh_fixture, state_data)
+    expected_arr = np.array([])
+    #print(ret_arr)
+    #print(np.abs(ret_arr-expected_arr))
+    assertion = False #np.all(np.abs(ret_arr-expected_arr)<EPSILON) 
+    assert assertion 
