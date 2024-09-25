@@ -19,14 +19,8 @@ gmsh.model.add('test_model')
 radius = 0.5
 height = 1 
 mesh_size = 0.25
-E = 1e6
-nu = 0.9
-
-a = 1 - nu
-b = nu
-c = (1-2*nu)*0.5
-coeff = E/((1+nu)*(1-2*nu))
-
+E = 2e12
+nu = 0.3
 
 factory = gmsh.model.geo
 factory.addPoint(0, 0, 0,  tag = 1)
@@ -62,6 +56,10 @@ mesh.gmsh_reader('test.msh')
 # Init Solver
 solver = FemLinearElasticity()
 # init conductivity matrix
+a = 1 - nu
+b = nu
+c = (1-2*nu)*0.5
+coeff = E/((1+nu)*(1-2*nu))
 state_mat = coeff * np.array([[a, b, b, 0, 0, 0],
                               [b, a, b, 0, 0, 0],
                               [b, b, a, 0, 0, 0],

@@ -509,9 +509,9 @@ class Tet4Vector(FemConstructor) :
         row1 = np.array([dn1dx, 0, 0, dn2dx, 0, 0, dn3dx, 0, 0, dn4dx, 0, 0])
         row2 = np.array([0, dn1dy, 0, 0, dn2dy, 0, 0, dn3dy, 0, 0, dn4dy, 0])
         row3 = np.array([0, 0, dn1dz, 0, 0, dn2dz, 0, 0, dn3dz, 0, 0, dn4dz])
-        row4 = np.array([dn1dy, dn1dx, 0, dn2dy, dn2dx, 0, dn3dy, dn3dx, 0, dn4dy, dn4dx, 0])
-        row5 = np.array([dn1dz, 0, dn1dx, dn2dz, 0, dn2dx, dn3dz, 0, dn3dx, dn4dz, 0, dn4dx])
-        row6 = np.array([0, dn1dz, dn1dy, 0, dn2dz, dn2dy, 0, dn3dz, dn3dy, 0, dn4dz, dn4dy])
+        row4 = 0.5*np.array([dn1dy, dn1dx, 0, dn2dy, dn2dx, 0, dn3dy, dn3dx, 0, dn4dy, dn4dx, 0])
+        row5 = 0.5*np.array([dn1dz, 0, dn1dx, dn2dz, 0, dn2dx, dn3dz, 0, dn3dx, dn4dz, 0, dn4dx])
+        row6 = 0.5*np.array([0, dn1dz, dn1dy, 0, dn2dz, dn2dy, 0, dn3dz, dn3dy, 0, dn4dz, dn4dy])
         symgrad_dbf_arr = np.zeros((self.nnodes*3,6))
         symgrad_dbf_arr[:,0] = row1
         symgrad_dbf_arr[:,1] = row2
