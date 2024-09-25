@@ -312,7 +312,7 @@ class FemConstructor():
             self.set_element(element_nodes)
             local_stiffness = self.calc_stifness_matrix()
             connectivity = self.get_connectivity(element)
-            print(connectivity)
+            #print(connectivity)
             global_stiffness[np.ix_(connectivity, connectivity)] += local_stiffness
             #print(element)
             #print(local_stiffness)
