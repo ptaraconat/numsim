@@ -7,7 +7,7 @@ from fem.elements import *
 from solver.fem_linear_elasticity import * 
 
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',
-                                  'value' : [None, None, 0]},
+                                  'value' : [0, 0, 0]},
                        'outlet' : {'type' : 'dirichlet',
                                    'value' : [None, None, 0.1]},
                        'wall' : {'type' : 'neumann',
@@ -19,7 +19,7 @@ gmsh.model.add('test_model')
 radius = 0.5
 height = 1 
 mesh_size = 0.25
-E = 2e12
+E = 2e6
 nu = 0.3
 
 factory = gmsh.model.geo
