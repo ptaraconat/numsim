@@ -9,7 +9,7 @@ from solver.fem_linear_elasticity import *
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                   'value' : [None, None, 0]},
                        'outlet' : {'type' : 'dirichlet',
-                                   'value' : [None, None, 1e-6]},
+                                   'value' : [None, None, 0.1]},
                        'wall' : {'type' : 'neumann',
                                  'value' : np.array([0,0,0])}}
 
