@@ -76,4 +76,4 @@ solution = np.linalg.solve(solver.stiffness_matrix,solver.rhs_vector)
 nnodes = np.size(mesh.nodes,0)
 solution = solution.reshape((nnodes,3))
 mesh.nodes_data['solution'] = solution
-mesh.save_vtk(output_file = '3Dcyl_fem_linel_dump.vtk')
+mesh.save_vtk(output_file = '3Dcyl_fem_linel_dump2.vtk')

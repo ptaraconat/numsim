@@ -47,11 +47,12 @@ class FemLinearElasticity():
                 for i,val in enumerate(bc_val) : 
                     print(i,val)
                     comp_conn = 3*boundary_node_indices + i
-                    if val := None : 
+                    if val != None : 
                         rhs_vector[comp_conn] = val
                         stiffness_matrix[comp_conn,:] = 0 
                         stiffness_matrix[comp_conn,comp_conn] = 1
         #
+        print(rhs_vector)
         self.rhs_vector = rhs_vector
         self.stiffness_matrix = stiffness_matrix
         
