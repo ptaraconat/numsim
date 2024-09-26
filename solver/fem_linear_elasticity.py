@@ -52,7 +52,6 @@ class FemLinearElasticity():
                         stiffness_matrix[comp_conn,:] = 0 
                         stiffness_matrix[comp_conn,comp_conn] = 1
         #
-        print(rhs_vector)
         self.rhs_vector = rhs_vector
         self.stiffness_matrix = stiffness_matrix
         
