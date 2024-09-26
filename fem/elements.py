@@ -312,12 +312,7 @@ class FemConstructor():
             self.set_element(element_nodes)
             local_stiffness = self.calc_stifness_matrix()
             connectivity = self.get_connectivity(element)
-            #print(connectivity)
             global_stiffness[np.ix_(connectivity, connectivity)] += local_stiffness
-            #print(element)
-            #print(local_stiffness)
-            #print(global_stiffness)
-            #global_stiffness[element,element] += local_stiffness
         return global_stiffness
 
 class Tet4Scalar(FemConstructor) : 
@@ -381,7 +376,6 @@ class Tet4Scalar(FemConstructor) :
             basis_functions = np.expand_dims(basis_functions,axis = (1,2))
             gauss_pt_state_matrix = np.sum(basis_functions*state_arr,axis = 0)
             state_matrix[i,:,:] = gauss_pt_state_matrix
-            # To be continued
         return state_matrix
     
     def set_state_matrices(self, state_arr):
@@ -412,32 +406,7 @@ class Tet4Scalar(FemConstructor) :
         _, det_jacobian, inv_jacobian = self.calc_jacobian(coordinates)
         global_dbf = self.calc_global_dbf_array(coordinates, inv_jacobian)
         integrand = det_jacobian*np.dot(np.dot(global_dbf,state_matrix), np.transpose(global_dbf))
-        return integrand
-    
-    #def calc_global_stiffness_matrix(self, mesh, state_data):
-    #    '''
-    #    arguments 
-    #    mesh ::: meshe.mesh
-    #    state_data ::: str ::: name of the state data 
-    #    returns 
-    #    global_stiffness :: 
-    #    '''
-    #    nnodes = np.size(mesh.nodes,0)
-    #    nelem = np.size(mesh.elements,0)
-    #    global_stiffness = np.zeros((nnodes,nnodes))
-    #    for i in range(nelem) : 
-    #        element = mesh.elements[i,:]
-    #        element_nodes = mesh.nodes[element]
-    #        state_matrix = mesh.nodes_data[state_data][element]
-    #        self.set_state_matrices(state_matrix)
-    #        self.set_element(element_nodes)
-    #        local_stiffness = self.calc_stifness_matrix()
-    #        global_stiffness[np.ix_(element, element)] += local_stiffness
-    #        #print(element)
-    #        #print(local_stiffness)
-    #        #print(global_stiffness)
-    #        #global_stiffness[element,element] += local_stiffness
-    #    return global_stiffness
+        return integrand 
         
 class Tet4Vector(FemConstructor) : 
     '''
