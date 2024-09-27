@@ -87,6 +87,29 @@ class FemLinearElasticity():
         self.rhs_vector = rhs_vector
         self.stiffness_matrix = stiffness_matrix
     
+    def calc_stress(self,mesh):
+        '''
+        argument 
+        mesh ::: meshe.mesh :::
+        '''
+        stress_arr = []
+        for i in range(np.size(mesh.elements,0)):
+            element = mesh.elements[i,:]
+            element_coords = mesh.nodes[element]
+            state_arr = mesh.nodes_data[self.state_data][element]
+            disp_arr = mesh.nodes_data[self.displacement_data][element]
+            self.constructor.set_element(element_coords)
+            stress = self.constructor.calc_stress_tensor(disp_arr,state_arr)
+            stress_arr.append(stress)
+        stress_arr = np.asarray(stress_arr)
+        print(np.shape(stress_arr))
+        mesh.elements_data['ssigma_xx'] = stress_arr[:,0]
+        mesh.elements_data['ssigma_yy'] = stress_arr[:,1]
+        mesh.elements_data['ssigma_zz'] = stress_arr[:,2]
+        mesh.elements_data['ssigma_xy'] = stress_arr[:,3]
+        mesh.elements_data['ssigma_xz'] = stress_arr[:,4]
+        mesh.elements_data['ssigma_yz'] = stress_arr[:,5]
+    
     def solve(self,mesh):
         '''
         solve linear elasticity 
@@ -111,6 +134,7 @@ class FemLinearElasticity():
         nnodes = np.size(mesh.nodes,0)
         solution = solution.reshape((nnodes,3))
         mesh.nodes_data[self.displacement_data] = solution
+        self.calc_stress(mesh)
         savepath = savedir + f"output_{0:04d}.vtk"
         mesh.save_vtk(output_file = savepath)
         #
