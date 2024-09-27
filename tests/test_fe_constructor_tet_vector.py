@@ -156,3 +156,27 @@ def test_global_stiffness(tet_fixture,mesh_fixture):
     #print(np.abs(ret_arr-expected_arr))
     assertion = np.all(np.abs(ret_arr-expected_arr)<EPSILON) 
     assert assertion 
+
+def test_stress_computation(tet_fixture):
+    element_coords = np.array([[0, 1, 0],
+                               [0, 0, 1],
+                               [0., 0., 0.],
+                               [1, 0, 0]])
+    arr_tmp = np.array([[1,0,0,0,0,0],
+                          [0,1,0,0,0,0],
+                          [0,0,1,0,0,0],
+                          [0,0,0,1,0,0],
+                          [0,0,0,0,1,0],
+                          [0,0,0,0,0,1]])
+    state_arr = np.zeros((4,6,6))
+    for i in range(4):
+        state_arr[i,:,:] = arr_tmp
+    disp_arr = np.array([[0,0,0],
+                         [0,0,0.1],
+                         [0,0,0],
+                         [0,0,0]])
+    tet_fixture.set_element(element_coords)
+    ret_arr = tet_fixture.calc_stress_tensor(disp_arr,state_arr)
+    expected_arr = np.array([0, 0, 0.1, 0, 0, 0])
+    assertion = np.all(ret_arr == expected_arr)
+    assert assertion 

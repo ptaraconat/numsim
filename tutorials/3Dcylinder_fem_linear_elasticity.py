@@ -13,15 +13,22 @@ boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                        'wall' : {'type' : 'neumann',
                                  'value' : np.array([0,0,0])}}
 
-gmsh.initialize()
-gmsh.model.add('test_model')
+param_dict = {'STATE_LAW' : 'HOM_ISO',
+              'HOM_ISO_POISSON' : 0.3,
+              'HOM_ISO_YOUNG' : 5e6,
+              'EL_TYPE' : 'TET4',
+              'DUMP_DIR' : '3Dcyl_fem_linel/',
+              'DUMP_DISPLACEMENT_SCALING' : 1.}
 
 radius = 0.5
 height = 1 
 mesh_size = 0.25
-E = 2e6
-nu = 0.3
 
+#################################
+#################################
+gmsh.initialize()
+gmsh.model.add('test_model')
+#
 factory = gmsh.model.geo
 factory.addPoint(0, 0, 0,  tag = 1)
 factory.addPoint(0, radius, 0,  tag = 2)
@@ -53,25 +60,14 @@ gmsh.finalize()
 #
 mesh = TetraMesh()
 mesh.gmsh_reader('test.msh')
-# Init Solver
-solver = FemLinearElasticity()
-# init conductivity matrix
-a = 1 - nu
-b = nu
-c = (1-2*nu)*0.5
-coeff = E/((1+nu)*(1-2*nu))
-state_mat = coeff * np.array([[a, b, b, 0, 0, 0],
-                              [b, a, b, 0, 0, 0],
-                              [b, b, a, 0, 0, 0],
-                              [0, 0, 0, c, 0, 0],
-                              [0, 0, 0, 0, c, 0],
-                              [0, 0, 0, 0, 0, c]])
-solver.set_constant_state_matrix(mesh,state_mat)
-# Calc stiffness matrix 
-solver.build_discrete_operators(mesh,boundary_conditions)
+#################################
+#################################
+
+###############
+# Init Solver##
+solver = FemLinearElasticity(boundary_conditions, param_dict = param_dict)
 # Solve EDP
-solution = np.linalg.solve(solver.stiffness_matrix,solver.rhs_vector)
-nnodes = np.size(mesh.nodes,0)
-solution = solution.reshape((nnodes,3))
-mesh.nodes_data['solution'] = solution
-mesh.save_vtk(output_file = '3Dcyl_fem_linel_dump.vtk')
+solver.solve(mesh)
+#
+
+

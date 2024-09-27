@@ -442,6 +442,7 @@ class Tet4Vector(FemConstructor) :
                                   [0, 0, 1],
                                   [0, 0, 0],
                                   [1, 0, 0]])
+        self.refcentroid = np.mean(self.refnodes, axis = 1)
         # 
         self.nnodes = 4 
         self.vardim = 3
@@ -550,6 +551,24 @@ class Tet4Vector(FemConstructor) :
             mat_conn.append(3*el+2)
         mat_conn = np.asarray(mat_conn)
         return mat_conn
-        
-        
-        
+    
+    def calc_stress_tensor(self,disp_arr,state_arr):
+        '''
+        arguments 
+        disp_arr ::: np.array (nel_nodes,3) ::: displacement vectors for each element nodes 
+        state_arr ::: np.array (nel_nodes,6,6) ::: state matrices at each element nodes
+        return 
+        stress_tensor_arr ::: np.array (6) ::: flatten stress tensor 
+        '''
+        #
+        elcentroid = self.refcentroid
+        basis_functions = self.get_bf_array(elcentroid)
+        basis_functions = np.expand_dims(basis_functions,axis = (1,2))
+        centroid_state_matrix = np.sum(basis_functions*state_arr,axis = 0)
+        #
+        _, _, inv_jacobian = self.calc_jacobian(elcentroid)
+        symgrad_dbf_arr = self.calc_global_dbf_array_symgrad(elcentroid, inv_jacobian)
+        flatten_disp_arr = disp_arr.flatten()
+        strain_tensor_arr = np.dot(np.transpose(symgrad_dbf_arr),flatten_disp_arr)
+        stress_tensor_arr = np.dot(centroid_state_matrix,strain_tensor_arr)
+        return stress_tensor_arr
