@@ -570,5 +570,5 @@ class Tet4Vector(FemConstructor) :
         symgrad_dbf_arr = self.calc_global_dbf_array_symgrad(elcentroid, inv_jacobian)
         flatten_disp_arr = disp_arr.flatten()
         strain_tensor_arr = np.dot(np.transpose(symgrad_dbf_arr),flatten_disp_arr)
-        stress_tensor_arr = np.dot(np.linalg.inv(centroid_state_matrix),strain_tensor_arr)
+        stress_tensor_arr = np.dot(centroid_state_matrix,strain_tensor_arr)
         return stress_tensor_arr

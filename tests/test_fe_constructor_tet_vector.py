@@ -176,6 +176,7 @@ def test_stress_computation(tet_fixture):
                          [0,0,0],
                          [0,0,0]])
     tet_fixture.set_element(element_coords)
-    tet_fixture.calc_stress_tensor(disp_arr,state_arr)
-    assertion = False 
+    ret_arr = tet_fixture.calc_stress_tensor(disp_arr,state_arr)
+    expected_arr = np.array([0, 0, 0.1, 0, 0, 0])
+    assertion = np.all(ret_arr == expected_arr)
     assert assertion 
