@@ -181,3 +181,66 @@ def test_global_stiffness(tet_fixture,mesh_fixture):
     print(np.abs(ret_arr-expected_arr))
     assertion = np.all(np.abs(ret_arr-expected_arr)<EPSILON) 
     assert assertion 
+
+def test_calc_massmat_integrand(tet_fixture):
+    # test case setup 
+    element_coords = np.array([[0, 1, 0],
+                               [0, 0, 1],
+                               [0., 0., 0.],
+                               [1, 0, 0]])
+    tet_fixture.set_element(element_coords)
+    #
+    coords = np.array([0.2,0.2,0.2])
+    rho_value = 1000
+    ret_arr = tet_fixture.calc_massmat_integrand(coords, rho_value)
+    expected_arr = np.array([[40., 40., 80., 40.],
+                             [40., 40., 80., 40.],
+                             [80., 80., 160., 80.],
+                             [40., 40., 80., 40.]])
+    assertion = np.all(np.abs(expected_arr-ret_arr)<EPSILON)
+    assert assertion 
+
+def test_interpolate_rho_values(tet_fixture):
+    nodes_rho = np.array([1000,1000,1000,1000])
+    gauss_point_rho = tet_fixture.interpolate_rho_values(nodes_rho)
+    expected_array = np.array([1000.,1000.,1000.,1000.])
+    print(gauss_point_rho)
+    print(expected_array)
+    print(np.abs(gauss_point_rho-expected_array)<EPSILON)
+    assertion = np.all(np.abs(gauss_point_rho-expected_array)<EPSILON)
+    assert assertion
+
+def test_mass_mat(tet_fixture):
+    rho_value = np.array([1,1,1,1])
+    tet_fixture.set_rho_values(rho_value)
+    #print(tet_fixture.rho_values)
+    ret_arr = tet_fixture.calc_mass_matrix()
+    expected_arr = np.array([[0.01666667,0.00833333,0.00833333,0.00833333],
+                             [0.00833333,0.01666667,0.00833333,0.00833333],
+                             [0.00833333,0.00833333,0.01666667,0.00833333],
+                             [0.00833333,0.00833333,0.00833333,0.01666667]])
+    print(ret_arr)
+    print(np.abs(ret_arr-expected_arr)<EPSILON)
+    assertion = np.all(np.abs(ret_arr-expected_arr)<EPSILON) 
+    assert assertion 
+
+def test_global_mass(tet_fixture,mesh_fixture): 
+    # set state data 
+    state_data = 'rho'
+    nnodes = np.size(mesh_fixture.nodes,0)
+    rho_vec = np.zeros((nnodes))
+    rho_val = 1000
+    for i in range(nnodes): 
+        rho_vec[i] = rho_val
+    mesh_fixture.nodes_data[state_data] = rho_vec
+    #
+    ret_arr = tet_fixture.calc_global_mass_matrix( mesh_fixture, state_data)
+    expected_arr = np.array([[-33.33333333,-16.66666667,-8.33333333,-16.66666667,-8.33333333],
+                             [-16.66666667,-33.33333333,-8.33333333,-16.66666667,-8.33333333],
+                             [-8.33333333,-8.33333333,-16.66666667,-8.33333333,0.],
+                             [-16.66666667,-16.66666667,-8.33333333,-33.33333333,-8.33333333],
+                             [-8.33333333,-8.33333333,0.,-8.33333333,-16.66666667]])
+    print(ret_arr)
+    print(np.abs(ret_arr-expected_arr) < EPSILON)
+    assertion = np.all(np.abs(ret_arr-expected_arr)<EPSILON) 
+    assert assertion 
