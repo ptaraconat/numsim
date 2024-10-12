@@ -37,8 +37,8 @@ time_step = 0.001
 alpha = 1
 diffusion_coeff = 1000.
 rho_coeff = 1
-n_ite = 50
-dump_ite = 10
+n_ite = 40
+dump_ite = 1
 
 # Create savedir 
 if os.path.exists(savedir):
