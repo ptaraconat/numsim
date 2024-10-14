@@ -37,8 +37,8 @@ time_step = 0.000001
 alpha = 1
 diffusion_coeff = 100.
 rho_coeff = 1
-n_ite = 4000
-dump_ite = 500
+n_ite = 5000
+dump_ite = 250
 
 # Create savedir 
 if os.path.exists(savedir):
@@ -89,6 +89,7 @@ solver.set_constant_rho_data(mesh,rho_coeff)
 solver.initialize_solved_data(mesh)
 # CSet operators 
 solver.build_discrete_operators(mesh,boundary_conditions)
+mesh.nodes_data[solver.solved_data] = solver.dirichlet_values
 # Temporal Loop  
 for i in range(n_ite):
     if i % dump_ite == 0 :
@@ -96,4 +97,4 @@ for i in range(n_ite):
         save_path = savedir + f"output_{i:04d}.vtk"
         print('dump solution : ', save_path)
         mesh.save_vtk(output_file = save_path)
-    solver.step2(mesh,boundary_conditions) 
+    solver.forward_euler_step(mesh) 

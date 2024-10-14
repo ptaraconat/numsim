@@ -110,8 +110,6 @@ class FemUnsteadyDiffusion(FemDiffusion):
         not_dirichlet_indices = all_indices.copy() 
         for i in dirichlet_indices : 
             not_dirichlet_indices.remove(i)
-        print(len(all_indices), len(dirichlet_indices), len(not_dirichlet_indices))
-        print(np.shape(mesh.nodes))
         self.dirichlet_indices = dirichlet_indices
         self.not_dirichlet_indices = not_dirichlet_indices
         self.dirichlet_values = dirichlet_values
@@ -126,7 +124,6 @@ class FemUnsteadyDiffusion(FemDiffusion):
         self.stiffness_matrix = reduced_stiffness
         self.forcing_term = np.zeros((np.size(reduced_mass,0)))
         self.forcing_term =  self.forcing_term - rhs_dirbc
-        print(np.shape(self.forcing_term))
         
     def time_stepping(self,mesh, boundary_conditions) : 
         '''
@@ -144,8 +141,10 @@ class FemUnsteadyDiffusion(FemDiffusion):
         mesh.nodes_data[self.predictor_data][self.not_dirichlet_indices] = prev_velocity
         mesh.nodes_data[self.solved_data][self.not_dirichlet_indices] = current_data
     
-    def step2(self,mesh,boundary_conditions={}):
+    def forward_euler_step(self,mesh):
         '''
+        arguments 
+        mesh ::: meshe.mesh ::: domain grid 
         '''
         temp_nm1 = mesh.nodes_data[self.solved_data][self.not_dirichlet_indices]
         mass_mat = self.mass_matrix
@@ -158,8 +157,10 @@ class FemUnsteadyDiffusion(FemDiffusion):
         temp_n = temp_nm1 + deltat*np.dot(np.linalg.inv(mass_mat),(forcing_term - np.dot(stiff_mat,temp_nm1)))
         mesh.nodes_data[self.solved_data][self.not_dirichlet_indices] = temp_n
     
-    def step3(self,mesh,boundary_conditions={}):
+    def backward_euler_step3(self,mesh):
         '''
+        arguments 
+        mesh ::: meshe.mesh ::: domain grid 
         '''
         temp_nm1 = mesh.nodes_data[self.solved_data][self.not_dirichlet_indices]
         mass_mat = self.mass_matrix
