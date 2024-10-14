@@ -292,6 +292,21 @@ class FemConstructor():
             el_stiffness_mat += gauss_pt_weight*add
         return el_stiffness_mat
     
+    def calc_mass_matrix(self):
+        '''
+        arguments : 
+        returns : 
+        el_mass_mat ::: float np.array (nnodes*vardim,nnodes*vardim) ::: Element mass matrix
+        '''
+        el_mass_mat = np.zeros((self.nnodes*self.vardim,self.nnodes*self.vardim))
+        for i in range(self.ngauss_pt):
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            gauss_pt_weight = self.refel_gauss_weights[i]
+            rho_value = self.rho_values[i]
+            add = self.calc_massmat_integrand(gauss_pt_coordinates, rho_value)
+            el_mass_mat += gauss_pt_weight*add
+        return el_mass_mat
+    
     def calc_global_stiffness_matrix(self, mesh, state_data):
         '''
         arguments 
@@ -314,6 +329,31 @@ class FemConstructor():
             connectivity = self.get_connectivity(element)
             global_stiffness[np.ix_(connectivity, connectivity)] += local_stiffness
         return global_stiffness
+    
+    def calc_global_mass_matrix(self, mesh, rho_data):
+        '''
+        arguments 
+        mesh ::: meshe.mesh
+        rho_data ::: str ::: name of rho data 
+        returns 
+        global_mass :: 
+        '''
+        nnodes = np.size(mesh.nodes,0)
+        vdim = self.vardim
+        nelem = np.size(mesh.elements,0)
+        global_mass = np.zeros((nnodes*vdim,nnodes*vdim))
+        for i in range(nelem) : 
+            element = mesh.elements[i,:]
+            element_nodes = mesh.nodes[element]
+            rho_values = mesh.nodes_data[rho_data][element]
+            #state_matrix = mesh.nodes_data[state_data][element]
+            self.set_rho_values(rho_values)
+            self.set_element(element_nodes)
+            local_mass = self.calc_mass_matrix()
+            connectivity = self.get_connectivity(element)
+            #print(local_mass)
+            global_mass[np.ix_(connectivity, connectivity)] += local_mass
+        return global_mass
 
 class Tet4Scalar(FemConstructor) : 
     '''
@@ -395,6 +435,40 @@ class Tet4Scalar(FemConstructor) :
             else : 
                 print('The state matrix do not have the good shape : ', np.shape(state_arr))
     
+    def interpolate_rho_values(self, rho_values): 
+        '''
+        arguments : 
+        rho_value ::: float np.array(nnodes) ::: rho values at nodes 
+        returns 
+        rho_array ::: float np.array(nnodes) ::: rho values at gauss points
+        '''
+        rho_array = np.zeros((self.ngauss_pt))
+        for i in range(self.ngauss_pt): 
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            basis_functions = self.get_bf_array(gauss_pt_coordinates)
+            #basis_functions = np.expand_dims(basis_functions,axis = (1,2))
+            gauss_pt_rho= np.sum(basis_functions*rho_values,axis = 0)
+            rho_array[i] = gauss_pt_rho
+        return rho_array
+
+    def set_rho_values(self, rho_value):
+        '''
+        arguments : 
+        rho_value ::: float np.array(nnodes) or float ::: rho values
+        '''
+        if np.shape(rho_value) == () : 
+            rho_array = np.zeros((self.nnodes))
+            for i in range(self.nnodes):
+                rho_array[i] = rho_value
+            self.rho_values = rho_array
+        else : 
+            if np.shape(rho_value) == (self.nnodes,):
+                rho_array = self.interpolate_rho_values(rho_value)
+                self.rho_values = rho_array
+            else : 
+                print('The state matrix do not have the good shape : ', np.shape(rho_value))
+    
+
     def calc_stifness_integrand(self, coordinates, state_matrix):
         '''
         arguments : 
@@ -407,6 +481,21 @@ class Tet4Scalar(FemConstructor) :
         global_dbf = self.calc_global_dbf_array(coordinates, inv_jacobian)
         integrand = det_jacobian*np.dot(np.dot(global_dbf,state_matrix), np.transpose(global_dbf))
         return integrand 
+
+    def calc_massmat_integrand(self, coordinates, rho_value):
+        '''
+        arguments : 
+        coordinates ::: float np.array (3) ::: Local coordinates 
+        rho_value ::: float  ::: 
+        returns ::: 
+        integrand ::: float np.array (4,4) ::: integrand for the stifness matrix computation 
+        '''
+        _, det_jacobian, _ = self.calc_jacobian(coordinates)
+        bf_array = self.get_bf_array(coordinates)
+        bf_array = np.expand_dims(bf_array, axis = 1)
+        integrand = det_jacobian*bf_array*rho_value*np.transpose(bf_array)
+        return integrand 
+
         
 class Tet4Vector(FemConstructor) : 
     '''
