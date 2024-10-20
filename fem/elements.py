@@ -330,6 +330,39 @@ class FemConstructor():
             global_stiffness[np.ix_(connectivity, connectivity)] += local_stiffness
         return global_stiffness
     
+    def interpolate_rho_values(self, rho_values): 
+        '''
+        arguments : 
+        rho_value ::: float np.array(nnodes) ::: rho values at nodes 
+        returns 
+        rho_array ::: float np.array(nnodes) ::: rho values at gauss points
+        '''
+        rho_array = np.zeros((self.ngauss_pt))
+        for i in range(self.ngauss_pt): 
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            basis_functions = self.get_bf_array(gauss_pt_coordinates)
+            #basis_functions = np.expand_dims(basis_functions,axis = (1,2))
+            gauss_pt_rho= np.sum(basis_functions*rho_values,axis = 0)
+            rho_array[i] = gauss_pt_rho
+        return rho_array
+
+    def set_rho_values(self, rho_value):
+        '''
+        arguments : 
+        rho_value ::: float np.array(nnodes) or float ::: rho values
+        '''
+        if np.shape(rho_value) == () : 
+            rho_array = np.zeros((self.nnodes))
+            for i in range(self.nnodes):
+                rho_array[i] = rho_value
+            self.rho_values = rho_array
+        else : 
+            if np.shape(rho_value) == (self.nnodes,):
+                rho_array = self.interpolate_rho_values(rho_value)
+                self.rho_values = rho_array
+            else : 
+                print('The state matrix do not have the good shape : ', np.shape(rho_value))
+
     def calc_global_mass_matrix(self, mesh, rho_data):
         '''
         arguments 
@@ -434,40 +467,6 @@ class Tet4Scalar(FemConstructor) :
                 self.state_matrices = state_mat
             else : 
                 print('The state matrix do not have the good shape : ', np.shape(state_arr))
-    
-    def interpolate_rho_values(self, rho_values): 
-        '''
-        arguments : 
-        rho_value ::: float np.array(nnodes) ::: rho values at nodes 
-        returns 
-        rho_array ::: float np.array(nnodes) ::: rho values at gauss points
-        '''
-        rho_array = np.zeros((self.ngauss_pt))
-        for i in range(self.ngauss_pt): 
-            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
-            basis_functions = self.get_bf_array(gauss_pt_coordinates)
-            #basis_functions = np.expand_dims(basis_functions,axis = (1,2))
-            gauss_pt_rho= np.sum(basis_functions*rho_values,axis = 0)
-            rho_array[i] = gauss_pt_rho
-        return rho_array
-
-    def set_rho_values(self, rho_value):
-        '''
-        arguments : 
-        rho_value ::: float np.array(nnodes) or float ::: rho values
-        '''
-        if np.shape(rho_value) == () : 
-            rho_array = np.zeros((self.nnodes))
-            for i in range(self.nnodes):
-                rho_array[i] = rho_value
-            self.rho_values = rho_array
-        else : 
-            if np.shape(rho_value) == (self.nnodes,):
-                rho_array = self.interpolate_rho_values(rho_value)
-                self.rho_values = rho_array
-            else : 
-                print('The state matrix do not have the good shape : ', np.shape(rho_value))
-    
 
     def calc_stifness_integrand(self, coordinates, state_matrix):
         '''
@@ -592,6 +591,40 @@ class Tet4Vector(FemConstructor) :
         global_dbf = self.calc_global_dbf_array_symgrad(coordinates, inv_jacobian)
         integrand = det_jacobian*np.dot(np.dot(global_dbf,state_matrix), np.transpose(global_dbf))
         return integrand
+    
+    def get_bf_array_for_vec_variable(self, coordinates) : 
+        '''
+        arguments 
+        coordinates ::: float np.array (3) ::: Local coordinates 
+        returns 
+        bf_arr ::: np.array(float) (3*nnodes,3) ::: basis function values arranged for vector variable 
+        '''
+        bf_array = self.get_bf_array(coordinates)
+        n1 = bf_array[0]
+        n2 = bf_array[1]
+        n3 = bf_array[2]
+        n4 = bf_array[3]
+        row1 = [n1, 0, 0, n2, 0, 0, n3, 0, 0, n4, 0, 0]
+        row2 = [0, n1, 0, 0, n2, 0, 0, n3, 0, 0, n4, 0]
+        row3 = [0, 0, n1, 0, 0, n2, 0, 0, n3, 0, 0, n4]
+        vv_bf = np.zeros((self.nnodes*3,3))
+        vv_bf[:,0] = row1
+        vv_bf[:,1] = row2
+        vv_bf[:,2] = row3
+        return vv_bf
+
+    def calc_massmat_integrand(self, coordinates, rho_value):
+        '''
+        arguments : 
+        coordinates ::: float np.array (3) ::: Local coordinates 
+        rho_value ::: float  ::: 
+        returns ::: 
+        integrand ::: float np.array (nnodes*ndim,nnodes*ndim) ::: integrand for the mass matrix computation 
+        '''
+        _, det_jacobian, _ = self.calc_jacobian(coordinates)
+        bf_array = self.get_bf_array_for_vec_variable(coordinates)
+        integrand = det_jacobian*rho_value*np.dot(bf_array,np.transpose(bf_array))
+        return integrand 
     
     def set_state_matrices(self, state_arr):
         '''
