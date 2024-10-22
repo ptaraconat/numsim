@@ -9,6 +9,20 @@ default_dict = {'STATE_LAW' : 'HOM_ISO',
                 'DUMP_DIR' : '3Dcyl_fem_linel/',
                 'DUMP_DISPLACEMENT_SCALING' : 1.}
 
+default_dict2 = {'STATE_LAW' : 'HOM_ISO',
+                 'HOM_ISO_POISSON' : 0.3,
+                 'HOM_ISO_YOUNG' : 200e9,
+                 'EL_TYPE' : 'TET4',
+                 'DUMP_DIR' : '3Dcyl_fem_linel/',
+                 'DUMP_DISPLACEMENT_SCALING' : 1.,
+                 'RHO' : 8000,
+                 'DT' : 0.001,
+                 'NITE' : 200,
+                 'DUMPITE' : 10,
+                 'DUMPDIR' : '3Dcyl_fem_elastodyn/',
+                 'NEWMARK_GAMMA' : 1/2 , 
+                 'NEWMARK_BETA' : 1/4}
+
 class FemLinearElasticity():
     
     def __init__(self, boundary_conditions, param_dict = default_dict):
@@ -148,15 +162,15 @@ class FemLinearElasticity():
 class FemElastodyn(FemLinearElasticity): 
     '''
     '''
-    def __init__(self,boundary_conditions, param_dict = default_dict) : 
+    def __init__(self,boundary_conditions, param_dict = default_dict2) : 
         '''
         '''
         super().__init__(boundary_conditions=boundary_conditions, param_dict=param_dict)
         self.rho_data = 'rho'
         self.ddot_data = 'u_ddot'
         self.dot_data = 'u_dot'
-        self.gamma = 1/2
-        self.beta = 1/4
+        self.gamma = param_dict['NEWMARK_GAMMA']
+        self.beta = param_dict['NEWMARK_BETA']
         self.deltat = param_dict['DT']
     
     def set_constant_rho_data(self,mesh,rho_value) : 
@@ -179,6 +193,7 @@ class FemElastodyn(FemLinearElasticity):
         mass_matrix = self.constructor.calc_global_mass_matrix(mesh,self.rho_data)
         # treat dirichlet BC 
         dirichlet_values = np.zeros((np.size(mesh.nodes,0)*3))
+        dot_dirichlet_values = np.zeros((np.size(mesh.nodes,0)*3))
         ddot_dirichlet_values = np.zeros((np.size(mesh.nodes,0)*3))
         dirichlet_indices = []
         for bc in boundary_conditions.keys() : 
@@ -236,10 +251,10 @@ class FemElastodyn(FemLinearElasticity):
         self.u_prev = np.zeros((nnodes*3))
         self.u_prev = self.dirichlet_values
         self.dotu_prev = np.zeros((nnodes*3))
-        #rhs = self.forcing_term - np.dot(self.stiffness_matrix,mesh.nodes_data[self.displacement_data])
-        #arr_tmp = np.linalg.solve(self.mass_matrix, rhs)
-        #mesh.nodes_data[self.ddot_data] = arr_tmp
         self.ddotu_prev = np.zeros((nnodes*3))
+        #rhs = self.forcing_term - np.dot(self.stiffness_matrix,self.u_prev[self.not_dirichlet_indices])
+        #self.ddotu_prev[self.not_dirichlet_indices] = np.linalg.solve(self.mass_matrix, rhs)
+        #mesh.nodes_data[self.ddot_data] = arr_tmp
         #
         mesh.nodes_data[self.displacement_data] = self.u_prev.reshape((nnodes,3))
         mesh.nodes_data[self.dot_data] = self.dotu_prev.reshape((nnodes,3))
@@ -247,21 +262,23 @@ class FemElastodyn(FemLinearElasticity):
     
     def step(self,mesh):
         '''
+        Perform NEWMARK advancement 
         argument 
         mesh ::: meshe.mesh :::
         '''
+        # previous data 
         u_prev = self.u_prev[self.not_dirichlet_indices]
         dotu_prev = self.dotu_prev[self.not_dirichlet_indices]
         ddotu_prev = self.ddotu_prev[self.not_dirichlet_indices]
-        #
+        # prediction displacement and velocity (according to NEWMARK advancement schemes)
         u_pred = u_prev + self.deltat*dotu_prev + 0.5*(self.deltat**2)*(1-2*self.beta)*ddotu_prev
         dotu_pred = dotu_prev + self.deltat*(1-self.gamma)*ddotu_prev
-        #
+        # Calculate acceleration from predicted displacement and velocities 
         ddotu_next = np.linalg.solve(self.smat, self.forcing_term - np.dot(self.stiffness_matrix,u_pred))
-        #
+        # Correction of displacement and velocities, given accelerations
         u_next = u_pred + (self.deltat**2)*self.beta*ddotu_next
         dotu_next = dotu_pred + self.deltat*self.gamma*ddotu_next
-        #
+        # Update data 
         self.u_prev[self.not_dirichlet_indices] = u_next
         self.dotu_prev[self.not_dirichlet_indices] = dotu_next
         self.ddotu_prev[self.not_dirichlet_indices] = ddotu_next
@@ -269,8 +286,6 @@ class FemElastodyn(FemLinearElasticity):
         mesh.nodes_data[self.displacement_data] = self.u_prev.reshape((nnodes,3))
         mesh.nodes_data[self.dot_data] = self.dotu_prev.reshape((nnodes,3))
         mesh.nodes_data[self.ddot_data]= self.ddotu_prev.reshape((nnodes,3))
-        
-
     
     def solve(self,mesh):
         '''
@@ -278,18 +293,20 @@ class FemElastodyn(FemLinearElasticity):
         argument 
         mesh ::: meshe.mesh :::
         '''
-        #
-        # 
+        # Initialize solver 
+        # Init HOOK's law 
         if self.param_dict['STATE_LAW'] == 'HOM_ISO' : 
             young_coeff = self.param_dict['HOM_ISO_YOUNG']
             poisson_coeff = self.param_dict['HOM_ISO_POISSON']
             self.set_homogeneous_isotropic(mesh,young_coeff, poisson_coeff)
-        # 
+        # Init density data 
         rho_value = self.param_dict['RHO']
         self.set_constant_rho_data(mesh, rho_value)
+        #Init operators 
         self.build_discrete_operators(mesh,self.boundary_conditions)
-        self.init_data(mesh)
         self.smat = self.mass_matrix + self.beta*(self.deltat**2.)*self.stiffness_matrix
+        # Init data : those used in the time advancement (viz. velocities and acceleration)
+        self.init_data(mesh)
         # Temporal Loop 
         n_ite = self.param_dict['NITE']
         dump_ite = self.param_dict['DUMPITE']

@@ -21,21 +21,15 @@ param_dict = {'STATE_LAW' : 'HOM_ISO',
               'DUMP_DISPLACEMENT_SCALING' : 1.,
               'RHO' : 8000,
               'DT' : 0.001,
-              'NITE' : 1000,
-              'DUMPITE' : 100,
-              'DUMPDIR' : '3Dcyl_fem_elastodyn/'}
+              'NITE' : 200,
+              'DUMPITE' : 10,
+              'DUMPDIR' : '3Dcyl_fem_elastodyn/',
+              'NEWMARK_GAMMA' : 1/2 , 
+              'NEWMARK_BETA' : 1/4}
 
 radius = 0.5
 height = 1 
 mesh_size = 0.25
-
-savedir = '3Dcyl_fem_elastodyn'
-
-# Create savedir 
-if os.path.exists(savedir):
-    print(savedir, ' already exists')
-else : 
-    os.mkdir(savedir)
 
 #################################
 #################################

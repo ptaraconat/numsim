@@ -15,7 +15,7 @@ boundary_conditions = {'inlet' : {'type' : 'dirichlet',
 
 param_dict = {'STATE_LAW' : 'HOM_ISO',
               'HOM_ISO_POISSON' : 0.3,
-              'HOM_ISO_YOUNG' : 5e6,
+              'HOM_ISO_YOUNG' : 200e9,
               'EL_TYPE' : 'TET4',
               'DUMP_DIR' : '3Dcyl_fem_linel/',
               'DUMP_DISPLACEMENT_SCALING' : 1.}
