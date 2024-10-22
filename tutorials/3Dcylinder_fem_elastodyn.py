@@ -19,10 +19,10 @@ param_dict = {'STATE_LAW' : 'HOM_ISO',
               'EL_TYPE' : 'TET4',
               'DUMP_DIR' : '3Dcyl_fem_linel/',
               'DUMP_DISPLACEMENT_SCALING' : 1.,
-              'RHO' : 1000,
+              'RHO' : 8000,
               'DT' : 0.001,
-              'NITE' : 100,
-              'DUMPITE' : 10,
+              'NITE' : 1000,
+              'DUMPITE' : 100,
               'DUMPDIR' : '3Dcyl_fem_elastodyn/'}
 
 radius = 0.5

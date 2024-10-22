@@ -232,6 +232,7 @@ class FemElastodyn(FemLinearElasticity):
         '''
         nnodes = np.size(mesh.nodes,0)
         #
+        mesh.nodes_data['init_loc'] = mesh.nodes.copy()
         self.u_prev = np.zeros((nnodes*3))
         self.u_prev = self.dirichlet_values
         self.dotu_prev = np.zeros((nnodes*3))
@@ -301,8 +302,14 @@ class FemElastodyn(FemLinearElasticity):
         for i in range(n_ite):
             if i % dump_ite == 0 :
                 self.calc_stress(mesh)
+                #
+                mesh.nodes_data['init_loc'] = np.copy(mesh.nodes)
+                scaling = self.param_dict['DUMP_DISPLACEMENT_SCALING']
+                mesh.nodes += scaling*mesh.nodes_data[self.displacement_data]
+                #
                 print(np.mean(mesh.nodes_data[self.displacement_data], axis = 0 ))
                 save_path = savedir + f"output_{i:04d}.vtk"
                 print('dump solution : ', save_path)
                 mesh.save_vtk(output_file = save_path)
+                mesh.nodes = mesh.nodes_data['init_loc']
             self.step(mesh) 
