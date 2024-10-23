@@ -534,6 +534,7 @@ class Tri3(FemConstructor):
         '''
         '''
         # Gauss points 
+        self.ngauss_pt = 3
         self.refel_gauss_coords = np.array([[1/6,1/6,0],
                                             [2/3,1/6,0],
                                             [1/6,2/3,0]])
@@ -584,7 +585,68 @@ class Tri3(FemConstructor):
         inv_jacobian = np.linalg.inv(jacobian2)
         #
         return jacobian, det, inv_jacobian
-
+    
+    def calc_bndflux_integrand(self, coordinates, flux):
+        '''
+        arguments : 
+        coordinates ::: float np.array (3) ::: Local coordinates
+        flux ::: float dimension = self.vardim ::: Boundary flux (Neumann BC)  
+        returns ::: 
+        integrand ::: float np.array (4,4) ::: integrand for the stifness matrix computation 
+        '''
+        _, det_jacobian, _ = self.calc_jacobian(coordinates)
+        bf_array = self.get_bf_array(coordinates)
+        bf_array = np.expand_dims(bf_array, axis = 1)
+        integrand = det_jacobian*bf_array*flux
+        integrand = np.reshape(integrand,(self.nnodes*self.vardim,1))
+        #integrand = np.reshape(np.transpose(integrand),(self.nnodes*self.vardim))
+        return integrand 
+    
+    def interpolate_fluxes(self, fluxes): 
+        '''
+        arguments : 
+        fluxes ::: float np.array (nnodes,3)  ::: state matrix 
+        returns : 
+        fluxes_arr ::: float np.array (ngauss_points,3) ::: fluxes interpolated at gauss point
+        '''
+        fluxes_arr = np.zeros((self.ngauss_pt,self.vardim))
+        for i in range(self.ngauss_pt): 
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            basis_functions = self.get_bf_array(gauss_pt_coordinates)
+            basis_functions = np.expand_dims(basis_functions,axis = (1))
+            gauss_pt_flux = np.sum(basis_functions*fluxes,axis = 0)
+            fluxes_arr[i,:] = gauss_pt_flux
+        return fluxes_arr
+    
+    def set_fluxes(self, fluxes):
+        '''
+        arguments : 
+        fluxes ::: float np.array (nnodes,3)  or (3)::: fluxes
+        '''
+        if self.vardim == 3 : 
+            if np.shape(fluxes) == (3,) : 
+                fluxes_arr = np.zeros((self.nnodes,self.vardim))
+                for i in range(self.nnodes):
+                    fluxes_arr[i,:] = fluxes
+                self.gauss_point_fluxes = fluxes_arr
+            else : 
+                if np.shape(fluxes) == (self.nnodes,3):
+                    fluxes_arr = self.interpolate_fluxes(fluxes)
+                    self.gauss_point_fluxes = fluxes_arr
+                else : 
+                    print('The state matrix do not have the good shape : ', np.shape(fluxes))
+        if self.vardim == 1 : 
+            if np.shape(fluxes) == () : 
+                fluxes_arr = np.zeros((self.nnodes,self.vardim))
+                for i in range(self.nnodes):
+                    fluxes_arr[i,:] = fluxes
+                self.gauss_point_fluxes = fluxes_arr
+            else : 
+                if np.shape(fluxes) == (self.nnodes,1):
+                    fluxes_arr = self.interpolate_fluxes(fluxes)
+                    self.gauss_point_fluxes = fluxes_arr
+                else : 
+                    print('The state matrix do not have the good shape : ', np.shape(fluxes))
 
 class Tet4Scalar(FemConstructor) : 
     '''
@@ -693,7 +755,6 @@ class Tet4Scalar(FemConstructor) :
         bf_array = np.expand_dims(bf_array, axis = 1)
         integrand = det_jacobian*bf_array*rho_value*np.transpose(bf_array)
         return integrand 
-
         
 class Tet4Vector(FemConstructor) : 
     '''

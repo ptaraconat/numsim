@@ -10,6 +10,10 @@ EPSILON = 1e-8
 def tri_fixture(): 
     constructor = Tri3()
     return constructor
+@pytest.fixture()
+def tri_fixture2(): 
+    constructor = Tri3(variable_dimension=3)
+    return constructor
 @pytest.fixture 
 def mesh_fixture():
     mesh = TetraMesh()
@@ -87,3 +91,101 @@ def test_calc_jacobian(tri_fixture):
     assertion = assertion and np.all(ret_arr2 == expected_arr)
     assertion = assertion and (scalar == 4.)
     assert assertion 
+
+def test_calc_bndflux(tri_fixture):
+    coordinates = np.array([0.5,0.5,0])
+    element_coords = np.array([[0, 0, 0.0],
+                               [2, 0, 0],
+                               [0, 2, 0]])
+    tri_fixture.set_element(element_coords)
+    flux = 10
+    ret_arr = tri_fixture.calc_bndflux_integrand(coordinates, flux)
+    print(ret_arr)
+    expected_arr = np.array([[0],[20],[20]])
+    assertion = np.all(ret_arr == expected_arr) 
+    assert assertion 
+
+def test_calc_bndflux_integrand(tri_fixture2):
+    coordinates = np.array([0.5,0.5,0])
+    element_coords = np.array([[0, 0, 0.0],
+                               [2, 0, 0],
+                               [0, 2, 0]])
+    tri_fixture2.set_element(element_coords)
+    flux = np.array([10,20,30])
+    ret_arr = tri_fixture2.calc_bndflux_integrand(coordinates, flux)
+    print(ret_arr)
+    expected_arr = np.array([[0],[0],[0],[20],[40],[60],[20],[40],[60]])
+    assertion = np.all(ret_arr == expected_arr) 
+    assert assertion 
+
+def test_fluxes_interpolation(tri_fixture2):
+    fluxes = np.array([[10,10,10],
+                       [20,20,20],
+                       [30,30,30]])
+    ret_arr = tri_fixture2.interpolate_fluxes(fluxes)
+    print(ret_arr)
+    expected_arr = np.array([[15., 15., 15.],
+                             [20., 20., 20.],
+                             [25., 25., 25.]])
+    assertion = np.all(ret_arr == expected_arr)
+    assert assertion 
+
+def test_fluxes_interpolation2(tri_fixture):
+    fluxes = np.array([[10],
+                       [20],
+                       [30]])
+    ret_arr = tri_fixture.interpolate_fluxes(fluxes)
+    print(ret_arr)
+    expected_arr = np.array([[15],
+                             [20],
+                             [25]])
+    assertion = np.all(ret_arr == expected_arr)
+    assert assertion 
+
+def test_set_fluxes(tri_fixture2):
+    fluxes = np.array([[10,10,10],
+                       [20,20,20],
+                       [30,30,30]])
+    tri_fixture2.set_fluxes(fluxes)
+    ret_arr = tri_fixture2.gauss_point_fluxes
+    print(ret_arr)
+    expected_arr = np.array([[15., 15., 15.],
+                             [20., 20., 20.],
+                             [25., 25., 25.]])
+    assertion = np.all(ret_arr == expected_arr)
+    assert assertion
+
+def test_set_fluxes2(tri_fixture2):
+    fluxes = np.array([10,10,10])
+    tri_fixture2.set_fluxes(fluxes)
+    ret_arr = tri_fixture2.gauss_point_fluxes
+    print(ret_arr)
+    expected_arr = np.array([[10., 10., 10.],
+                             [10., 10., 10.],
+                             [10., 10., 10.]])
+    assertion = np.all(ret_arr == expected_arr)
+    assert assertion
+
+def test_set_fluxes3(tri_fixture):
+    fluxes = np.array([[10],
+                       [20],
+                       [30]])
+    tri_fixture.set_fluxes(fluxes)
+    ret_arr = tri_fixture.gauss_point_fluxes
+    print(ret_arr)
+    expected_arr = np.array([[15],
+                             [20],
+                             [25]])
+    assertion = np.all(ret_arr == expected_arr)
+    assert assertion
+
+def test_set_fluxes4(tri_fixture):
+    fluxes = 10
+    tri_fixture.set_fluxes(fluxes)
+    ret_arr = tri_fixture.gauss_point_fluxes
+    print(ret_arr)
+    expected_arr = np.array([[10],
+                             [10],
+                             [10]])
+    assertion = np.all(ret_arr == expected_arr)
+    assert assertion
