@@ -39,6 +39,7 @@ class FemLinearElasticity():
         #
         if self.param_dict['EL_TYPE']== 'TET4' : 
             self.constructor = Tet4Vector()
+            self.bnd_constructor = Tri3(variable_dimension = 3)
     
     def set_constant_state_matrix(self,mesh,state_matrix) : 
         '''
@@ -191,6 +192,7 @@ class FemElastodyn(FemLinearElasticity):
         '''
         stiffness_matrix = self.constructor.calc_global_stiffness_matrix(mesh, self.state_data)
         mass_matrix = self.constructor.calc_global_mass_matrix(mesh,self.rho_data)
+        neumann_forcing_contribution = np.zeros(((np.size(mesh.nodes,0)*3),1))
         # treat dirichlet BC 
         dirichlet_values = np.zeros((np.size(mesh.nodes,0)*3))
         dot_dirichlet_values = np.zeros((np.size(mesh.nodes,0)*3))
@@ -219,6 +221,22 @@ class FemElastodyn(FemLinearElasticity):
                         comp_conn = comp_conn.tolist()
                         dirichlet_values[comp_conn] = bc_val[i]
                         dirichlet_indices = dirichlet_indices + comp_conn
+            if bc_type == 'neumann':
+                #####
+                print('neumann BC')
+                # Find boundary elements
+                boundary_elements = mesh.bndfaces[np.where(mesh.bndfaces_tags == bc_tag)[0]]
+                nelem = np.size(boundary_elements,0)
+                for i in range(nelem): 
+                    element = boundary_elements[i,:]
+                    element_nodes = mesh.nodes[element]
+                    neumann_flux = bc_val 
+                    self.bnd_constructor.set_fluxes(neumann_flux)
+                    self.bnd_constructor.set_element(element_nodes)
+                    local_bndfluxes = self.bnd_constructor.calc_bndflux()
+                    connectivity = self.bnd_constructor.get_connectivity(element)
+                    #neumann_forcing_contribution[np.ix_(connectivity, connectivity)] += local_bndfluxes
+                    neumann_forcing_contribution[connectivity] += local_bndfluxes
         # Set dirichlet indices/values attributes 
         all_indices = list(range(0,np.size(mesh.nodes,0)*3))
         not_dirichlet_indices = all_indices.copy() 
@@ -234,10 +252,12 @@ class FemElastodyn(FemLinearElasticity):
         rhs_dirbc = np.dot(reduced_stiffness,dirichlet_values) + np.dot(reduced_mass, ddot_dirichlet_values)
         reduced_stiffness = np.delete(reduced_stiffness,self.dirichlet_indices,axis = 1)
         reduced_mass = np.delete(reduced_mass, self.dirichlet_indices, axis = 1 )
+        reduced_neumann_forcing_contribution = np.delete(neumann_forcing_contribution,self.dirichlet_indices,axis=0)
+        reduced_neumann_forcing_contribution = np.squeeze(reduced_neumann_forcing_contribution)
         # 
         self.mass_matrix = reduced_mass
         self.stiffness_matrix = reduced_stiffness
-        self.forcing_term = np.zeros((np.size(reduced_mass,0)))
+        self.forcing_term = reduced_neumann_forcing_contribution#np.zeros((np.size(reduced_mass,0)))
         self.forcing_term =  self.forcing_term - rhs_dirbc
     
     def init_data(self, mesh): 

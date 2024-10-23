@@ -189,3 +189,42 @@ def test_set_fluxes4(tri_fixture):
                              [10]])
     assertion = np.all(ret_arr == expected_arr)
     assert assertion
+
+def test_calc_bndfluxes(tri_fixture2):
+    # setup test case 
+    element_coords = np.array([[0, 0, 0.0],
+                               [1, 0, 0],
+                               [0, 1, 0]])
+    fluxes = 6*np.array([[10,10,10],
+                       [10,10,10],
+                       [10,10,10]])
+    tri_fixture2.set_fluxes(fluxes)
+    tri_fixture2.set_element(element_coords)
+    # 
+    ret_arr = tri_fixture2.calc_bndflux()
+    print(ret_arr)
+    expected_arr = np.array([[10],[10],[10],
+                             [10],[10],[10],
+                             [10],[10],[10]])
+    assertion = np.all((ret_arr - expected_arr) < EPSILON )
+    assert assertion 
+
+def test_calc_bndfluxes2(tri_fixture):
+    # setup test case 
+    element_coords = np.array([[0, 0, 0.0],
+                               [2, 0, 0],
+                               [0, 2, 0]])
+    fluxes = 6*np.array([[10],
+                       [10],
+                       [10]])
+    tri_fixture.set_fluxes(fluxes)
+    tri_fixture.set_element(element_coords)
+    # 
+    ret_arr = tri_fixture.calc_bndflux()
+    print(ret_arr)
+    expected_arr = np.array([[40],
+                             [40],
+                             [40]])
+    assertion = np.all((ret_arr - expected_arr) < EPSILON )
+    assert assertion 
+

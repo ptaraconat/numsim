@@ -602,6 +602,21 @@ class Tri3(FemConstructor):
         #integrand = np.reshape(np.transpose(integrand),(self.nnodes*self.vardim))
         return integrand 
     
+    def calc_bndflux(self):
+        '''
+        arguments : 
+        returns : 
+        el_bnd_arr ::: float np.array(nnodesxvardim,1) ::: 
+        '''
+        el_bnd_arr = np.zeros((self.nnodes*self.vardim,1))
+        for i in range(self.ngauss_pt):
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            gauss_pt_weight = self.refel_gauss_weights[i]
+            flux = self.gauss_point_fluxes[i]
+            add = self.calc_bndflux_integrand(gauss_pt_coordinates, flux)
+            el_bnd_arr += gauss_pt_weight*add
+        return el_bnd_arr
+    
     def interpolate_fluxes(self, fluxes): 
         '''
         arguments : 
@@ -647,6 +662,21 @@ class Tri3(FemConstructor):
                     self.gauss_point_fluxes = fluxes_arr
                 else : 
                     print('The state matrix do not have the good shape : ', np.shape(fluxes))
+    
+    def get_connectivity(self,element):
+        '''
+        '''
+        if self.vardim == 1 : 
+            return element
+        if self.vardim == 3 : 
+            mat_conn = []
+            for el in element : 
+                mat_conn.append(3*el)
+                mat_conn.append(3*el+1)
+                mat_conn.append(3*el+2)
+            mat_conn = np.asarray(mat_conn)
+            return mat_conn
+
 
 class Tet4Scalar(FemConstructor) : 
     '''
