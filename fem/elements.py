@@ -1,5 +1,142 @@
 import numpy as np 
 
+############## TRI3 Basis functions #############
+def tri3_basis1(xi,eta,psi):
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the basis function
+    '''
+    return 1 - xi - eta
+
+def tri3_basis1_dxi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return -1
+
+def tri3_basis1_deta(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return -1
+
+def tri3_basis1_dpsi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    # comes from the coursera course : psi = 1-xi-eta
+    return 0
+
+###########################
+def tri3_basis2(xi,eta,psi):
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the basis function
+    '''
+    return xi
+
+def tri3_basis2_dxi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 1
+
+def tri3_basis2_deta(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 0
+
+def tri3_basis2_dpsi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 0
+
+#############################
+def tri3_basis3(xi,eta,psi):
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the basis function
+    '''
+    return eta
+
+def tri3_basis3_dxi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 0
+
+def tri3_basis3_deta(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 1
+
+def tri3_basis3_dpsi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 0
+
+############## TET4 Basis functions #############
 def tet4_basis1(xi,eta,psi) : 
     '''
     arguments :
@@ -44,6 +181,7 @@ def tet4_basis1_dpsi(xi,eta,psi) :
     ''' 
     return 0 
 
+#############################
 def tet4_basis2(xi,eta,psi) : 
     '''
     arguments :
@@ -88,6 +226,7 @@ def tet4_basis2_dpsi(xi,eta,psi) :
     ''' 
     return 1
 
+#############################
 def tet4_basis3(xi,eta,psi) : 
     '''
     arguments :
@@ -230,7 +369,7 @@ class FemConstructor():
         eta = coordinates[1]
         psi = coordinates[2]
         #
-        ndim = 3
+        ndim = self.eldim
         dbf_arr = np.asarray([[self.basis_functions_derivatives[i][j](xi,eta,psi) for i in range(self.nnodes)] for j in range(ndim)])
         dbf_arr = np.transpose(dbf_arr)
         return dbf_arr  
@@ -388,6 +527,65 @@ class FemConstructor():
             global_mass[np.ix_(connectivity, connectivity)] += local_mass
         return global_mass
 
+class Tri3(FemConstructor):
+    '''
+    '''
+    def __init__(self,variable_dimension = 1):
+        '''
+        '''
+        # Gauss points 
+        self.refel_gauss_coords = np.array([[1/6,1/6,0],
+                                            [2/3,1/6,0],
+                                            [1/6,2/3,0]])
+        self.refel_gauss_weights = (1/6)*np.array([1.,1.,1.])
+        # basis function 
+        # The same formalism as Code Aster has been used 
+        self.basis_functions = [tri3_basis1,
+                                tri3_basis2,
+                                tri3_basis3]
+        #self.basis_functions_derivatives = [[tri3_basis1_dxi,tri3_basis1_deta,tri3_basis1_dpsi],
+        #                                    [tri3_basis2_dxi,tri3_basis2_deta,tri3_basis2_dpsi],
+        #                                    [tri3_basis3_dxi,tri3_basis3_deta,tri3_basis3_dpsi]]
+        self.basis_functions_derivatives = [[tri3_basis1_dxi,tri3_basis1_deta],
+                                            [tri3_basis2_dxi,tri3_basis2_deta],
+                                            [tri3_basis3_dxi,tri3_basis3_deta]]
+        # Reference nodes coordinates 
+        # Formalism of Code aster used here 
+        self.refnodes = np.array([[0, 0, 0],
+                                  [1, 0, 0],
+                                  [0, 1, 0]])
+        # 
+        self.nnodes = 3
+        self.eldim = 2
+        self.vardim = variable_dimension
+        # init element_nodes 
+        self.element_nodes = self.refnodes
+    
+    def calc_jacobian(self, coordinates) : 
+        '''
+        arguments 
+        coordinates ::: float np.array (3) ::: Local coordinates 
+        returns 
+        jacobian ::: float np.array (3,3) ::: Jacobian Matrix
+        det ::: float ::: determinant of the Jacobian Matrix
+        inv_jacobian ::: float np.array (3,3) ::: Inverse of the Jacobian matrix
+        '''
+        dbf_arr = self.get_dbf_array(coordinates)
+        jacobian = np.dot(np.transpose(self.element_nodes),dbf_arr)
+        #
+        a1 = jacobian[:,0]
+        a2 = jacobian[:,1]
+        det = np.linalg.norm(np.cross(a1,a2))
+        #
+        t1 = a1/np.linalg.norm(a1)
+        t2 = a2/np.linalg.norm(a2)
+        jacobian2 = np.array([[a1.dot(t1),a2.dot(t1)],
+                              [a1.dot(t2),a2.dot(t2)]])
+        inv_jacobian = np.linalg.inv(jacobian2)
+        #
+        return jacobian, det, inv_jacobian
+
+
 class Tet4Scalar(FemConstructor) : 
     '''
     '''
@@ -425,6 +623,7 @@ class Tet4Scalar(FemConstructor) :
         # 
         self.nnodes = 4 
         self.vardim = 1
+        self.eldim = 3
         self.element_nodes = self.refnodes
     
     def get_connectivity(self, element):
@@ -534,6 +733,7 @@ class Tet4Vector(FemConstructor) :
         # 
         self.nnodes = 4 
         self.vardim = 3
+        self.eldim = 3
         self.element_nodes = self.refnodes 
 
     def calc_global_dbf_array_symgrad(self,coordinates, inv_jacobian):
