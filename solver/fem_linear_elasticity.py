@@ -9,6 +9,20 @@ default_dict = {'STATE_LAW' : 'HOM_ISO',
                 'DUMP_DIR' : '3Dcyl_fem_linel/',
                 'DUMP_DISPLACEMENT_SCALING' : 1.}
 
+default_dict2 = {'STATE_LAW' : 'HOM_ISO',
+                 'HOM_ISO_POISSON' : 0.3,
+                 'HOM_ISO_YOUNG' : 200e9,
+                 'EL_TYPE' : 'TET4',
+                 'DUMP_DIR' : '3Dcyl_fem_linel/',
+                 'DUMP_DISPLACEMENT_SCALING' : 1.,
+                 'RHO' : 8000,
+                 'DT' : 0.001,
+                 'NITE' : 200,
+                 'DUMPITE' : 10,
+                 'DUMPDIR' : '3Dcyl_fem_elastodyn/',
+                 'NEWMARK_GAMMA' : 1/2 , 
+                 'NEWMARK_BETA' : 1/4}
+
 class FemLinearElasticity():
     
     def __init__(self, boundary_conditions, param_dict = default_dict):
@@ -25,6 +39,7 @@ class FemLinearElasticity():
         #
         if self.param_dict['EL_TYPE']== 'TET4' : 
             self.constructor = Tet4Vector()
+            self.bnd_constructor = Tri3(variable_dimension = 3)
     
     def set_constant_state_matrix(self,mesh,state_matrix) : 
         '''
@@ -145,4 +160,193 @@ class FemLinearElasticity():
         mesh.save_vtk(output_file = savepath)
         mesh.nodes = mesh.nodes_data['reference_position']
 
-        
+class FemElastodyn(FemLinearElasticity): 
+    '''
+    '''
+    def __init__(self,boundary_conditions, param_dict = default_dict2) : 
+        '''
+        '''
+        super().__init__(boundary_conditions=boundary_conditions, param_dict=param_dict)
+        self.rho_data = 'rho'
+        self.ddot_data = 'u_ddot'
+        self.dot_data = 'u_dot'
+        self.gamma = param_dict['NEWMARK_GAMMA']
+        self.beta = param_dict['NEWMARK_BETA']
+        self.deltat = param_dict['DT']
+    
+    def set_constant_rho_data(self,mesh,rho_value) : 
+        '''
+        arguments 
+        mesh ::: meshe.mesh ::: domain grid 
+        rho_value ::: float ::: rho value (constant related to the mass Matrix)
+        '''
+        nnodes = np.size(mesh.nodes,0)
+        rho_arr = rho_value*np.ones((nnodes))
+        mesh.nodes_data[self.rho_data] = rho_arr
+
+    def build_discrete_operators(self,mesh,boundary_conditions={}):
+        '''
+        arguments 
+        mesh ::: meshe.mesh ::: domain grid 
+        boundary_conditions ::: dict ::: 
+        '''
+        stiffness_matrix = self.constructor.calc_global_stiffness_matrix(mesh, self.state_data)
+        mass_matrix = self.constructor.calc_global_mass_matrix(mesh,self.rho_data)
+        neumann_forcing_contribution = np.zeros(((np.size(mesh.nodes,0)*3),1))
+        # treat dirichlet BC 
+        dirichlet_values = np.zeros((np.size(mesh.nodes,0)*3))
+        dot_dirichlet_values = np.zeros((np.size(mesh.nodes,0)*3))
+        ddot_dirichlet_values = np.zeros((np.size(mesh.nodes,0)*3))
+        dirichlet_indices = []
+        for bc in boundary_conditions.keys() : 
+            bc_val = boundary_conditions[bc]['value']
+            bc_type =  boundary_conditions[bc]['type']
+            bc_tag = mesh.physical_entities[bc][0]
+            ####
+            if bc_type == 'dirichlet' : 
+                # Find boundary node indexes 
+                boundary_elements = mesh.bndfaces[np.where(mesh.bndfaces_tags == bc_tag)[0]]
+                boundary_node_indices = np.unique(boundary_elements.flatten())
+                # Loop over the three components of the boundary condition 
+                for i,val in enumerate(bc_val) : 
+                    print(i,val)
+                    # calcute the indexes in the Matrix-Vector form 
+                    # associated with the boundary condition, 
+                    # given the component  
+                    comp_conn = 3*boundary_node_indices + i
+                    if val != None : 
+                        # If the component is specified 
+                        # update the Dirichlet BC index list 
+                        # and the associated values array
+                        comp_conn = comp_conn.tolist()
+                        dirichlet_values[comp_conn] = bc_val[i]
+                        dirichlet_indices = dirichlet_indices + comp_conn
+            if bc_type == 'neumann':
+                #####
+                print('neumann BC')
+                # Find boundary elements
+                boundary_elements = mesh.bndfaces[np.where(mesh.bndfaces_tags == bc_tag)[0]]
+                nelem = np.size(boundary_elements,0)
+                for i in range(nelem): 
+                    element = boundary_elements[i,:]
+                    element_nodes = mesh.nodes[element]
+                    neumann_flux = bc_val 
+                    self.bnd_constructor.set_fluxes(neumann_flux)
+                    self.bnd_constructor.set_element(element_nodes)
+                    local_bndfluxes = self.bnd_constructor.calc_bndflux()
+                    connectivity = self.bnd_constructor.get_connectivity(element)
+                    #neumann_forcing_contribution[np.ix_(connectivity, connectivity)] += local_bndfluxes
+                    neumann_forcing_contribution[connectivity] += local_bndfluxes
+        # Set dirichlet indices/values attributes 
+        all_indices = list(range(0,np.size(mesh.nodes,0)*3))
+        not_dirichlet_indices = all_indices.copy() 
+        for i in dirichlet_indices : 
+            not_dirichlet_indices.remove(i)
+        self.dirichlet_indices = dirichlet_indices
+        self.not_dirichlet_indices = not_dirichlet_indices
+        self.dirichlet_values = dirichlet_values
+        # Update mass and stiffness matrices so that they account for Dirichlet BC
+        # and update RHS consequently 
+        reduced_stiffness = np.delete(stiffness_matrix,self.dirichlet_indices,axis = 0)
+        reduced_mass = np.delete(mass_matrix, self.dirichlet_indices, axis = 0 )
+        rhs_dirbc = np.dot(reduced_stiffness,dirichlet_values) + np.dot(reduced_mass, ddot_dirichlet_values)
+        reduced_stiffness = np.delete(reduced_stiffness,self.dirichlet_indices,axis = 1)
+        reduced_mass = np.delete(reduced_mass, self.dirichlet_indices, axis = 1 )
+        reduced_neumann_forcing_contribution = np.delete(neumann_forcing_contribution,self.dirichlet_indices,axis=0)
+        reduced_neumann_forcing_contribution = np.squeeze(reduced_neumann_forcing_contribution)
+        # 
+        self.mass_matrix = reduced_mass
+        self.stiffness_matrix = reduced_stiffness
+        self.forcing_term = reduced_neumann_forcing_contribution#np.zeros((np.size(reduced_mass,0)))
+        self.forcing_term =  self.forcing_term - rhs_dirbc
+    
+    def init_data(self, mesh): 
+        '''
+        argument 
+        mesh ::: meshe.mesh :::
+        '''
+        nnodes = np.size(mesh.nodes,0)
+        #
+        mesh.nodes_data['init_loc'] = mesh.nodes.copy()
+        self.u_prev = np.zeros((nnodes*3))
+        self.u_prev = self.dirichlet_values
+        self.dotu_prev = np.zeros((nnodes*3))
+        self.ddotu_prev = np.zeros((nnodes*3))
+        #rhs = self.forcing_term - np.dot(self.stiffness_matrix,self.u_prev[self.not_dirichlet_indices])
+        #self.ddotu_prev[self.not_dirichlet_indices] = np.linalg.solve(self.mass_matrix, rhs)
+        #mesh.nodes_data[self.ddot_data] = arr_tmp
+        #
+        mesh.nodes_data[self.displacement_data] = self.u_prev.reshape((nnodes,3))
+        mesh.nodes_data[self.dot_data] = self.dotu_prev.reshape((nnodes,3))
+        mesh.nodes_data[self.ddot_data] = self.ddotu_prev.reshape((nnodes,3))
+    
+    def step(self,mesh):
+        '''
+        Perform NEWMARK advancement 
+        argument 
+        mesh ::: meshe.mesh :::
+        '''
+        # previous data 
+        u_prev = self.u_prev[self.not_dirichlet_indices]
+        dotu_prev = self.dotu_prev[self.not_dirichlet_indices]
+        ddotu_prev = self.ddotu_prev[self.not_dirichlet_indices]
+        # prediction displacement and velocity (according to NEWMARK advancement schemes)
+        u_pred = u_prev + self.deltat*dotu_prev + 0.5*(self.deltat**2)*(1-2*self.beta)*ddotu_prev
+        dotu_pred = dotu_prev + self.deltat*(1-self.gamma)*ddotu_prev
+        # Calculate acceleration from predicted displacement and velocities 
+        ddotu_next = np.linalg.solve(self.smat, self.forcing_term - np.dot(self.stiffness_matrix,u_pred))
+        # Correction of displacement and velocities, given accelerations
+        u_next = u_pred + (self.deltat**2)*self.beta*ddotu_next
+        dotu_next = dotu_pred + self.deltat*self.gamma*ddotu_next
+        # Update data 
+        self.u_prev[self.not_dirichlet_indices] = u_next
+        self.dotu_prev[self.not_dirichlet_indices] = dotu_next
+        self.ddotu_prev[self.not_dirichlet_indices] = ddotu_next
+        nnodes = np.size(mesh.nodes,0)
+        mesh.nodes_data[self.displacement_data] = self.u_prev.reshape((nnodes,3))
+        mesh.nodes_data[self.dot_data] = self.dotu_prev.reshape((nnodes,3))
+        mesh.nodes_data[self.ddot_data]= self.ddotu_prev.reshape((nnodes,3))
+    
+    def solve(self,mesh):
+        '''
+        solve linear elasttodynamics
+        argument 
+        mesh ::: meshe.mesh :::
+        '''
+        # Initialize solver 
+        # Init HOOK's law 
+        if self.param_dict['STATE_LAW'] == 'HOM_ISO' : 
+            young_coeff = self.param_dict['HOM_ISO_YOUNG']
+            poisson_coeff = self.param_dict['HOM_ISO_POISSON']
+            self.set_homogeneous_isotropic(mesh,young_coeff, poisson_coeff)
+        # Init density data 
+        rho_value = self.param_dict['RHO']
+        self.set_constant_rho_data(mesh, rho_value)
+        #Init operators 
+        self.build_discrete_operators(mesh,self.boundary_conditions)
+        self.smat = self.mass_matrix + self.beta*(self.deltat**2.)*self.stiffness_matrix
+        # Init data : those used in the time advancement (viz. velocities and acceleration)
+        self.init_data(mesh)
+        # Temporal Loop 
+        n_ite = self.param_dict['NITE']
+        dump_ite = self.param_dict['DUMPITE']
+        savedir = self.param_dict['DUMPDIR'] 
+        # Create savedir 
+        if os.path.exists(savedir):
+            print(savedir, ' already exists')
+        else : 
+            os.mkdir(savedir)
+        for i in range(n_ite):
+            if i % dump_ite == 0 :
+                self.calc_stress(mesh)
+                #
+                mesh.nodes_data['init_loc'] = np.copy(mesh.nodes)
+                scaling = self.param_dict['DUMP_DISPLACEMENT_SCALING']
+                mesh.nodes += scaling*mesh.nodes_data[self.displacement_data]
+                #
+                print(np.mean(mesh.nodes_data[self.displacement_data], axis = 0 ))
+                save_path = savedir + f"output_{i:04d}.vtk"
+                print('dump solution : ', save_path)
+                mesh.save_vtk(output_file = save_path)
+                mesh.nodes = mesh.nodes_data['init_loc']
+            self.step(mesh) 

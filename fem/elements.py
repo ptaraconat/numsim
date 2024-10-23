@@ -1,5 +1,142 @@
 import numpy as np 
 
+############## TRI3 Basis functions #############
+def tri3_basis1(xi,eta,psi):
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the basis function
+    '''
+    return 1 - xi - eta
+
+def tri3_basis1_dxi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return -1
+
+def tri3_basis1_deta(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return -1
+
+def tri3_basis1_dpsi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    # comes from the coursera course : psi = 1-xi-eta
+    return 0
+
+###########################
+def tri3_basis2(xi,eta,psi):
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the basis function
+    '''
+    return xi
+
+def tri3_basis2_dxi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 1
+
+def tri3_basis2_deta(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 0
+
+def tri3_basis2_dpsi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 0
+
+#############################
+def tri3_basis3(xi,eta,psi):
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the basis function
+    '''
+    return eta
+
+def tri3_basis3_dxi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 0
+
+def tri3_basis3_deta(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 1
+
+def tri3_basis3_dpsi(xi,eta,psi) :
+    '''
+    arguments :
+    xi ::: float ::: First Coordinate in the parent element frame
+    eta ::: float ::: Second Coordinate in the parent element frame
+    psi ::: float ::: Third Coordinate in the parent element frame
+    returns : 
+    ::: float ::: value of the derivative of the basis function
+    ''' 
+    return 0
+
+############## TET4 Basis functions #############
 def tet4_basis1(xi,eta,psi) : 
     '''
     arguments :
@@ -44,6 +181,7 @@ def tet4_basis1_dpsi(xi,eta,psi) :
     ''' 
     return 0 
 
+#############################
 def tet4_basis2(xi,eta,psi) : 
     '''
     arguments :
@@ -88,6 +226,7 @@ def tet4_basis2_dpsi(xi,eta,psi) :
     ''' 
     return 1
 
+#############################
 def tet4_basis3(xi,eta,psi) : 
     '''
     arguments :
@@ -230,7 +369,7 @@ class FemConstructor():
         eta = coordinates[1]
         psi = coordinates[2]
         #
-        ndim = 3
+        ndim = self.eldim
         dbf_arr = np.asarray([[self.basis_functions_derivatives[i][j](xi,eta,psi) for i in range(self.nnodes)] for j in range(ndim)])
         dbf_arr = np.transpose(dbf_arr)
         return dbf_arr  
@@ -330,6 +469,39 @@ class FemConstructor():
             global_stiffness[np.ix_(connectivity, connectivity)] += local_stiffness
         return global_stiffness
     
+    def interpolate_rho_values(self, rho_values): 
+        '''
+        arguments : 
+        rho_value ::: float np.array(nnodes) ::: rho values at nodes 
+        returns 
+        rho_array ::: float np.array(nnodes) ::: rho values at gauss points
+        '''
+        rho_array = np.zeros((self.ngauss_pt))
+        for i in range(self.ngauss_pt): 
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            basis_functions = self.get_bf_array(gauss_pt_coordinates)
+            #basis_functions = np.expand_dims(basis_functions,axis = (1,2))
+            gauss_pt_rho= np.sum(basis_functions*rho_values,axis = 0)
+            rho_array[i] = gauss_pt_rho
+        return rho_array
+
+    def set_rho_values(self, rho_value):
+        '''
+        arguments : 
+        rho_value ::: float np.array(nnodes) or float ::: rho values
+        '''
+        if np.shape(rho_value) == () : 
+            rho_array = np.zeros((self.nnodes))
+            for i in range(self.nnodes):
+                rho_array[i] = rho_value
+            self.rho_values = rho_array
+        else : 
+            if np.shape(rho_value) == (self.nnodes,):
+                rho_array = self.interpolate_rho_values(rho_value)
+                self.rho_values = rho_array
+            else : 
+                print('The state matrix do not have the good shape : ', np.shape(rho_value))
+
     def calc_global_mass_matrix(self, mesh, rho_data):
         '''
         arguments 
@@ -354,6 +526,157 @@ class FemConstructor():
             #print(local_mass)
             global_mass[np.ix_(connectivity, connectivity)] += local_mass
         return global_mass
+
+class Tri3(FemConstructor):
+    '''
+    '''
+    def __init__(self,variable_dimension = 1):
+        '''
+        '''
+        # Gauss points 
+        self.ngauss_pt = 3
+        self.refel_gauss_coords = np.array([[1/6,1/6,0],
+                                            [2/3,1/6,0],
+                                            [1/6,2/3,0]])
+        self.refel_gauss_weights = (1/6)*np.array([1.,1.,1.])
+        # basis function 
+        # The same formalism as Code Aster has been used 
+        self.basis_functions = [tri3_basis1,
+                                tri3_basis2,
+                                tri3_basis3]
+        #self.basis_functions_derivatives = [[tri3_basis1_dxi,tri3_basis1_deta,tri3_basis1_dpsi],
+        #                                    [tri3_basis2_dxi,tri3_basis2_deta,tri3_basis2_dpsi],
+        #                                    [tri3_basis3_dxi,tri3_basis3_deta,tri3_basis3_dpsi]]
+        self.basis_functions_derivatives = [[tri3_basis1_dxi,tri3_basis1_deta],
+                                            [tri3_basis2_dxi,tri3_basis2_deta],
+                                            [tri3_basis3_dxi,tri3_basis3_deta]]
+        # Reference nodes coordinates 
+        # Formalism of Code aster used here 
+        self.refnodes = np.array([[0, 0, 0],
+                                  [1, 0, 0],
+                                  [0, 1, 0]])
+        # 
+        self.nnodes = 3
+        self.eldim = 2
+        self.vardim = variable_dimension
+        # init element_nodes 
+        self.element_nodes = self.refnodes
+    
+    def calc_jacobian(self, coordinates) : 
+        '''
+        arguments 
+        coordinates ::: float np.array (3) ::: Local coordinates 
+        returns 
+        jacobian ::: float np.array (3,3) ::: Jacobian Matrix
+        det ::: float ::: determinant of the Jacobian Matrix
+        inv_jacobian ::: float np.array (3,3) ::: Inverse of the Jacobian matrix
+        '''
+        dbf_arr = self.get_dbf_array(coordinates)
+        jacobian = np.dot(np.transpose(self.element_nodes),dbf_arr)
+        #
+        a1 = jacobian[:,0]
+        a2 = jacobian[:,1]
+        det = np.linalg.norm(np.cross(a1,a2))
+        #
+        t1 = a1/np.linalg.norm(a1)
+        t2 = a2/np.linalg.norm(a2)
+        jacobian2 = np.array([[a1.dot(t1),a2.dot(t1)],
+                              [a1.dot(t2),a2.dot(t2)]])
+        inv_jacobian = np.linalg.inv(jacobian2)
+        #
+        return jacobian, det, inv_jacobian
+    
+    def calc_bndflux_integrand(self, coordinates, flux):
+        '''
+        arguments : 
+        coordinates ::: float np.array (3) ::: Local coordinates
+        flux ::: float dimension = self.vardim ::: Boundary flux (Neumann BC)  
+        returns ::: 
+        integrand ::: float np.array (4,4) ::: integrand for the stifness matrix computation 
+        '''
+        _, det_jacobian, _ = self.calc_jacobian(coordinates)
+        bf_array = self.get_bf_array(coordinates)
+        bf_array = np.expand_dims(bf_array, axis = 1)
+        integrand = det_jacobian*bf_array*flux
+        integrand = np.reshape(integrand,(self.nnodes*self.vardim,1))
+        #integrand = np.reshape(np.transpose(integrand),(self.nnodes*self.vardim))
+        return integrand 
+    
+    def calc_bndflux(self):
+        '''
+        arguments : 
+        returns : 
+        el_bnd_arr ::: float np.array(nnodesxvardim,1) ::: 
+        '''
+        el_bnd_arr = np.zeros((self.nnodes*self.vardim,1))
+        for i in range(self.ngauss_pt):
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            gauss_pt_weight = self.refel_gauss_weights[i]
+            flux = self.gauss_point_fluxes[i]
+            add = self.calc_bndflux_integrand(gauss_pt_coordinates, flux)
+            el_bnd_arr += gauss_pt_weight*add
+        return el_bnd_arr
+    
+    def interpolate_fluxes(self, fluxes): 
+        '''
+        arguments : 
+        fluxes ::: float np.array (nnodes,3)  ::: state matrix 
+        returns : 
+        fluxes_arr ::: float np.array (ngauss_points,3) ::: fluxes interpolated at gauss point
+        '''
+        fluxes_arr = np.zeros((self.ngauss_pt,self.vardim))
+        for i in range(self.ngauss_pt): 
+            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
+            basis_functions = self.get_bf_array(gauss_pt_coordinates)
+            basis_functions = np.expand_dims(basis_functions,axis = (1))
+            gauss_pt_flux = np.sum(basis_functions*fluxes,axis = 0)
+            fluxes_arr[i,:] = gauss_pt_flux
+        return fluxes_arr
+    
+    def set_fluxes(self, fluxes):
+        '''
+        arguments : 
+        fluxes ::: float np.array (nnodes,3)  or (3)::: fluxes
+        '''
+        if self.vardim == 3 : 
+            if np.shape(fluxes) == (3,) : 
+                fluxes_arr = np.zeros((self.nnodes,self.vardim))
+                for i in range(self.nnodes):
+                    fluxes_arr[i,:] = fluxes
+                self.gauss_point_fluxes = fluxes_arr
+            else : 
+                if np.shape(fluxes) == (self.nnodes,3):
+                    fluxes_arr = self.interpolate_fluxes(fluxes)
+                    self.gauss_point_fluxes = fluxes_arr
+                else : 
+                    print('The state matrix do not have the good shape : ', np.shape(fluxes))
+        if self.vardim == 1 : 
+            if np.shape(fluxes) == () : 
+                fluxes_arr = np.zeros((self.nnodes,self.vardim))
+                for i in range(self.nnodes):
+                    fluxes_arr[i,:] = fluxes
+                self.gauss_point_fluxes = fluxes_arr
+            else : 
+                if np.shape(fluxes) == (self.nnodes,1):
+                    fluxes_arr = self.interpolate_fluxes(fluxes)
+                    self.gauss_point_fluxes = fluxes_arr
+                else : 
+                    print('The state matrix do not have the good shape : ', np.shape(fluxes))
+    
+    def get_connectivity(self,element):
+        '''
+        '''
+        if self.vardim == 1 : 
+            return element
+        if self.vardim == 3 : 
+            mat_conn = []
+            for el in element : 
+                mat_conn.append(3*el)
+                mat_conn.append(3*el+1)
+                mat_conn.append(3*el+2)
+            mat_conn = np.asarray(mat_conn)
+            return mat_conn
+
 
 class Tet4Scalar(FemConstructor) : 
     '''
@@ -392,6 +715,7 @@ class Tet4Scalar(FemConstructor) :
         # 
         self.nnodes = 4 
         self.vardim = 1
+        self.eldim = 3
         self.element_nodes = self.refnodes
     
     def get_connectivity(self, element):
@@ -434,40 +758,6 @@ class Tet4Scalar(FemConstructor) :
                 self.state_matrices = state_mat
             else : 
                 print('The state matrix do not have the good shape : ', np.shape(state_arr))
-    
-    def interpolate_rho_values(self, rho_values): 
-        '''
-        arguments : 
-        rho_value ::: float np.array(nnodes) ::: rho values at nodes 
-        returns 
-        rho_array ::: float np.array(nnodes) ::: rho values at gauss points
-        '''
-        rho_array = np.zeros((self.ngauss_pt))
-        for i in range(self.ngauss_pt): 
-            gauss_pt_coordinates = self.refel_gauss_coords[i,:]
-            basis_functions = self.get_bf_array(gauss_pt_coordinates)
-            #basis_functions = np.expand_dims(basis_functions,axis = (1,2))
-            gauss_pt_rho= np.sum(basis_functions*rho_values,axis = 0)
-            rho_array[i] = gauss_pt_rho
-        return rho_array
-
-    def set_rho_values(self, rho_value):
-        '''
-        arguments : 
-        rho_value ::: float np.array(nnodes) or float ::: rho values
-        '''
-        if np.shape(rho_value) == () : 
-            rho_array = np.zeros((self.nnodes))
-            for i in range(self.nnodes):
-                rho_array[i] = rho_value
-            self.rho_values = rho_array
-        else : 
-            if np.shape(rho_value) == (self.nnodes,):
-                rho_array = self.interpolate_rho_values(rho_value)
-                self.rho_values = rho_array
-            else : 
-                print('The state matrix do not have the good shape : ', np.shape(rho_value))
-    
 
     def calc_stifness_integrand(self, coordinates, state_matrix):
         '''
@@ -495,7 +785,6 @@ class Tet4Scalar(FemConstructor) :
         bf_array = np.expand_dims(bf_array, axis = 1)
         integrand = det_jacobian*bf_array*rho_value*np.transpose(bf_array)
         return integrand 
-
         
 class Tet4Vector(FemConstructor) : 
     '''
@@ -535,6 +824,7 @@ class Tet4Vector(FemConstructor) :
         # 
         self.nnodes = 4 
         self.vardim = 3
+        self.eldim = 3
         self.element_nodes = self.refnodes 
 
     def calc_global_dbf_array_symgrad(self,coordinates, inv_jacobian):
@@ -592,6 +882,40 @@ class Tet4Vector(FemConstructor) :
         global_dbf = self.calc_global_dbf_array_symgrad(coordinates, inv_jacobian)
         integrand = det_jacobian*np.dot(np.dot(global_dbf,state_matrix), np.transpose(global_dbf))
         return integrand
+    
+    def get_bf_array_for_vec_variable(self, coordinates) : 
+        '''
+        arguments 
+        coordinates ::: float np.array (3) ::: Local coordinates 
+        returns 
+        bf_arr ::: np.array(float) (3*nnodes,3) ::: basis function values arranged for vector variable 
+        '''
+        bf_array = self.get_bf_array(coordinates)
+        n1 = bf_array[0]
+        n2 = bf_array[1]
+        n3 = bf_array[2]
+        n4 = bf_array[3]
+        row1 = [n1, 0, 0, n2, 0, 0, n3, 0, 0, n4, 0, 0]
+        row2 = [0, n1, 0, 0, n2, 0, 0, n3, 0, 0, n4, 0]
+        row3 = [0, 0, n1, 0, 0, n2, 0, 0, n3, 0, 0, n4]
+        vv_bf = np.zeros((self.nnodes*3,3))
+        vv_bf[:,0] = row1
+        vv_bf[:,1] = row2
+        vv_bf[:,2] = row3
+        return vv_bf
+
+    def calc_massmat_integrand(self, coordinates, rho_value):
+        '''
+        arguments : 
+        coordinates ::: float np.array (3) ::: Local coordinates 
+        rho_value ::: float  ::: 
+        returns ::: 
+        integrand ::: float np.array (nnodes*ndim,nnodes*ndim) ::: integrand for the mass matrix computation 
+        '''
+        _, det_jacobian, _ = self.calc_jacobian(coordinates)
+        bf_array = self.get_bf_array_for_vec_variable(coordinates)
+        integrand = det_jacobian*rho_value*np.dot(bf_array,np.transpose(bf_array))
+        return integrand 
     
     def set_state_matrices(self, state_arr):
         '''

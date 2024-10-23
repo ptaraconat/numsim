@@ -8,8 +8,8 @@ from solver.fem_linear_elasticity import *
 
 boundary_conditions = {'inlet' : {'type' : 'dirichlet',
                                   'value' : [0, 0, 0]},
-                       'outlet' : {'type' : 'dirichlet',
-                                   'value' : [None, None, 0.1]},
+                       'outlet' : {'type' : 'neumann',
+                                   'value' : np.array([0, 1e9, 0])},
                        'wall' : {'type' : 'neumann',
                                  'value' : np.array([0,0,0])}}
 
@@ -18,7 +18,14 @@ param_dict = {'STATE_LAW' : 'HOM_ISO',
               'HOM_ISO_YOUNG' : 200e9,
               'EL_TYPE' : 'TET4',
               'DUMP_DIR' : '3Dcyl_fem_linel/',
-              'DUMP_DISPLACEMENT_SCALING' : 1.}
+              'DUMP_DISPLACEMENT_SCALING' : 1.,
+              'RHO' : 8000,
+              'DT' : 0.01,
+              'NITE' : 200,
+              'DUMPITE' : 10,
+              'DUMPDIR' : '3Dcyl_fem_elastodyn_neumbc/',
+              'NEWMARK_GAMMA' : 1/2 , 
+              'NEWMARK_BETA' : 1/4}
 
 radius = 0.5
 height = 1 
@@ -65,9 +72,13 @@ mesh.gmsh_reader('test.msh')
 
 ###############
 # Init Solver##
-solver = FemLinearElasticity(boundary_conditions, param_dict = param_dict)
+solver = FemElastodyn(boundary_conditions, param_dict = param_dict)
 # Solve EDP
-solver.solve(mesh)
+#solver.solve(mesh)
 #
+solver.solve(mesh)
+print(np.shape(solver.mass_matrix))
+print(np.shape(solver.stiffness_matrix))
+
 
 
