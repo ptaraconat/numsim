@@ -28,8 +28,8 @@ thau = (Nulb/(Solver.cs*Solver.cs)) + 0.5
 ##Create Fluid domain and Grid 
 Lx = 0.1
 Ly = 0.1
-Nx = np.int((Lx/Dx) + 1)
-Ny = np.int((Ly/Dx) + 1)
+Nx = int((Lx/Dx) + 1)
+Ny = int((Ly/Dx) + 1)
 x = np.linspace(-Lx/2,Lx/2,Nx)
 y = np.linspace(-Ly/2,Ly/2,Ny)
 xv, yv = np.meshgrid(x, y,indexing = 'ij') 
@@ -86,7 +86,7 @@ for i in range(101):
         ax3.contourf(xv, yv, uy,cmap = 'jet')
         #fig.colorbar(z1_plot,cax=ax1)
         #plt.show()
-        plt.savefig('lbmpulse'+str(i)+'png',format = 'png')
+        plt.savefig(savedir+'lbmpulse'+str(i)+'.png',format = 'png')
         plt.close()
         
 

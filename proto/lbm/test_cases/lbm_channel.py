@@ -29,8 +29,8 @@ thau = (Nulb/(Solver.cs*Solver.cs)) + 0.5
 ##Create Fluid domain and Grid 
 Lx = 0.9
 Ly = 0.3
-Nx = np.int((Lx/Dx) + 1)
-Ny = np.int((Ly/Dx) + 1)
+Nx = int((Lx/Dx) + 1)
+Ny = int((Ly/Dx) + 1)
 x = np.linspace(-Lx/2,Lx/2,Nx)
 y = np.linspace(-Ly/2,Ly/2,Ny)
 xv, yv = np.meshgrid(x, y,indexing = 'ij') 
@@ -98,12 +98,12 @@ for i in range(501):
     if i%100 == 0:
         plt.contourf(xv,yv,ux,cmap = 'jet')
         plt.colorbar()
-        plt.savefig('ChannelV2'+str(i)+'.png',format = 'png')
+        plt.savefig(savedir+'ChannelV2'+str(i)+'.png',format = 'png')
         plt.show()
         plt.close()
 
         plt.plot(ux[int(Nx/2),:],'o')
-        plt.savefig('UxProfile'+str(i)+'.png',format = 'png')
+        plt.savefig(savedir+'UxProfile'+str(i)+'.png',format = 'png')
         plt.show()
         plt.close()
         

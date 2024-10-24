@@ -10,25 +10,24 @@ if os.path.exists(savedir):
     print(savedir, ' already exists')
 else :
     os.mkdir(savedir)
-
 ##Physical parameters 
-nu = 0.01
+nu = 1
 Pref = 101325
 Tref = 300
 Rgas = 287.15
-vforce = 0
+vforce = 9.81
 
 ##Numerical parameters 
 Solver = D2Q9() 
-Dt = 0.00001
-Dx = 0.001
+Dt = 0.000001
+Dx = 0.015
 # Calc tau
 Nulb = (nu*Dt)/(Dx * Dx)
 thau = (Nulb/(Solver.cs*Solver.cs)) + 0.5
 
 ##Create Fluid domain and Grid 
-Lx = 0.1
-Ly = 0.1
+Lx = 0.9
+Ly = 0.3
 Nx = int((Lx/Dx) + 1)
 Ny = int((Ly/Dx) + 1)
 x = np.linspace(-Lx/2,Lx/2,Nx)
@@ -41,19 +40,19 @@ normaly = np.zeros((Nx,Ny))
 normalx = np.zeros((Nx,Ny))
 Uwx = np.zeros((Nx,Ny))
 Uwy = np.zeros((Nx,Ny))
+### Channel Case 
+label[:,0] = 1 
+label[:,Ny-1] = 1 
+##
+normaly[:,0] = 1
+normalx[:,0] = 0
+normaly[:,Ny-1] = -1
+normalx[:,Ny-1] = 0
 
 ##Initial condition 
-#Initial condition 
 ux = np.zeros((Nx,Ny))
 uy = np.zeros((Nx,Ny))
-rho = np.zeros((Nx,Ny))
-P = np.zeros((Nx,Ny))
-for i in range(Nx):
-    for j in range(Ny):
-        R = 0.004/Dx
-        xCentered =  i-(Nx-1.)/2.#xv[i,j] 
-        yCentered =  j-(Ny-1.)/2.#yv[i,j]
-        P[i,j] = Pref+ 0.1 * Pref * np.exp(-(xCentered*xCentered+yCentered*yCentered)/(4*R*R))
+P = np.ones((Nx,Ny)) * Pref
 rho = P/(Rgas*Tref) 
 
 # Scale Macro var 
@@ -62,7 +61,7 @@ vforce = vforce * ((Dt*Dt)/Dx)
 
 #Temporal loop
 f = Solver.CalcFeq(rho,ux,uy,Nx,Ny,thau,srct =[vforce,0])
-for i in range(101):
+for i in range(501):
     feq = Solver.CalcFeq(rho,ux,uy,Nx,Ny,thau,srct =[vforce,0])
     fstar = Solver.Collision(f,feq,thau,Nx,Ny,Bnd = label,with_boundaries = True)
     fold = fstar 
@@ -75,19 +74,15 @@ for i in range(101):
     
     if i%1 == 0 :
         print(i)
-    # Post Treatement 
-    if i%10 == 0:
-        print('dumping')
-        fig = plt.figure(figsize = (12,4))
-        ax1 = fig.add_subplot(131)
-        ax2 = fig.add_subplot(132)
-        ax3 = fig.add_subplot(133)
-        z1_plot=ax1.contourf(xv, yv, rho,cmap = 'jet')
-        ax2.contourf(xv, yv, ux,cmap = 'jet')
-        ax3.contourf(xv, yv, uy,cmap = 'jet')
-        #fig.colorbar(z1_plot,cax=ax1)
-        #plt.show()
-        plt.savefig(savedir+'lbmpulse'+str(i)+'.png',format = 'png')
+    if i%100 == 0:
+        plt.contourf(xv,yv,ux,cmap = 'jet')
+        plt.colorbar()
+        plt.savefig(savedir+'PoiseuilleV2'+str(i)+'.png',format = 'png')
+        plt.show()
+        plt.close()
+
+        plt.plot(ux[int(Nx/2),:],'o')
+        plt.savefig(savedir+'UxPoiseuille'+str(i)+'.png',format = 'png')
+        plt.show()
         plt.close()
         
-
