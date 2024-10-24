@@ -2,7 +2,14 @@ import matplotlib.pyplot as plt
 import sys as sys 
 sys.path.append('../src/')
 from LaticeNumerics import * 
+import os as os 
 
+#
+savedir = 'dump_lbm_couette/'
+if os.path.exists(savedir):
+    print(savedir, ' already exists')
+else :
+    os.mkdir(savedir)
 ##Physical parameters 
 nu = 1
 Pref = 101325
