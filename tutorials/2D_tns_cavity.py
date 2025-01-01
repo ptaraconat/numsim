@@ -61,7 +61,8 @@ inlet = gmsh.model.addPhysicalGroup(1, [l1], tag = 101, name="inlet")
 #outlet = gmsh.model.addPhysicalGroup(1, [l3], tag = 102, name="outlet")
 surface3 = gmsh.model.addPhysicalGroup(1, [l2,l3,l4], tag = 103, name="wall")
 ## Set mesh algorithm to transfinite for quadrilateral elements
-gmsh.option.setNumber('Mesh.Algorithm', 8)
+#gmsh.option.setNumber('Mesh.Algorithm', 8)
+gmsh.option.setNumber('Mesh.Algorithm', 5)
 # Set recombination algo for geting quad (recombined from tri element)
 gmsh.model.mesh.setRecombine(2, s1)
 # Generate the recombined mesh
