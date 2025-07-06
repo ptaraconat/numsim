@@ -12,12 +12,13 @@ def double_factorial(n):
 
 def gto_normalization_constant(l, m, n, alpha):
     """
-    Computes the normalization constant for a primitive GTO:
+    Computes the normalization constant for a primitive Cartesian GTO:
     g(r) = N * (x-Ax)^l (y-Ay)^m (z-Az)^n * exp(-alpha * |r - A|^2)
     """
-    pre_factor = (2**(2*(l + m + n) + 3)) * (alpha**(l + m + n + 1.5))
-    denom = (math.pi**1.5) * double_factorial(2*l - 1) * double_factorial(2*m - 1) * double_factorial(2*n - 1)
-    N_squared = pre_factor / denom
+    L = l + m + n
+    num = (2 * alpha) ** (L + 1.5)
+    denom = (math.pi ** 1.5) * double_factorial(2 * l - 1) * double_factorial(2 * m - 1) * double_factorial(2 * n - 1)
+    N_squared = num / denom
     N = math.sqrt(N_squared)
     return N
 
