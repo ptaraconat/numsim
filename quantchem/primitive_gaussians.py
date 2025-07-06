@@ -27,6 +27,12 @@ class PrimGauss :
 
     def __init__(self, atom_center, alpha, l, m, n) : 
         '''
+        arguments : 
+        atom center ::: array like object (3,) ::: coordinate of the atom center 
+        alpha ::: float ::: parameter controlling the exponential decay in the Primitive Gaussian 
+        l ::: float ::: Angular momentum parameter 
+        m ::: float ::: Angular momentum parameter 
+        n ::: float ::: Angular momentum parameter 
         '''
         self.center = atom_center
         self.alpha = alpha
@@ -37,6 +43,8 @@ class PrimGauss :
     
     def __call__(self, point_in_space) : 
         '''
+        arguments : 
+        point_in_space ::: tuple of three components ::: Spatial coordinates where we want to evaluate the Basis Function 
         '''
         diffx = point_in_space[0] - self.center[0]
         diffy = point_in_space[1] - self.center[1]
@@ -49,12 +57,17 @@ class BasisFunction :
     '''
     def __init__(self, pg_list, pg_coeff):
         '''
+        arguments : 
+        pg_list ::: list of PrimGauss objects ::: Primitive Gaussian defining the Basis function 
+        pg_coeff ::: list of float ::: weights associated to Primitive Gaussian. Should sum up to 1. 
         '''
         self.pg_list = pg_list
         self.pg_coeff = pg_coeff
 
     def __call__(self, point_in_space): 
         '''
+        arguments : 
+        point_in_space ::: tuple of three components ::: Spatial coordinates where we want to evaluate the Basis Function 
         '''
         for i, (coeff, pg) in enumerate(zip(self.pg_coeff, self.pg_list)) : 
             res_tmp = coeff * pg(point_in_space)
