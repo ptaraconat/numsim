@@ -22,6 +22,53 @@ def gto_normalization_constant(l, m, n, alpha):
     N = math.sqrt(N_squared)
     return N
 
+def get_hermite_coefficients(l1,l2,alpha1,alpha2,coord1, coord2):
+    '''
+    arguments 
+    l1 ::: int ::: Angular momentum number of the first primitive Gaussian
+    l2 ::: int ::: Angular momentum number of the second primitive Gaussian
+    alpha1 ::: float ::: Exponential decay of the first primitive Gaussian
+    alpha2 ::: float ::: Exponential decay of the second primitive Gaussian
+    coord1 ::: float ::: Coordinate of the first primitive Gaussian 
+    coord2 ::: float ::: Coordinate of the second primitive Gaussian 
+    '''
+    # Define function for finding former Coeffcients, during recursive 
+    # hermite coefficient computation. 
+    def get(Eij, t):
+        return Eij[t] if 0 <= t < len(Eij) else 0.0
+    # Calculate overlap Gaussian parameters 
+    mu = alpha1 + alpha2
+    P = (alpha1*coord1 + alpha2*coord2)/mu
+    # 
+    P1 = P - coord1 
+    P2 = P - coord2
+    # Init the Hermite Coefficient dictionary 
+    hc = {}
+    hc[(0,0)] = [math.exp(- (alpha1*alpha2)/mu * (coord1 - coord2)**2)]
+    # Loop over the first momentum number
+    for i in range(l1+1):
+        # lLoop over the second momentum number 
+        for j in range(l2+1) : 
+            #print('E'+str(i)+','+str(j))
+            if not(i == 0 and j == 0): 
+                coeffs_tmp = []
+                # Loop over total number of coefficients 
+                # which dis the sum of the two momentum numbers
+                for t in range(i+j+1):
+                    val = 0
+                    if i != 0 : 
+                        val += get(hc[(i-1,j)], t-1) / (2 * mu) 
+                        val += get(hc[(i-1,j)], t) * P1
+                        val += get(hc[(i-1,j)], t+1) * (t + 1)
+                    if j != 0 : 
+                        val += get(hc[(i,j-1)], t-1)  /(2 * mu)
+                        val += get(hc[(i,j-1)], t) * P2
+                        val += get(hc[(i,j-1)], t+1) * (t+1)
+                    coeffs_tmp.append(val)
+                #print(coeffs_tmp)
+                hc[(i,j)] = coeffs_tmp
+    return hc[(l1,l2)]
+
 class PrimGauss : 
     '''
     '''

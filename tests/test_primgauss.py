@@ -33,26 +33,12 @@ def test_basis_function(bf_fixture):
     assertion = np.abs(res - 0.423777) < EPSILON 
     assert assertion
 
-pg1 = PrimGauss(np.array([0,0,0]),0.3425250914E+01, 0, 0, 0)
-pg2 = PrimGauss(np.array([0,0,0]),0.6239137298E+00, 0, 0, 0)
-pg3 = PrimGauss(np.array([0,0,0]),0.1688554040E+00, 0, 0, 0)
-coeff = [0.1543289673E+00, 0.5353281423E+00, 0.4446345422E+00]
-pg_list = [pg1, pg2, pg3]
-bf = BasisFunction(pg_list, coeff)
+def test_hermite_coef():
+    res = get_hermite_coefficients(2, 2, 0.5, 0.4, 0.0, 1.)
+    res = np.array(res)
+    expected_result = np.array([3.456315081634507, -0.8421106660762044, 4.228860083991372, 
+                                -0.18306753610352267, 0.45766884025880655])
+    print(res)
+    assertion = np.all(np.abs(res-expected_result) < EPSILON)
+    assert assertion 
 
-zs = np.linspace(0,10,100)
-points = (0,0,zs)
-
-res1 = pg1(points)
-res2 = pg2(points)
-res3 = pg3(points)
-bf_res = bf(points)
-
-#import matplotlib.pyplot as plt 
-#plt.plot(zs,res1,'b-')
-#plt.plot(zs,res2,'r-')
-#plt.plot(zs,res3,'g-')
-#plt.plot(zs, bf_res, 'k--o')
-#plt.grid()
-#plt.show()
-#plt.close()
