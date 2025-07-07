@@ -69,6 +69,63 @@ def get_hermite_coefficients(l1,l2,alpha1,alpha2,coord1, coord2):
                 hc[(i,j)] = coeffs_tmp
     return hc[(l1,l2)]
 
+
+def obra_saika_1d_integral(l1,l2,alpha1,alpha2,coord1,coord2):
+    '''
+    arguments 
+    l1 ::: int ::: Angular momentum number of the first primitive Gaussian
+    l2 ::: int ::: Angular momentum number of the second primitive Gaussian
+    alpha1 ::: float ::: Exponential decay of the first primitive Gaussian
+    alpha2 ::: float ::: Exponential decay of the second primitive Gaussian
+    coord1 ::: float ::: Coordinate of the first primitive Gaussian 
+    coord2 ::: float ::: Coordinate of the second primitive Gaussian 
+    returns 
+    S ::: float ::: 1D part of the overlap integral. Either Sx, Sy or Sz, depending on 
+    the given quantum numbers and coordinate components
+    '''
+    # init required constant 
+    nu = alpha1+alpha2
+    P = (alpha1*coord1 + alpha2*coord2)/nu
+    P1 = P - coord1
+    P2 = P - coord2
+    #
+    S = {}
+    S[(0,0)] = np.sqrt(np.pi/nu) * np.exp(- (coord1- coord2) ** 2 * ((alpha1*alpha2)/nu))
+    print(nu,P,P1,P2)
+    print((1/(2*nu)))
+    print(S[(0,0)])
+    ############# S(0,0) ##############
+    ########## S(1,0) S(1,0) ##########
+    ##### S(2,0)  S(1,1)  S(0,2) ######
+    ## S(3,0) S(2,1) S(1,2) S(0,3) ####
+    ###################################
+    # Loop to build left branch 
+    for i in range(1,l1+1) : 
+        # Loop starts at 1 since S(0,0) already defined 
+        if i > 1 : 
+            print(P1,S[(i-1,0)],(1/(2*nu)),(i-1), S[(i-2,0)])
+            S[(i,0)] = P1*S[(i-1,0)] + ((1/(2*nu)) * ((i-1) * S[(i-2,0)]))
+            print((i,0),S[(i,0)])
+        else : 
+            S[(i,0)] = P1*S[(i-1,0)] 
+    #Loop to build right branch 
+    for i in range(1,l2+1) : 
+        # Loop starts at 1 since S(0,0) already defined 
+        if i > 1 : 
+            S[(0,i)] = P2*S[(0,i-1)] +  (1/(2*nu)) * ((i-1) * S[(0,i-2)]) 
+        else : 
+            S[(0,i)] = P2*S[(0, i-1)] 
+    # Midlle branches 
+    for i in range(1, l1 +1) :
+        for j in range(1, l2 +1):
+            S[(i,j)] = P1*S[(i-1,j)] + P2*S[(i,j-1)]
+            if i > 1 : 
+                S[(i,j)] += (1/(2*nu)) * ((i-1)*S[(i-2,j)])
+            if j > 1 : 
+                S[(i,j)] += (1/(2*nu)) * ((j-1)*S[(i,j-2)])
+    return S[(l1,l2)]
+
+
 class PrimGauss : 
     '''
     '''

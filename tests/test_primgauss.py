@@ -42,3 +42,28 @@ def test_hermite_coef():
     assertion = np.all(np.abs(res-expected_result) < EPSILON)
     assert assertion 
 
+def test_1d_os_integral():
+    # Compare with analytical value for two 1D s-Gaussians
+    alpha1 = 0.5
+    alpha2 = 0.5
+    x1 = 0.0
+    x2 = 0.0
+    S00 = obra_saika_1d_integral(0, 0, alpha1, alpha2, x1, x2)
+    analytical = np.sqrt(np.pi / (alpha1 + alpha2))
+    print(S00, analytical)
+    assertion = S00 == analytical
+    assert assertion
+
+def test_1d_os_integral2():
+    # Parameters
+    l1 = 2       # p orbital on center A
+    l2 = 2       # d orbital on center B
+    alpha1 = 0.6  # Gaussian exponent for center A
+    alpha2 = 0.7  # Gaussian exponent for center B
+    coord1 = 0.0  # center A
+    coord2 = 1.0  # center B
+    # Compute the 1D integral (say, along x-axis)
+    Sx = obra_saika_1d_integral(l1, l2, alpha1, alpha2, coord1, coord2)
+    expected = 1.4039 # derived by hand 
+    assertion = np.abs(Sx-expected) < 1e-3
+    assert assertion
