@@ -16,10 +16,10 @@ def gto_normalization_constant(l, m, n, alpha):
     g(r) = N * (x-Ax)^l (y-Ay)^m (z-Az)^n * exp(-alpha * |r - A|^2)
     """
     L = l + m + n
-    num = (2 * alpha) ** (L + 1.5)
-    denom = (math.pi ** 1.5) * double_factorial(2 * l - 1) * double_factorial(2 * m - 1) * double_factorial(2 * n - 1)
-    N_squared = num / denom
-    N = math.sqrt(N_squared)
+    pre_factor = (2 * alpha / math.pi) ** (3 / 4)
+    numerator = (4 * alpha) ** (L / 2)
+    denom = math.sqrt(double_factorial(2 * l - 1) * double_factorial(2 * m - 1) * double_factorial(2 * n - 1))
+    N = pre_factor * numerator / denom
     return N
 
 def get_hermite_coefficients(l1,l2,alpha1,alpha2,coord1, coord2):
@@ -84,53 +84,62 @@ def obra_saika_1d_integral(l1,l2,alpha1,alpha2,coord1,coord2):
     the given quantum numbers and coordinate components
     '''
     # init required constant 
-    nu = alpha1+alpha2
-    P = (alpha1*coord1 + alpha2*coord2)/nu
-    P1 = P - coord1
-    P2 = P - coord2
+    p = alpha1 + alpha2
+    mu = (alpha1*alpha2)/(alpha1+alpha2)
+    P = (alpha1*coord1 + alpha2*coord2)/(p)
+    XP1 = coord1 - P
+    XP2 = coord2 - P
+    X12 = coord1 - coord2
+    Kab = np.exp(-mu*X12**2)
     #
     S = {}
-    S[(0,0)] = np.sqrt(np.pi/nu) * np.exp(- (coord1- coord2) ** 2 * ((alpha1*alpha2)/nu))
-    print(nu,P,P1,P2)
-    print((1/(2*nu)))
-    print(S[(0,0)])
+    S[(0,0)] = np.sqrt(np.pi/p) * np.exp(-mu*X12**2)  #np.exp(- (coord1- coord2) ** 2 * ((alpha1*alpha2)/nu))
     ############# S(0,0) ##############
     ########## S(1,0) S(1,0) ##########
     ##### S(2,0)  S(1,1)  S(0,2) ######
     ## S(3,0) S(2,1) S(1,2) S(0,3) ####
     ###################################
-    # Loop to build left branch 
+    # Generate set of (i,0)
     for i in range(1,l1+1) : 
         # Loop starts at 1 since S(0,0) already defined 
         if i > 1 : 
-            print(P1,S[(i-1,0)],(1/(2*nu)),(i-1), S[(i-2,0)])
-            S[(i,0)] = P1*S[(i-1,0)] + ((1/(2*nu)) * ((i-1) * S[(i-2,0)]))
-            print((i,0),S[(i,0)])
+            S[(i,0)] = XP1*S[(i-1,0)] + ((1/(2*p)) * ((i-1) * S[(i-2,0)])) #+ ((1/(2*p)) * ((j-1) * S[(i,j-2)]))
         else : 
-            S[(i,0)] = P1*S[(i-1,0)] 
-    #Loop to build right branch 
-    for i in range(1,l2+1) : 
-        # Loop starts at 1 since S(0,0) already defined 
-        if i > 1 : 
-            S[(0,i)] = P2*S[(0,i-1)] +  (1/(2*nu)) * ((i-1) * S[(0,i-2)]) 
-        else : 
-            S[(0,i)] = P2*S[(0, i-1)] 
-    # Midlle branches 
-    for i in range(1, l1 +1) :
-        for j in range(1, l2 +1):
-            S[(i,j)] = P1*S[(i-1,j)] + P2*S[(i,j-1)]
-            if i > 1 : 
-                S[(i,j)] += (1/(2*nu)) * ((i-1)*S[(i-2,j)])
-            if j > 1 : 
-                S[(i,j)] += (1/(2*nu)) * ((j-1)*S[(i,j-2)])
+            S[(i,0)] = XP1*S[(i-1,0)] 
+
+    for j in range(1, l2 + 1):
+        if j == 1:
+            S[(0, j)] = XP2 * S[(0, j - 1)]
+        else:
+            S[(0, j)] = XP2 * S[(0, j - 1)] + (j - 1) / (2 * p) * S[(0, j - 2)]
+
+    # Fill the rest of the table (i, j)
+    for i in range(1, l1 + 1):
+        for j in range(1, l2 + 1):
+            term1 = XP1 * S[(i - 1, j)]
+            term2 = (i - 1) / (2 * p) * S[(i - 2, j)] if i > 1 else 0.0
+            term3 = j / (2 * p) * S[(i - 1, j - 1)]
+            S[(i, j)] = term1 + term2 + term3
     return S[(l1,l2)]
 
+def primitive_gaussians_overlapp(pg1,pg2):
+    '''
+    argument 
+    pg1 ::: PrimGauss object ::: first primitive gaussian 
+    pg2 ::: PrimGauss object ::: second primitive gaussian 
+    return 
+    overlap ::: float ::: overlap integrals between pg1 and pg2
+    '''
+    Sx = obra_saika_1d_integral(pg1.l,pg2.l,pg1.alpha,pg2.alpha,pg1.center[0],pg2.center[0])
+    Sy = obra_saika_1d_integral(pg1.m,pg2.m,pg1.alpha,pg2.alpha,pg1.center[1],pg2.center[1])
+    Sz = obra_saika_1d_integral(pg1.n,pg2.n,pg1.alpha,pg2.alpha,pg1.center[2],pg2.center[2])
+    return  Sx * Sy * Sz * pg1.norm_constant * pg2.norm_constant 
 
 class PrimGauss : 
     '''
     '''
 
-    def __init__(self, atom_center, alpha, l, m, n) : 
+    def __init__(self, atom_center, alpha, l, m, n, normalise = True) : 
         '''
         arguments : 
         atom center ::: array like object (3,) ::: coordinate of the atom center 
@@ -144,7 +153,10 @@ class PrimGauss :
         self.l = l 
         self.m = m 
         self.n = n
-        self.norm_constant = gto_normalization_constant(l, m, n, alpha)
+        if normalise : 
+            self.norm_constant = gto_normalization_constant(l, m, n, alpha)
+        else : 
+            self.norm_constant = 1
     
     def __call__(self, point_in_space) : 
         '''

@@ -67,3 +67,16 @@ def test_1d_os_integral2():
     expected = 1.4039 # derived by hand 
     assertion = np.abs(Sx-expected) < 1e-3
     assert assertion
+
+pg1 = PrimGauss(np.array([0,0,0]),0.5, 1, 0, 0, normalise = True)
+pg2 = PrimGauss(np.array([0,0,0]),0.5, 1, 0, 0, normalise = True)
+Sx = obra_saika_1d_integral(pg1.l,pg2.l,pg1.alpha,pg2.alpha,pg1.center[0],pg2.center[0])
+print(Sx)
+
+pg1 = PrimGauss(np.array([0,0,0]),0.5, 0, 0, 0, normalise = True)
+pg2 = PrimGauss(np.array([0.,0,0.0]),0.5, 0, 0, 1, normalise = True)
+overlap = primitive_gaussians_overlapp(pg1,pg2)
+print(overlap)
+
+
+
