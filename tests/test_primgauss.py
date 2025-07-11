@@ -64,9 +64,36 @@ def test_1d_os_integral2():
     coord2 = 1.0  # center B
     # Compute the 1D integral (say, along x-axis)
     Sx = obra_saika_1d_integral(l1, l2, alpha1, alpha2, coord1, coord2)
-    expected = 1.4039 # derived by hand 
+    print(Sx)
+    expected = 0.35635 # derived by hand 
     assertion = np.abs(Sx-expected) < 1e-3
     assert assertion
+
+def test_1d_os_integral3():
+    def integrand(x):
+        pg1 = PrimGauss(np.array([0,0,0]),0.4, 2, 0, 0, normalise = False)
+        pg2 = PrimGauss(np.array([1.1,0,0]),0.7, 3, 0, 1, normalise = False)
+        result = (x-pg1.center[0])**pg1.l * (x-pg2.center[0])**pg2.l * np.exp(-pg1.alpha*(x-pg1.center[0])**2) * np.exp(-pg2.alpha*(x-pg2.center[0])**2)
+        return result
+    x = np.linspace(-10,10,1000)
+    y = integrand(x)
+    expected = np.trapezoid(y,x)
+    import scipy
+    result, error = scipy.integrate.quad(integrand, -10,10)
+    # Compute the 1D integral (say, along x-axis)
+    Sx = obra_saika_1d_integral(2, 3, 0.4, 0.7, 0, 1.1)
+    print(Sx)
+    print(expected)
+    print(result)
+    import matplotlib.pyplot as plt 
+    #plt.plot(x,y)
+    #plt.show()
+    assertion = np.abs(Sx-expected) < 1e-3
+    assert assertion
+
+
+
+
 
 pg1 = PrimGauss(np.array([0,0,0]),0.5, 1, 0, 0, normalise = True)
 pg2 = PrimGauss(np.array([0,0,0]),0.5, 1, 0, 0, normalise = True)
@@ -77,6 +104,7 @@ pg1 = PrimGauss(np.array([0,0,0]),0.5, 0, 0, 0, normalise = True)
 pg2 = PrimGauss(np.array([0.,0,0.0]),0.5, 0, 0, 1, normalise = True)
 overlap = primitive_gaussians_overlapp(pg1,pg2)
 print(overlap)
+
 
 
 

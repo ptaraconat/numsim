@@ -87,8 +87,8 @@ def obra_saika_1d_integral(l1,l2,alpha1,alpha2,coord1,coord2):
     p = alpha1 + alpha2
     mu = (alpha1*alpha2)/(alpha1+alpha2)
     P = (alpha1*coord1 + alpha2*coord2)/(p)
-    XP1 = coord1 - P
-    XP2 = coord2 - P
+    XP1 = P - coord1 
+    XP2 = P - coord2 
     X12 = coord1 - coord2
     Kab = np.exp(-mu*X12**2)
     #
