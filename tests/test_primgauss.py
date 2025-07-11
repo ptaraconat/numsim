@@ -65,8 +65,8 @@ def test_1d_os_integral2():
     # Compute the 1D integral (say, along x-axis)
     Sx = obra_saika_1d_integral(l1, l2, alpha1, alpha2, coord1, coord2)
     print(Sx)
-    expected = 0.35635 # derived by hand 
-    assertion = np.abs(Sx-expected) < 1e-3
+    expected = 0.3563525572480466 # derived by hand 
+    assertion = np.abs(Sx-expected) < EPSILON
     assert assertion
 
 def test_1d_os_integral3():
@@ -88,9 +88,17 @@ def test_1d_os_integral3():
     import matplotlib.pyplot as plt 
     #plt.plot(x,y)
     #plt.show()
-    assertion = np.abs(Sx-expected) < 1e-3
+    assertion = np.abs(Sx-expected) < EPSILON
     assert assertion
 
+def test_prim_gauss_overlapp():
+    pg1 = PrimGauss(np.array([0,0,0]),0.5, 3, 2, 7, normalise = True)
+    pg2 = PrimGauss(np.array([0,0,0]),0.5, 3, 2, 7, normalise = True)
+    overlap = primitive_gaussians_overlapp(pg1,pg2)
+    print(overlap)
+    expected = 1
+    assertion = np.abs(overlap-expected) < EPSILON
+    assert assertion 
 
 
 

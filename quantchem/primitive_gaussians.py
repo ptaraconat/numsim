@@ -135,6 +135,22 @@ def primitive_gaussians_overlapp(pg1,pg2):
     Sz = obra_saika_1d_integral(pg1.n,pg2.n,pg1.alpha,pg2.alpha,pg1.center[2],pg2.center[2])
     return  Sx * Sy * Sz * pg1.norm_constant * pg2.norm_constant 
 
+def basis_function_overlap(bf1, bf2):
+    """
+    Compute the overlap between two contracted BasisFunctions.
+    Arguments:
+        bf1 ::: BasisFunction
+        bf2 ::: BasisFunction
+    Returns:
+        overlap ::: float
+    """
+    total_overlap = 0.0
+    for coeff1, pg1 in zip(bf1.pg_coeff, bf1.pg_list):
+        for coeff2, pg2 in zip(bf2.pg_coeff, bf2.pg_list):
+            S = primitive_gaussians_overlapp(pg1, pg2)
+            total_overlap += coeff1 * coeff2 * S
+    return total_overlap
+
 class PrimGauss : 
     '''
     '''
