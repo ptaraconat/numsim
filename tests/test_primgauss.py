@@ -19,6 +19,23 @@ def bf_fixture():
     bf = BasisFunction(pg_list, coeff)
     return bf 
 
+@pytest.fixture()
+def bf_fixture1():
+    coeff = [0.1543289673E+00, 0.5353281423E+00, 0.4446345422E+00]
+    pg_list = [PrimGauss(np.array([0,0,0]),0.3425250914E+01, 0, 0, 0, normalise = True),
+            PrimGauss(np.array([0,0,0]),0.6239137298E+00, 0, 0, 0, normalise = True),
+            PrimGauss(np.array([0,0,0]),0.1688554040E+00, 0, 0, 0, normalise = True)]
+    bf1 = BasisFunction(pg_list, coeff)
+    return bf1
+
+@pytest.fixture()
+def bf_fixture2():
+    coeff = [0.1543289673E+00, 0.5353281423E+00, 0.4446345422E+00]
+    pg_list = [PrimGauss(np.array([0,0,1.4]),0.3425250914E+01, 0, 0, 0, normalise = True),
+            PrimGauss(np.array([0,0,1.4]),0.6239137298E+00, 0, 0, 0, normalise = True),
+            PrimGauss(np.array([0,0,1.4]),0.1688554040E+00, 0, 0, 0, normalise = True)]
+    bf2 = BasisFunction(pg_list, coeff)
+    return bf2
 
 def test_primitive_gaussian(pg_fixture):
     res = pg_fixture((0,0,0))
@@ -100,19 +117,15 @@ def test_prim_gauss_overlapp():
     assertion = np.abs(overlap-expected) < EPSILON
     assert assertion 
 
-
-
-
-pg1 = PrimGauss(np.array([0,0,0]),0.5, 1, 0, 0, normalise = True)
-pg2 = PrimGauss(np.array([0,0,0]),0.5, 1, 0, 0, normalise = True)
-Sx = obra_saika_1d_integral(pg1.l,pg2.l,pg1.alpha,pg2.alpha,pg1.center[0],pg2.center[0])
-print(Sx)
-
-pg1 = PrimGauss(np.array([0,0,0]),0.5, 0, 0, 0, normalise = True)
-pg2 = PrimGauss(np.array([0.,0,0.0]),0.5, 0, 0, 1, normalise = True)
-overlap = primitive_gaussians_overlapp(pg1,pg2)
-print(overlap)
-
-
-
-
+def test_bf_overlap(bf_fixture1,bf_fixture2):
+    S11 = overlap = basis_function_overlap(bf_fixture1,bf_fixture1)
+    S12 = overlap = basis_function_overlap(bf_fixture1,bf_fixture2)
+    S21 = overlap = basis_function_overlap(bf_fixture2,bf_fixture1)
+    S22 = overlap = basis_function_overlap(bf_fixture2,bf_fixture2)
+    print(S11,S12,S22,S21)
+    assertion = np.abs(S11 - 1.) < EPSILON
+    assertion = assertion and np.abs(S12 - 0.65931821) < EPSILON
+    assertion = assertion and np.abs(S21 - 0.65931821) < EPSILON
+    assertion = assertion and np.abs(S22 - 1.) < EPSILON
+    print(assertion) 
+    assert assertion 

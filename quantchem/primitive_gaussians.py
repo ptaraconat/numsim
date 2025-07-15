@@ -69,7 +69,6 @@ def get_hermite_coefficients(l1,l2,alpha1,alpha2,coord1, coord2):
                 hc[(i,j)] = coeffs_tmp
     return hc[(l1,l2)]
 
-
 def obra_saika_1d_integral(l1,l2,alpha1,alpha2,coord1,coord2):
     '''
     arguments 
