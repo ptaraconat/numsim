@@ -94,7 +94,7 @@ def test_1d_os_integral3():
         return result
     x = np.linspace(-10,10,1000)
     y = integrand(x)
-    expected = np.trapezoid(y,x)
+    expected = np.trapz(y,x)
     import scipy
     result, error = scipy.integrate.quad(integrand, -10,10)
     # Compute the 1D integral (say, along x-axis)
@@ -129,3 +129,58 @@ def test_bf_overlap(bf_fixture1,bf_fixture2):
     assertion = assertion and np.abs(S22 - 1.) < EPSILON
     print(assertion) 
     assert assertion 
+
+def test_prim_gauss_kin_integral():
+    l1 = 0
+    l2 = 0
+    alpha1 = 0.5
+    alpha2 = 0.6
+    coord1 = 0 
+    coord2 = 1.4
+    S = obra_saika_1d_integral(l1,l2,alpha1,alpha2,coord1,coord2,return_full = True)
+    res = obara_saika_1d_kinetic(l1,l2,alpha1,alpha2,coord1,coord2,S)
+
+    assertion = np.abs(res - -0.018658) < EPSILON
+    assert assertion
+
+
+
+
+
+def d2_prim_gauss_1d(x, alpha, A, l):
+    r = x - A
+    base = np.exp(-alpha * r**2)
+    
+    term1 = l * (l - 1) * r**(l - 2) if l >= 2 else 0.0
+    term2 = -2 * alpha * (2 * l + 1) * r**l if l >= 0 else 0.0
+    term3 = 4 * alpha**2 * r**(l + 2)
+    
+    return base * (term1 + term2 + term3)
+
+# Primitive gaussienne simple (l=0)
+def prim_gauss_1d(x, alpha, A, l):
+    return (x - A)**l * np.exp(-alpha * (x - A)**2)
+
+# Paramètres
+l1 = 0
+l2 = 1
+alpha1 = 0.5
+alpha2 = 0.6
+coord1 = 0.0
+coord2 = 1.4
+
+x = np.linspace(-5,5,10000)
+y = -0.5*prim_gauss_1d(x,alpha1,coord1,l1) * d2_prim_gauss_1d(x,alpha2, coord2, l2)
+expected = np.trapz(y,x)
+
+S = obra_saika_1d_integral(l1, l2, alpha1, alpha2, coord1, coord2, return_full=True)
+T_os = obara_saika_1d_kinetic(l1, l2, alpha1, alpha2, coord1, coord2, S)
+print(f"Intégrale numérique = {expected:.6f}")
+print(f"Obara-Saika       = {T_os:.6f}")
+print(f"Différence        = {abs(expected - T_os):.6e}")
+print(f"Ratio       = {expected/T_os:.6e}")
+
+
+#import matplotlib.pyplot as plt 
+#plt.plot(x,y)
+#plt.show()

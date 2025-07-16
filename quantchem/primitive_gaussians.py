@@ -69,7 +69,60 @@ def get_hermite_coefficients(l1,l2,alpha1,alpha2,coord1, coord2):
                 hc[(i,j)] = coeffs_tmp
     return hc[(l1,l2)]
 
-def obra_saika_1d_integral(l1,l2,alpha1,alpha2,coord1,coord2):
+def obara_saika_1d_kinetic(l1,l2,alpha1,alpha2,coord1,coord2,S):
+    '''
+    arguments 
+    l1 ::: int ::: Angular momentum number of the first primitive Gaussian
+    l2 ::: int ::: Angular momentum number of the second primitive Gaussian
+    alpha1 ::: float ::: Exponential decay of the first primitive Gaussian
+    alpha2 ::: float ::: Exponential decay of the second primitive Gaussian
+    coord1 ::: float ::: Coordinate of the first primitive Gaussian 
+    coord2 ::: float ::: Coordinate of the second primitive Gaussian 
+    S ::: dictionary :::
+    returns 
+    T :::
+    '''
+    # init required constant 
+    p = alpha1 + alpha2
+    mu = (alpha1*alpha2)/(alpha1+alpha2)
+    P = (alpha1*coord1 + alpha2*coord2)/(p)
+    XP1 = P - coord1 
+    XP2 = P - coord2 
+    X12 = coord1 - coord2
+    #
+    T = {}
+    #print('XP1 : ', XP1)
+    #print('alpha1 : ', alpha1)
+    #print('p : ', p)
+    #print('2 alpha1 **2 : ' , 2 * alpha1**2)
+    #print('XP1 **2 : ', XP1**2)
+    #print('1/(2*p) : ', 1. / (2 * p))
+    T[(0,0)] = (alpha1 - 2 * alpha1**2 * (XP1**2 + 1. / (2 * p))) * S[(0,0)]
+    # build T(i,0)    
+    for i in range(1, l1 + 1) :  
+        if i == 1 : 
+            T[(i,0)] = XP1*T[( i - 1,0)] + (alpha2/p) * (2*alpha1*S[(i,0)])
+        else : 
+            T[(i,0)] = XP1*T[( i - 1,0)] + (i - 1) / (2 * p) * T[( i - 2, 0)] + (alpha2/p) * (2*alpha1*S[(i,0)] - (i - 1)*S[(i - 2,0)])
+    # build T(0,j)
+    for j in range(1, l2 + 1):
+        if j == 1:
+            T[(0, j)] = XP2 * T[(0, j - 1)]
+        else:
+            T[(0, j)] = XP2 * T[(0, j - 1)] + (j - 1) / (2 * p) * T[(0, j - 2)] + (alpha1/p) * (2*alpha2*S[(0, j)] - (j - 1)*S[(0,j-2)])
+    # build T(i,j)
+    for i in range(1, l1 + 1):
+        for j in range(1, l2 + 1):
+            term1 = XP1 * T[(i - 1, j)]
+            term2 = (i - 1) / (2 * p) * T[(i - 2, j)] if i > 1 else 0.0
+            term3 = j / (2 * p) * T[(i - 1, j - 1)]
+            term4 = alpha2/p * 2*alpha1*S[(i, j)] 
+            term5 = - alpha2/p * (i - 1) * S[(i - 2, j)] if i > 1 else 0.0
+            T[(i, j)] = term1 + term2 + term3 + term4 + term5
+    #    
+    return T[(l1, l2)]
+
+def obra_saika_1d_integral(l1,l2,alpha1,alpha2,coord1,coord2,return_full = False):
     '''
     arguments 
     l1 ::: int ::: Angular momentum number of the first primitive Gaussian
@@ -119,7 +172,10 @@ def obra_saika_1d_integral(l1,l2,alpha1,alpha2,coord1,coord2):
             term2 = (i - 1) / (2 * p) * S[(i - 2, j)] if i > 1 else 0.0
             term3 = j / (2 * p) * S[(i - 1, j - 1)]
             S[(i, j)] = term1 + term2 + term3
-    return S[(l1,l2)]
+    if return_full : 
+        return S
+    else : 
+        return S[(l1,l2)]
 
 def primitive_gaussians_overlapp(pg1,pg2):
     '''
