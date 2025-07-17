@@ -95,16 +95,10 @@ def test_1d_os_integral3():
     x = np.linspace(-10,10,1000)
     y = integrand(x)
     expected = np.trapz(y,x)
-    import scipy
-    result, error = scipy.integrate.quad(integrand, -10,10)
     # Compute the 1D integral (say, along x-axis)
     Sx = obra_saika_1d_integral(2, 3, 0.4, 0.7, 0, 1.1)
     print(Sx)
     print(expected)
-    print(result)
-    import matplotlib.pyplot as plt 
-    #plt.plot(x,y)
-    #plt.show()
     assertion = np.abs(Sx-expected) < EPSILON
     assert assertion
 
