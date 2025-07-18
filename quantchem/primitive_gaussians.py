@@ -107,7 +107,7 @@ def obara_saika_1d_kinetic(l1,l2,alpha1,alpha2,coord1,coord2,S):
     # build T(0,j)
     for j in range(1, l2 + 1):
         if j == 1:
-            T[(0, j)] = XP2 * T[(0, j - 1)]
+            T[(0, j)] = XP2 * T[(0, j - 1)] + (alpha1/p) * (2*alpha2*S[(0,j)])
         else:
             T[(0, j)] = XP2 * T[(0, j - 1)] + (j - 1) / (2 * p) * T[(0, j - 2)] + (alpha1/p) * (2*alpha2*S[(0, j)] - (j - 1)*S[(0,j-2)])
     # build T(i,j)
