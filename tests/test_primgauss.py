@@ -144,7 +144,7 @@ def test_prim_gauss_kin_integral():
 
     assertion = np.abs(res - -0.018658) < EPSILON
     assert assertion
-
+# Second order derivative of simple 1D primitive gaussian
 def d2_prim_gauss_1d(x, alpha, A, l):
     r = x - A
     base = np.exp(-alpha * r**2)  
@@ -178,18 +178,16 @@ def test_prim_gauss_kin_integral2():
     print(abs(expected - T_os)/expected)
     assert assertion
 
+def test_basis_function_kinetic_integral(bf_fixture1,bf_fixture2):
+    T11 = basis_function_kinetic_integral(bf_fixture1,bf_fixture1)
+    T22 = basis_function_kinetic_integral(bf_fixture2,bf_fixture2)
+    T12 = basis_function_kinetic_integral(bf_fixture1,bf_fixture2)
+    T21 = basis_function_kinetic_integral(bf_fixture2,bf_fixture1)
+    print(T11, T22, T12, T21)
+    assertion = np.abs(T11 - 0.76003188) < EPSILON
+    assertion = assertion and np.abs(T12 - 0.23645466 ) < EPSILON
+    assertion = assertion and np.abs(T21 - 0.23645466 ) < EPSILON
+    assertion = assertion and np.abs(T22 - 0.76003188) < EPSILON
+    assert assertion
 
-
-
-
-
-
-
-
-
-
-
-#import matplotlib.pyplot as plt 
-#plt.plot(x,y)
-#plt.plot(x,y2,'ro')
-#plt.show()
+ 

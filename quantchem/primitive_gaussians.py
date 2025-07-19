@@ -206,6 +206,52 @@ def basis_function_overlap(bf1, bf2):
             total_overlap += coeff1 * coeff2 * S
     return total_overlap
 
+def primitive_gaussian_kinetic(pg1,pg2):
+    """
+    Compute the overlap between two contracted BasisFunctions.
+    Arguments:
+        bf1 ::: BasisFunction
+        bf2 ::: BasisFunction
+    Returns:
+        kinetic ::: float
+    """
+    l1 = pg1.l
+    m1 = pg1.m
+    n1 = pg1.n
+    l2 = pg2.l
+    m2 = pg2.m
+    n2 = pg2.n
+    #
+    Stmp = obra_saika_1d_integral(l1,l2, pg1.alpha, pg2.alpha, pg1.center[0],pg2.center[0], return_full=True)
+    Sij = Stmp[(l1,l2)]
+    Tij  = obara_saika_1d_kinetic(l1,l2, pg1.alpha, pg2.alpha, pg1.center[0],pg2.center[0], Stmp)
+    #
+    Stmp = obra_saika_1d_integral(m1,m2, pg1.alpha, pg2.alpha, pg1.center[1],pg2.center[1], return_full=True)
+    Skl = Stmp[(m1,m2)]
+    Tkl  = obara_saika_1d_kinetic(m1,m2, pg1.alpha, pg2.alpha, pg1.center[1],pg2.center[1], Stmp)
+    #
+    Stmp = obra_saika_1d_integral(n1,n2, pg1.alpha, pg2.alpha, pg1.center[2],pg2.center[2], return_full=True)
+    Smn = Stmp[(n1,n2)]
+    Tmn  = obara_saika_1d_kinetic(n1,n2, pg1.alpha, pg2.alpha, pg1.center[2],pg2.center[2], Stmp)
+    # 
+    return (Tij*Skl*Smn + Sij*Tkl*Smn + Sij*Skl*Tmn) * pg1.norm_constant * pg2.norm_constant 
+
+def basis_function_kinetic_integral(bf1,bf2) : 
+    """
+    Compute the overlap between two contracted BasisFunctions.
+    Arguments:
+        bf1 ::: BasisFunction
+        bf2 ::: BasisFunction
+    Returns:
+        kinetic ::: float
+    """
+    kinetic = 0.
+    for coef1, pg1 in zip(bf1.pg_coeff,bf1.pg_list):
+        for coef2, pg2 in zip(bf2.pg_coeff,bf2.pg_list):
+            T = primitive_gaussian_kinetic(pg1,pg2)
+            kinetic += coef1*coef2*T
+    return kinetic
+
 class PrimGauss : 
     '''
     '''
