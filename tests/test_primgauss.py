@@ -225,8 +225,30 @@ def test_nuclear_integral_X():
     nuc_coord = np.array([0.7,0,0])
     nucat = primitive_gaussian_nucat_integral(pg1,pg2,nuc_coord)
     print(nucat)
-    numint = numeric_integral(pg1, pg2, nuc_coord)
-    # numint = 5.554494040059354
+    #numint = numeric_integral(pg1, pg2, nuc_coord)
+    numint = 5.554494040059354
+    print(numint)
+    assertion = np.abs(nucat - numint) < EPSILON
+    assert assertion
+
+def test_nuclear_integral_X2():
+    l1 = 0
+    m1 = 0
+    n1 = 0 
+    l2 = 4 
+    m2 = 0 
+    n2 = 0 
+    alpha1 = 0.5
+    alpha2 = 0.6
+    center1 = np.array([0,0,0])
+    center2 = np.array([1.4,0,0]) 
+    pg1 = PrimGauss(center1,alpha1,l1,m1,n1)
+    pg2 = PrimGauss(center2,alpha2,l2,m2,n2)
+    nuc_coord = np.array([0.7,0,0])
+    nucat = primitive_gaussian_nucat_integral(pg1,pg2,nuc_coord)
+    print(nucat)
+    #numint = numeric_integral(pg1, pg2, nuc_coord)
+    numint = 4.296154316896881
     print(numint)
     assertion = np.abs(nucat - numint) < EPSILON
     assert assertion
@@ -235,4 +257,19 @@ print(boys(1e-12, 0))  # ≈ 1.0
 print(boys(0.5, 1))    # ≈ 0.154
 print(boys(2.0, 2))    # ≈ 0.0576
 
+l1 = 0
+m1 = 0
+n1 = 0 
+l2 = 4 
+m2 = 0 
+n2 = 0 
+alpha1 = 0.5
+alpha2 = 0.6
+center1 = np.array([0,0,0])
+center2 = np.array([1.4,0,0]) 
+pg1 = PrimGauss(center1,alpha1,l1,m1,n1)
+pg2 = PrimGauss(center2,alpha2,l2,m2,n2)
+nuc_coord = np.array([0.7,0,0])
+nucat = primitive_gaussian_nucat_integral(pg1,pg2,nuc_coord)
+print(nucat)
 

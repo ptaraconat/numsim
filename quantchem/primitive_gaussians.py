@@ -283,7 +283,6 @@ def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
     theta = {}
     for N in range(N_max + 2) : 
         theta[ ( N , (0,0,0,0,0,0) ) ] = boys_pre_factor * boys(x, N)
-    print(theta)
     # Step 1) Get theta^N_{i00000} from OS recursion 
     XP1 = P[0] - pg1.center[0]
     XPC = P[0] - nuclei_coord[0]
@@ -301,7 +300,6 @@ def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
                 print('-> ', (N+1 , (i-1,0,0,0,0,0)))
                 print('-> ', (N+1 , (i-2,0,0,0,0,0)))
                 #print('-> ', (N+1 , (i-1,0,0,l-1,0,0)))
-
             term1 = XP1 * theta[(N , (i-1,0,0,0,0,0))] 
             term2 = ( (i-1)/(2*p) ) * theta[(N , (i-2,0,0,0,0,0))] if i > 1 else 0.
             #term3 = ( (l)/(2*p) )   * theta[(N , (i-1,0,0,l-1,0,0))] 
@@ -309,6 +307,19 @@ def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
             term5 = ( (i-1)/(2*p) ) * theta[(N+1 , (i-2,0,0,0,0,0))] if i > 1 else 0.
             #term6 = ( (l)/(2*p) )   * theta[(N+1 , (i-1,0,0,l-1,0,0))] 
             theta[(N , (i,0,0,0,0,0))] = term1 + term2 - term4 - term5
+        N_lim -= 1
+    # Step 2) Get theta^N_{000l00} from OS recursion 
+    XP2 = P[0] - pg2.center[0]
+    N_lim = N_max
+    for l in range(1, pg2.l + 1) :
+        for N in reversed(range(N_lim)):
+            term1 = XP2 * theta[(N , (0,0,0,l-1,0,0))] 
+            #term2 = ( (i)/(2*p) ) * theta[(N , (i-1,0,0,l-1,0,0))] 
+            term3 = ( (l-1)/(2*p) )   * theta[(N , (0,0,0,l-2,0,0))] if l > 1 else 0.
+            term4 = XPC * theta[(N+1 , (0,0,0,l-1,0,0))] 
+            #term5 = ( (i)/(2*p) ) * theta[(N+1 , (i-1,0,0,l-1,0,0))] 
+            term6 = ( (l-1)/(2*p) )   * theta[(N+1 , (0,0,0,l-2,0,0))] if l > 1 else 0.
+            theta[(N , (0,0,0,l,0,0))] = term1 + term3 - term4 - term6
         N_lim -= 1
     
     return theta[(0, (pg1.l, pg1.m, pg1.n, pg2.l, pg2.m, pg2.n))]
