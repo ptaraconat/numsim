@@ -1,5 +1,6 @@
 import pytest
 import sys as sys 
+from scipy.integrate import nquad
 sys.path.append('.')
 from quantchem.primitive_gaussians import *
 
@@ -190,4 +191,48 @@ def test_basis_function_kinetic_integral(bf_fixture1,bf_fixture2):
     assertion = assertion and np.abs(T22 - 0.76003188) < EPSILON
     assert assertion
 
- 
+def gaussian_3d(r, center, alpha, l, m, n):
+    x, y, z = r[0]-center[0], r[1]-center[1], r[2]-center[2]
+    return (x**l)*(y**m)*(z**n)*np.exp(-alpha * np.dot(r - center, r - center))
+
+def integrand(r, pg1, pg2, R_nuc):
+    chi1 = gaussian_3d(r, pg1.center, pg1.alpha, pg1.l, pg1.m, pg1.n)
+    chi2 = gaussian_3d(r, pg2.center, pg2.alpha, pg2.l, pg2.m, pg2.n)
+    r_RC = np.linalg.norm(r - R_nuc)
+    if r_RC < 1e-8:
+        return 0.0  # évite division par 0
+    return chi1 * chi2 / r_RC
+
+def numeric_integral(pg1, pg2, R_nuc):
+    bounds = [[-8, 8], [-8, 8], [-8, 8]]
+    result, err = nquad(lambda x, y, z: integrand(np.array([x, y, z]), pg1, pg2, R_nuc),
+                        bounds)
+    return result
+
+def test_nuclear_integral_X():
+    l1 = 4
+    m1 = 0
+    n1 = 0 
+    l2 = 0 
+    m2 = 0 
+    n2 = 0 
+    alpha1 = 0.5
+    alpha2 = 0.6
+    center1 = np.array([0,0,0])
+    center2 = np.array([1.4,0,0]) 
+    pg1 = PrimGauss(center1,alpha1,l1,m1,n1)
+    pg2 = PrimGauss(center2,alpha2,l2,m2,n2)
+    nuc_coord = np.array([0.7,0,0])
+    nucat = primitive_gaussian_nucat_integral(pg1,pg2,nuc_coord)
+    print(nucat)
+    numint = numeric_integral(pg1, pg2, nuc_coord)
+    # numint = 5.554494040059354
+    print(numint)
+    assertion = np.abs(nucat - numint) < EPSILON
+    assert assertion
+
+print(boys(1e-12, 0))  # ≈ 1.0
+print(boys(0.5, 1))    # ≈ 0.154
+print(boys(2.0, 2))    # ≈ 0.0576
+
+

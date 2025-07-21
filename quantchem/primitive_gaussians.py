@@ -1,5 +1,6 @@
 import numpy as np 
 import math
+from scipy import special  
 
 def double_factorial(n):
     """Computes the double factorial (2n - 1)!!"""
@@ -251,6 +252,68 @@ def basis_function_kinetic_integral(bf1,bf2) :
             T = primitive_gaussian_kinetic(pg1,pg2)
             kinetic += coef1*coef2*T
     return kinetic
+
+def boys(x,n):
+    if x == 0:
+        return 1.0/(2*n+1)
+    else:
+        return special.gammainc(n+0.5,x) * special.gamma(n+0.5) * (1.0/(2*x**(n+0.5)))
+
+def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
+    '''
+    argument 
+    pg1 ::: PrimGauss object ::: first primitive gaussian 
+    pg2 ::: PrimGauss object ::: second primitive gaussian 
+    return 
+    '''
+    p = pg1.alpha + pg2.alpha
+    P = (pg1.alpha*pg1.center+pg2.alpha*pg2.center)/p
+    mu = (pg1.alpha*pg2.alpha)/(pg1.alpha+pg2.alpha)
+
+    R12 = np.linalg.norm(pg1.center-pg2.center)
+    RPC = np.linalg.norm(P-nuclei_coord)
+    RP1 = np.linalg.norm(P-pg1.center)
+
+    Kab = np.exp(-mu*R12**2)
+
+    # Init : get theta^N_{000000} from Boys function 
+    N_max = pg1.l + pg1.m + pg1.n + pg2.l + pg2.m + pg2.n
+    x = p*RPC**2
+    boys_pre_factor = (2*np.pi)/p*Kab
+    theta = {}
+    for N in range(N_max + 2) : 
+        theta[ ( N , (0,0,0,0,0,0) ) ] = boys_pre_factor * boys(x, N)
+    print(theta)
+    # Step 1) Get theta^N_{i00000} from OS recursion 
+    XP1 = P[0] - pg1.center[0]
+    XPC = P[0] - nuclei_coord[0]
+    N_lim = N_max
+    for i in range(1, pg1.l + 1) :
+        for N in reversed(range(N_lim)):
+            if debug : 
+                print('Computing ::::')
+                print('#######################')
+                print((N , (i,0,0,0,0,0)))
+                print(' Which requires ::::')
+                print('-> ', (N , (i-1,0,0,0,0,0)))
+                print('-> ', (N , (i-2,0,0,0,0,0)))
+                #print('-> ', (N , (i-1,0,0,l-1,0,0)))
+                print('-> ', (N+1 , (i-1,0,0,0,0,0)))
+                print('-> ', (N+1 , (i-2,0,0,0,0,0)))
+                #print('-> ', (N+1 , (i-1,0,0,l-1,0,0)))
+
+            term1 = XP1 * theta[(N , (i-1,0,0,0,0,0))] 
+            term2 = ( (i-1)/(2*p) ) * theta[(N , (i-2,0,0,0,0,0))] if i > 1 else 0.
+            #term3 = ( (l)/(2*p) )   * theta[(N , (i-1,0,0,l-1,0,0))] 
+            term4 = XPC * theta[(N+1 , (i-1,0,0,0,0,0))] 
+            term5 = ( (i-1)/(2*p) ) * theta[(N+1 , (i-2,0,0,0,0,0))] if i > 1 else 0.
+            #term6 = ( (l)/(2*p) )   * theta[(N+1 , (i-1,0,0,l-1,0,0))] 
+            theta[(N , (i,0,0,0,0,0))] = term1 + term2 - term4 - term5
+        N_lim -= 1
+    
+    return theta[(0, (pg1.l, pg1.m, pg1.n, pg2.l, pg2.m, pg2.n))]
+
+
 
 class PrimGauss : 
     '''
