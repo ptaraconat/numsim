@@ -11,4 +11,4 @@ Pygments==2.17.2
 pytest==8.0.2
 rich==13.7.1
 tomli
-scipy==1.16.0
+scipy
