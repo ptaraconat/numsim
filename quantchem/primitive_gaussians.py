@@ -289,17 +289,6 @@ def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
     N_lim = N_max
     for i in range(1, pg1.l + 1) :
         for N in reversed(range(N_lim)):
-            if debug : 
-                print('Computing ::::')
-                print('#######################')
-                print((N , (i,0,0,0,0,0)))
-                print(' Which requires ::::')
-                print('-> ', (N , (i-1,0,0,0,0,0)))
-                print('-> ', (N , (i-2,0,0,0,0,0)))
-                #print('-> ', (N , (i-1,0,0,l-1,0,0)))
-                print('-> ', (N+1 , (i-1,0,0,0,0,0)))
-                print('-> ', (N+1 , (i-2,0,0,0,0,0)))
-                #print('-> ', (N+1 , (i-1,0,0,l-1,0,0)))
             term1 = XP1 * theta[(N , (i-1,0,0,0,0,0))] 
             term2 = ( (i-1)/(2*p) ) * theta[(N , (i-2,0,0,0,0,0))] if i > 1 else 0.
             #term3 = ( (l)/(2*p) )   * theta[(N , (i-1,0,0,l-1,0,0))] 
@@ -321,6 +310,29 @@ def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
             term6 = ( (l-1)/(2*p) )   * theta[(N+1 , (0,0,0,l-2,0,0))] if l > 1 else 0.
             theta[(N , (0,0,0,l,0,0))] = term1 + term3 - term4 - term6
         N_lim -= 1
+    # Step 3) Get theta^N_{i00l00} from OS recursion
+    for i in range(1, pg1.l+1) : 
+        for l in range(1, pg2.l + 1) :
+            N_lim = N_max - (i + l) + 1
+            for N in reversed(range(N_lim)):
+                if debug : 
+                    print('Computing ::::')
+                    print('#######################')
+                    print((N , (i,0,0,l,0,0)))
+                    print(' Which requires ::::')
+                    print('-> ', (N , (i-1,0,0,l,0,0)))
+                    print('-> ', (N , (i-2,0,0,0,0,0)))
+                    print('-> ', (N , (i-1,0,0,l-1,0,0)))
+                    print('-> ', (N+1 , (i-1,0,0,0,0,0)))
+                    print('-> ', (N+1 , (i-2,0,0,0,0,0)))
+                    print('-> ', (N+1 , (i-1,0,0,l-1,0,0)))
+                term1 = XP1 * theta[(N , (i-1,0,0,l,0,0))] 
+                term2 = ( (i-1)/(2*p) ) * theta[(N , (i-2,0,0,l,0,0))] if i > 1 else 0.
+                term3 = ( (l)/(2*p) )   * theta[(N , (i-1,0,0,l-1,0,0))] 
+                term4 = XPC * theta[(N+1 , (i-1,0,0,l,0,0))] 
+                term5 = ( (i-1)/(2*p) ) * theta[(N+1 , (i-2,0,0,l,0,0))] if i > 1 else 0.
+                term6 = ( (l)/(2*p) )   * theta[(N+1 , (i-1,0,0,l-1,0,0))] 
+                theta[(N , (i,0,0,l,0,0))] = term1 + term2 + term3 - term4 - term5 - term6
     
     return theta[(0, (pg1.l, pg1.m, pg1.n, pg2.l, pg2.m, pg2.n))]
 
