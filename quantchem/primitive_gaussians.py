@@ -333,10 +333,99 @@ def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
                 term5 = ( (i-1)/(2*p) ) * theta[(N+1 , (i-2,0,0,l,0,0))] if i > 1 else 0.
                 term6 = ( (l)/(2*p) )   * theta[(N+1 , (i-1,0,0,l-1,0,0))] 
                 theta[(N , (i,0,0,l,0,0))] = term1 + term2 + term3 - term4 - term5 - term6
-    
+    # Step 4) Get theta^N_{ij0l00} from OS recursion
+    YP1 = P[1] - pg1.center[1]
+    YPC = P[1] - nuclei_coord[1]
+    for j in range(1, pg1.m+1) : 
+        for i in range(0, pg1.l+1) : 
+            for l in range(0, pg2.l + 1) :
+                N_lim = N_max - (i + j + l) + 1
+                for N in reversed(range(N_lim)):
+                    term1 = YP1 * theta[(N , (i,j-1,0,l,0,0))] 
+                    term2 = ( (j-1)/(2*p) ) * theta[(N , (i,j-2,0,l,0,0))] if j > 1 else 0.
+                    #term3 = ( (m)/(2*p) )   * theta[(N , (i,j-1,0,l,m-1,0))] if m > 1 else 0.
+                    term4 = YPC * theta[(N+1 , (i,j-1,0,l,0,0))] 
+                    term5 = ( (j-1)/(2*p) ) * theta[(N+1 , (i,j-2,0,l,0,0))] if j > 1 else 0.
+                    #term6 = ( (m)/(2*p) )   * theta[(N+1 , (i,j-1,0,l-1,m-1,0))] if m > 1 else 0.
+                    theta[(N , (i,j,0,l,0,0))] = term1 + term2 - term4 - term5 
+    # Step 5) Get theta^N_{i00lm0} from OS recursion 
+    YP2 = P[1] - pg2.center[1]
+    for m in range(1, pg2.m+1) : 
+        for i in range(0, pg1.l+1) : 
+            for l in range(0, pg2.l + 1) :
+                N_lim = N_max - (i + l + m) + 1
+                for N in reversed(range(N_lim)):
+                    term1 = YP2 * theta[(N , (i,0,0,l,m-1,0))] 
+                    #term2 = ( (j)/(2*p) ) * theta[(N , (i,j-1,0,l,m-1,0))] if j > 1 else 0.
+                    term3 = ( (m-1)/(2*p) )   * theta[(N , (i,0,0,l,m-2,0))] if m > 1 else 0.
+                    term4 = YPC * theta[(N+1 , (i,0,0,l,m-1,0))] 
+                    #term5 = ( (j)/(2*p) ) * theta[(N+1 , (i,j-1,0,l,m-1,0))] if j > 1 else 0.
+                    term6 = ( (m-1)/(2*p) )   * theta[(N+1 , (i,0,0,l,m-2,0))] if m > 1 else 0.
+                    theta[(N , (i,0,0,l,m,0))] = term1 + term3 - term4 - term6 
+    # Step 6) Get theta^N_{ij0lm0} from OS recursion 
+    for j in range(1, pg1.m+1): 
+        for m in range(1, pg2.m+1): 
+            for i in range(0, pg1.l+1): 
+                for l in range(0, pg2.l+1): 
+                    N_lim = N_max - (i + j + l + m) + 1
+                    for N in reversed(range(N_lim)):
+                        term1 = YP1 * theta[(N , (i,j-1,0,l,m,0))] 
+                        term2 = ((j-1)/(2*p)) * theta[(N , (i,j-2,0,l,m,0))] if j > 1 else 0.
+                        term3 = (m/(2*p))      * theta[(N , (i,j-1,0,l,m-1,0))] 
+                        term4 = YPC * theta[(N+1 , (i,j-1,0,l,m,0))] 
+                        term5 = ((j-1)/(2*p)) * theta[(N+1 , (i,j-2,0,l,m,0))] if j > 1 else 0.
+                        term6 = (m/(2*p))      * theta[(N+1 , (i,j-1,0,l,m-1,0))] 
+                        theta[(N , (i,j,0,l,m,0))] = term1 + term2 + term3 - term4 - term5 - term6
+    # Step 7) Get theta^N_{ijklm0} from OS recursion 
+    ZP1 = P[2] - pg1.center[2]
+    ZPC = P[2] - nuclei_coord[2]
+    for k in range(1, pg1.n + 1) :
+        for i in range(0, pg1.l + 1) : 
+            for j in range(0, pg1.m + 1):
+                for l in range(0, pg2.l + 1):
+                    for m in range(0, pg2.m + 1):
+                        N_lim = N_max - (i+j+k+l+m) + 1
+                        for N in reversed(range(N_lim)):
+                            term1 = ZP1 * theta[(N , (i,j,k-1,l,m,0))] 
+                            term2 = ((k-1)/(2*p)) * theta[(N , (i,j,k-2,l,m,0))] if k > 1 else 0.
+                            #term3 = (n/(2*p))      * theta[(N , (i,j,k-1,l,m,n-1))] 
+                            term4 = ZPC * theta[(N+1 , (i,j,k-1,l,m,0))] 
+                            term5 = ((k-1)/(2*p)) * theta[(N+1 , (i,j,k-2,l,m,0))] if k > 1 else 0.
+                            #term6 = (n/(2*p))      * theta[(N+1 , (i,j,k-1,l,m,n))] 
+                            theta[(N,(i,j,k,l,m,0))] = term1 + term2 - term4 - term5 
+    # Step 8) Get theta^N_{ij0lmn} from OS recursion 
+    ZP2 = P[2] - pg2.center[2]
+    for n in range(1, pg2.n + 1) :
+        for i in range(0, pg1.l + 1) : 
+            for j in range(0, pg1.m + 1):
+                for l in range(0, pg2.l + 1):
+                    for m in range(0, pg2.m + 1):
+                        N_lim = N_max - (i+j+l+m+n) + 1
+                        for N in reversed(range(N_lim)):
+                            term1 = ZP2 * theta[(N , (i,j,0,l,m,n-1))] 
+                            #term2 = ((k)/(2*p)) * theta[(N , (i,j,k-1,l,m,n-1))] 
+                            term3 = ((n-1)/(2*p))      * theta[(N , (i,j,0,l,m,n-2))] if n > 1 else 0 
+                            term4 = ZPC * theta[(N+1 , (i,j,0,l,m,n-1))] 
+                            #term5 = ((k)/(2*p)) * theta[(N+1 , (i,j,k-1,l,m,n-1))] 
+                            term6 = ((n-1)/(2*p))      * theta[(N+1 , (i,j,0,l,m,n-2))] if n > 1 else 0
+                            theta[(N,(i,j,0,l,m,n))] = term1 + term3 - term4 - term6
+    # Step 9) Get theta^N_{ijklmn} from OS recursion 
+    for k in range(1, pg1.n + 1):
+        for m in range(1, pg2.n + 1):
+            for i in range(0, pg1.l + 1) : 
+                for j in range(0, pg1.m + 1):
+                    for l in range(0, pg2.l + 1):
+                        for m in range(0, pg2.m + 1):
+                            N_lim = N_max - (i+j+k+l+m+n) + 1
+                            for N in reversed(range(N_lim)):
+                                term1 = ZP1 * theta[(N , (i,j,k-1,l,m,n))] 
+                                term2 = ((k-1)/(2*p)) * theta[(N , (i,j,k-2,l,m,n))] if k > 1 else 0.
+                                term3 = (n/(2*p))      * theta[(N , (i,j,k-1,l,m,n-1))] 
+                                term4 = ZPC * theta[(N+1 , (i,j,k-1,l,m,n))] 
+                                term5 = ((k-1)/(2*p)) * theta[(N+1 , (i,j,k-2,l,m,n))] if k > 1 else 0.
+                                term6 = (n/(2*p))      * theta[(N+1 , (i,j,k-1,l,m,n-1))] 
+                                theta[(N, (i,j,k,l,m,n))] = term1 + term2 + term3 - term4 - term5 - term6
     return theta[(0, (pg1.l, pg1.m, pg1.n, pg2.l, pg2.m, pg2.n))]
-
-
 
 class PrimGauss : 
     '''
