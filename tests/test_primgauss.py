@@ -391,7 +391,7 @@ def test_nuclear_integralZ3():
     n1 = 1
     l2 = 4
     m2 = 7
-    n2 = 1 
+    n2 = 3
     alpha1 = 0.5
     alpha2 = 0.6
     center1 = np.array([0,0,0])
@@ -402,7 +402,7 @@ def test_nuclear_integralZ3():
     nucat = primitive_gaussian_nucat_integral(pg1,pg2,nuc_coord, debug = False)
     print(nucat)
     #numint = numeric_integral(pg1, pg2, nuc_coord)
-    numint = 7.539504032565116
+    numint = 9.830324064878733
     print(numint)
     assertion = np.abs(nucat-numint) < EPSILON
     assert assertion

@@ -272,7 +272,6 @@ def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
 
     R12 = np.linalg.norm(pg1.center-pg2.center)
     RPC = np.linalg.norm(P-nuclei_coord)
-    RP1 = np.linalg.norm(P-pg1.center)
 
     Kab = np.exp(-mu*R12**2)
 
@@ -411,7 +410,7 @@ def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
                             theta[(N,(i,j,0,l,m,n))] = term1 + term3 - term4 - term6
     # Step 9) Get theta^N_{ijklmn} from OS recursion 
     for k in range(1, pg1.n + 1):
-        for m in range(1, pg2.n + 1):
+        for n in range(1, pg2.n + 1):
             for i in range(0, pg1.l + 1) : 
                 for j in range(0, pg1.m + 1):
                     for l in range(0, pg2.l + 1):
@@ -426,6 +425,25 @@ def primitive_gaussian_nucat_integral(pg1,pg2,nuclei_coord, debug = False):
                                 term6 = (n/(2*p))      * theta[(N+1 , (i,j,k-1,l,m,n-1))] 
                                 theta[(N, (i,j,k,l,m,n))] = term1 + term2 + term3 - term4 - term5 - term6
     return theta[(0, (pg1.l, pg1.m, pg1.n, pg2.l, pg2.m, pg2.n))]
+
+def basis_function_nucat_integral(bf1,bf2,nuclei_coord,nuclear_charge):
+    '''
+    Compute the nuclear attraction integral from two contracted BasisFunctions.
+    Arguments:
+        bf1 ::: BasisFunction
+        bf2 ::: BasisFunction
+        nuclei_coord ::: array (3,)
+        nuclear_charge ::: flaot ::: Zc, nucleus charge
+    Returns:
+        nuclear_attraction ::: float
+    '''
+    nuclear_attraction = 0.
+    for coef1, pg1 in zip(bf1.pg_coeff,bf1.pg_list):
+        for coef2, pg2 in zip(bf2.pg_coeff,bf2.pg_list):
+            T = primitive_gaussian_nucat_integral(pg1,pg2, nuclei_coord)
+            nuclear_attraction += coef1*coef2*T
+    return nuclear_attraction*nuclear_charge
+
 
 class PrimGauss : 
     '''
