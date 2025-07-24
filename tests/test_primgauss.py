@@ -407,6 +407,14 @@ def test_nuclear_integralZ3():
     assertion = np.abs(nucat-numint) < EPSILON
     assert assertion
 
+def test_basis_function_nucat_integral(bf_fixture1,bf_fixture2):
+    basis_functions = [bf_fixture1, bf_fixture2]
+    nuclei = [(1.0, np.array([0.0, 0.0, 0.0])),  # hydrogen at origin
+              (1.0, np.array([0.0, 0.0, 1.4]))]
+    V = build_nuclear_attraction_matrix(basis_functions, nuclei)
+    print(V)
+    assert False
+
 
 
 

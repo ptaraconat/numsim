@@ -440,9 +440,36 @@ def basis_function_nucat_integral(bf1,bf2,nuclei_coord,nuclear_charge):
     nuclear_attraction = 0.
     for coef1, pg1 in zip(bf1.pg_coeff,bf1.pg_list):
         for coef2, pg2 in zip(bf2.pg_coeff,bf2.pg_list):
-            T = primitive_gaussian_nucat_integral(pg1,pg2, nuclei_coord)
+            T = pg1.norm_constant * pg2.norm_constant * primitive_gaussian_nucat_integral(pg1,pg2, nuclei_coord)
             nuclear_attraction += coef1*coef2*T
     return nuclear_attraction*nuclear_charge
+
+def build_nuclear_attraction_matrix(basis_functions, nuclei):
+    '''
+    Build the full nuclear attraction matrix V_{\mu\nu}.
+    
+    Arguments:
+        basis_functions ::: list of BasisFunction objects
+        nuclei ::: list of tuples (Z_C, R_C) with charge and coordinates
+    
+    Returns:
+        V ::: np.ndarray of shape (nbf, nbf)
+    '''
+    nbf = len(basis_functions)
+    V = np.zeros((nbf, nbf))
+
+    for mu in range(nbf):
+        for nu in range(nbf):
+            total_integral = 0.0
+            for Zc, Rc in nuclei:
+                # Compute and sum the contribution from each nucleus
+                contribution = basis_function_nucat_integral(basis_functions[mu],
+                                                             basis_functions[nu],
+                                                             Rc,
+                                                             -Zc)  # include the minus here
+                total_integral += contribution
+            V[mu, nu] = total_integral
+    return V
 
 
 class PrimGauss : 
