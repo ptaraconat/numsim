@@ -447,6 +447,39 @@ def basis_function_nucat_integral(bf1,bf2,nuclei_coord,nuclei_charge):
         nuclear_attraction += nuc_contribution * (-nucleus_charge)
     return nuclear_attraction
 
+def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
+    '''
+    argument 
+    pg1 ::: PrimGauss object ::: first primitive gaussian 
+    pg2 ::: PrimGauss object ::: second primitive gaussian 
+    pg3 ::: PrimGauss object ::: third primitive gaussian 
+    pg4 ::: PrimGauss object ::: fourth primitive gaussian 
+    return  
+    Theta ::: float ::: Theta^0_{l1,l2,l3,l4}
+    '''
+    # init required constant
+    # Contract Gaussians into A, B and compute combined Gaussian parameters
+    p = pg1.alpha + pg2.alpha
+    q = pg3.alpha + pg4.alpha
+    P = (pg1.alpha * pg1.center + pg2.alpha * pg2.center) / p
+    Q = (pg3.alpha * pg3.center + pg4.alpha * pg4.center) / q
+    alpha = p * q / (p + q)  # "reduced" exponent for distance PQ
+    PQ = P - Q               
+    T = alpha * np.dot(PQ, PQ) 
+    mu = (pg1.alpha*pg2.alpha)/(pg1.alpha + pg2.alpha)
+    nu = (pg3.alpha*pg4.alpha)/(pg3.alpha + pg4.alpha)
+    R12 = np.linalg.norm(pg1.center - pg2.center)
+    R34 = np.linalg.norm(pg3.center - pg4.center)
+    #
+    N_max = pg1.l + pg2.l + pg3.l + pg4.l + pg1.m + pg2.m + pg3.m + pg4.m + pg1.n + pg2.n + pg3.n + pg4.n
+    # Step 1) calculate Theta^N_{0000} from boys function 
+    Theta = {}
+    prefactor = (2*np.pi**(5/2))/(p*q*np.sqrt(p+q))*np.exp(-mu*R12**2)*np.exp(-nu*R34**2)
+    for N in range(N_max + 1):
+        Theta[(N, (0,0,0,0), (0,0,0,0), (0,0,0,0))] = prefactor * boys(T, N)
+    print(Theta)
+    return Theta[(0,(pg1.l,pg2.l,pg3.l,pg4.l), (pg1.m,pg2.m,pg3.m,pg4.m), (pg1.n,pg2.n,pg3.n,pg4.n))]
+
 class PrimGauss : 
     '''
     '''
