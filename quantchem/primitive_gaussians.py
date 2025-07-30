@@ -478,6 +478,27 @@ def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
     for N in range(N_max + 1):
         Theta[(N, (0,0,0,0), (0,0,0,0), (0,0,0,0))] = prefactor * boys(T, N)
     print(Theta)
+    #Step 2) calculate Theta^N_{i000,0000,0000}
+    XP1 = P[0] - pg1.center[0]
+    XPQ = P[0] - Q[0]
+    for i in range(1, pg1.l + 1) :
+        print(i)
+        N_lim = N_max - i + 1
+        for N in reversed(range(N_lim)):
+            im1 = (N,(i-1,0,0,0),(0,0,0,0),(0,0,0,0))
+            im2 = (N,(i-2,0,0,0),(0,0,0,0),(0,0,0,0))
+            Np1_im1 = (N+1,(i-1,0,0,0),(0,0,0,0),(0,0,0,0))
+            print(im1)
+            print(Theta[im1])
+            print(Np1_im1)
+            Np1_im2 = (N+1,(i-2,0,0,0),(0,0,0,0),(0,0,0,0))
+            term1 = XP1 * Theta[im1]
+            term2 = (alpha/p) * XPQ * Theta[Np1_im1]
+            term3 = (i-1)/(2*p) * Theta[im2] if i > 1 else 0.
+            term4 = (i-1)/(2*p) * (alpha/p) * Theta[Np1_im2] if i > 1 else 0.
+            Theta[(N, (i,0,0,0),(0,0,0,0),(0,0,0,0))] = term1 - term2 + term3 - term4
+        
+    print(Theta)
     return Theta[(0,(pg1.l,pg2.l,pg3.l,pg4.l), (pg1.m,pg2.m,pg3.m,pg4.m), (pg1.n,pg2.n,pg3.n,pg4.n))]
 
 class PrimGauss : 

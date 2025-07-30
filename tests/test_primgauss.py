@@ -484,7 +484,7 @@ def test_elecrep_integral():
     assertion = np.abs(elecrep-expected) < EPSILON
     assert assertion 
 
-l1 = 0
+l1 = 14
 l2 = 0
 l3 = 0
 l4 = 0
