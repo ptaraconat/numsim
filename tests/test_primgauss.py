@@ -3,7 +3,6 @@ import sys as sys
 from scipy.integrate import nquad
 sys.path.append('.')
 from quantchem.primitive_gaussians import *
-from quantchem.ref import * 
 
 EPSILON = 1e-6
 
@@ -435,14 +434,6 @@ def elecrep_integrand(r1x, r1y, r1z, r2x, r2y, r2z, pg1, pg2, pg3, pg4):
         return 0.0
     return g1 * g2 * g3 * g4 / r12
 
-def covert_pg(pg):
-    coefficient = 1
-    origin = pg.center
-    shell = np.array([pg.l, pg.m, pg.n])
-    exponent = pg.alpha
-    cpg = PrimitiveGaussian(coefficient,origin,shell,exponent)
-    return cpg
-
 def test_elecrep_integral():
     l1 = 0
     l2 = 0
@@ -484,7 +475,37 @@ def test_elecrep_integral():
     assertion = np.abs(elecrep-expected) < EPSILON
     assert assertion 
 
-l1 = 14
+def test_elecrep_integral2():
+    l1 = 14
+    l2 = 0
+    l3 = 0
+    l4 = 0
+    m1 = 0 
+    m2 = 0
+    m3 = 0
+    m4 = 0
+    n1 = 0
+    n2 = 0
+    n3 = 0
+    n4 = 0
+    alpha1 = 0.5
+    alpha2 = 0.4
+    alpha3 = 0.4
+    alpha4 = 0.2
+    coord1 = np.array([0   ,0, 0])
+    coord2 = np.array([1.4 ,0, 0])
+    coord3 = np.array([0.1 ,0, 0])
+    coord4 = np.array([0   ,0, 0.8])
+    pg1 = PrimGauss(coord1,alpha1,l1,m1,n1,normalise=True)
+    pg2 = PrimGauss(coord2,alpha2,l2,m2,n2,normalise=True)
+    pg3 = PrimGauss(coord3,alpha3,l3,m3,n3,normalise=True)
+    pg4 = PrimGauss(coord4,alpha4,l4,m4,n4,normalise=True)
+    elecrep = primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4)
+    expected = 325237.0249171882
+    assertion = np.abs(elecrep-expected)<EPSILON
+    assert assertion
+
+l1 = 10
 l2 = 0
 l3 = 0
 l4 = 0
@@ -509,19 +530,21 @@ pg2 = PrimGauss(coord2,alpha2,l2,m2,n2,normalise=True)
 pg3 = PrimGauss(coord3,alpha3,l3,m3,n3,normalise=True)
 pg4 = PrimGauss(coord4,alpha4,l4,m4,n4,normalise=True)
 elecrep = primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4)
-expected = 30.00776693243499
+expected = 325237.0249171882
 #
-# Intégration numérique (bornes raisonnables)
-#bounds = [[-5, 5]] * 6
-#args = (pg1, pg2, pg3, pg4)
-#numerical_result, error = nquad(elecrep_integrand, bounds, args=args)
-#
-cpg1 = covert_pg(pg1)
-cpg2 = covert_pg(pg2)
-cpg3 = covert_pg(pg3)
-cpg4 = covert_pg(pg4)
-Eri_integral = ElectronRepulsion()
-#
-print(elecrep)
-print(Eri_integral(cpg1,cpg2,cpg3,cpg4))
-
+#from quantchem.ref import * 
+#def covert_pg(pg):
+#    coefficient = 1
+#    origin = pg.center
+#    shell = np.array([pg.l, pg.m, pg.n])
+#    exponent = pg.alpha
+#    cpg = PrimitiveGaussian(coefficient,origin,shell,exponent)
+#    return cpg
+#cpg1 = covert_pg(pg1)
+#cpg2 = covert_pg(pg2)
+#cpg3 = covert_pg(pg3)
+#cpg4 = covert_pg(pg4)
+#Eri_integral = ElectronRepulsion()
+##
+#print(elecrep)
+#print(Eri_integral(cpg1,cpg2,cpg3,cpg4))
