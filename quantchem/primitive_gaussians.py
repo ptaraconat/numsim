@@ -582,6 +582,34 @@ def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
                     Theta[(N, (i, j, k, 0), (0,0,0,0), (0,0,0,0))] = (
                         term1 - term2 + term3 - term4 + term7 + term8
                     )
+    # Step 8: Compute Theta^N_{ijkl,0000,0000} 
+    XQ4 = Q[0] - pg4.center[0]
+    for l in range(1, pg4.l + 1):
+        for k in range(pg3.l + 1) : 
+            for j in range(pg2.l + 1) : 
+                for i in range(pg1.l + 1) : 
+                    N_lim = N_max - (i+j+k+l) + 1 
+                    for N in reversed(range(N_lim)):
+                        lm1 = (N, (i,j,k,l-1), (0,0,0,0), (0,0,0,0))
+                        lm2 = (N, (i,j,k,l-2), (0,0,0,0), (0,0,0,0))
+                        Np1_lm1 = (N+1, (i,j,k,l-1), (0,0,0,0), (0,0,0,0))
+                        Np1_lm2 = (N+1, (i,j,k,l-2), (0,0,0,0), (0,0,0,0))
+                        km1 = (N, (i,j,k-1,l-1), (0,0,0,0), (0,0,0,0))
+                        Np1_km1 = (N+1, (i,j,k-1,l-1), (0,0,0,0), (0,0,0,0))
+                        Np1_im1 = (N+1, (i-1,j,k,l-1), (0,0,0,0), (0,0,0,0))
+                        Np1_jm1 = (N+1, (i,j-1,k,l-1), (0,0,0,0), (0,0,0,0))
+                        #
+                        term1 = XQ4 * Theta[lm1]
+                        term2 = XQP * (alpha/q) * Theta[Np1_lm1]
+                        term3 = (l-1)/(2*q) * Theta[lm2] if l > 1 else 0.
+                        term4 = (l-1)/(2*q) * (alpha/q) * Theta[Np1_lm2] if l > 1 else 0.
+                        term5 = (k)/(2*q) * Theta[km1] if k > 0 else 0 
+                        term6 = (k)/(2*q) * (alpha/q) * Theta[Np1_km1] if k > 0 else 0 
+                        term7 = (i/(2*(p+q))) * Theta[Np1_im1] if i > 0 else 0.
+                        term8 = (j/(2*(p+q))) * Theta[Np1_jm1] if j > 0 else 0.
+                        #print('Terms ::: ')
+                        #print(term1, term2, term3, term4, term5, term6, term7, term8)
+                        Theta[(N, (i,j,k,l), (0,0,0,0), (0,0,0,0))] = term1 - term2 + term3 - term4 + term5 - term6 + term7 + term8
 
     return Theta[(0,(pg1.l,pg2.l,pg3.l,pg4.l), (pg1.m,pg2.m,pg3.m,pg4.m), (pg1.n,pg2.n,pg3.n,pg4.n))]
 
