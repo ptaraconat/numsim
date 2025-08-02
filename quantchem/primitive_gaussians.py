@@ -492,22 +492,7 @@ def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
             term3 = (i-1)/(2*p) * Theta[im2] if i > 1 else 0.
             term4 = (i-1)/(2*p) * (alpha/p) * Theta[Np1_im2] if i > 1 else 0.
             Theta[(N, (i,0,0,0),(0,0,0,0),(0,0,0,0))] = term1 - term2 + term3 - term4
-    #Step 3) calculate Theta^N_{00k0,0000,0000}
-    XQ3 = Q[0] - pg3.center[0]
-    XQP = Q[0] - P[0]
-    for k in range(1, pg3.l + 1) : 
-        N_lim = N_max - k + 1
-        for N in reversed(range(N_lim)):
-            km1 = (N,(0,0,k-1,0),(0,0,0,0),(0,0,0,0))
-            km2 = (N,(0,0,k-2,0),(0,0,0,0),(0,0,0,0))
-            Np1_km1 = (N+1,(0,0,k-1,0),(0,0,0,0),(0,0,0,0))
-            Np1_km2 = (N+1,(0,0,k-2,0),(0,0,0,0),(0,0,0,0))
-            term1 = XQ3 * Theta[km1]
-            term2 = (alpha/q) * XQP * Theta[Np1_km1]
-            term3 = (k-1)/(2*q) * Theta[km2] if k > 1 else 0.
-            term4 = (k-1)/(2*q) * (alpha/q) * Theta[Np1_km2] if k > 1 else 0.
-            Theta[(N, (0,0,k,0),(0,0,0,0),(0,0,0,0))] = term1 - term2 + term3 - term4
-    #Step 4) Calculate Theta^N_{0j00,0000,0000}
+    #Step 3) Calculate Theta^N_{0j00,0000,0000}
     XP2 = P[0] - pg2.center[0]
     for j in range(1, pg2.l + 1) : 
         N_lim = N_max - j + 1 
@@ -521,21 +506,7 @@ def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
             term3 = (j-1)/(2*p)*Theta[jm2] if j > 1 else 0.
             term4 = (j-1)/(2*p)*(alpha/p)*Theta[Np1_jm2] if j > 1 else 0.
             Theta[(N, (0,j,0,0), (0,0,0,0), (0,0,0,0))] = term1 - term2 + term3 - term4
-    #Step 5) Calculate Theta^N_{000l,0000,0000}
-    XQ4 = Q[0] - pg4.center[0]
-    for l in range(1,pg4.l+1):
-        N_lim = N_max - l + 1 
-        for N in reversed(range(N_lim)): 
-            lm1 = (N, (0,0,0,l-1), (0,0,0,0), (0,0,0,0))
-            lm2 = (N, (0,0,0,l-2), (0,0,0,0), (0,0,0,0))
-            Np1_lm1 = (N+1, (0,0,0,l-1), (0,0,0,0), (0,0,0,0))
-            Np1_lm2 = (N+1, (0,0,0,l-2), (0,0,0,0), (0,0,0,0))
-            term1 = XQ4 * Theta[lm1]
-            term2 = XQP * (alpha/q) * Theta[Np1_lm1]
-            term3 = (l-1)/(2*q)*Theta[lm2] if l > 1 else 0.
-            term4 = (l-1)/(2*q)*(alpha/q)*Theta[Np1_lm2] if l > 1 else 0 
-            Theta[(N, (0,0,0,l), (0,0,0,0), (0,0,0,0))] = term1 - term2 + term3 - term4
-    # Step 6) Calculate Theta^N_{ij00,0000,0000}
+    # Step 4) Calculate Theta^N_{ij00,0000,0000}
     XP1 = P[0] - pg1.center[0]
     XPQ = P[0] - Q[0]
     for j in range(1, pg2.l + 1):
@@ -560,7 +531,9 @@ def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
                 #term7 = (k)/(2*(p+q)) * Theta[Np1_km1] 
                 #term8 = (l)/(2*(p+q)) * Theta[Np1_lm1] 
                 Theta[(N, (i,j,0,0), (0,0,0,0), (0,0,0,0))] = term1 - term2 + term3 - term4 + term5 - term6
-    # Step 7: Compute Theta^N_{ijk0,0000,0000} via recurrence in k (pg3)
+    # Step 5: Compute Theta^N_{ijk0,0000,0000} via recurrence in k (pg3)
+    XQ3 = Q[0] - pg3.center[0]
+    XQP = Q[0] - P[0]
     for k in range(1, pg3.l + 1):          # Loop over angular momentum on pg3
         for j in range(pg2.l + 1):         # Use already-filled values for j
             for i in range(pg1.l + 1):     # Use already-filled values for i
@@ -582,7 +555,7 @@ def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
                     Theta[(N, (i, j, k, 0), (0,0,0,0), (0,0,0,0))] = (
                         term1 - term2 + term3 - term4 + term7 + term8
                     )
-    # Step 8: Compute Theta^N_{ijkl,0000,0000} 
+    # Step 6: Compute Theta^N_{ijkl,0000,0000} 
     XQ4 = Q[0] - pg4.center[0]
     for l in range(1, pg4.l + 1):
         for k in range(pg3.l + 1) : 
