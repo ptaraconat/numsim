@@ -583,6 +583,51 @@ def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
                         #print('Terms ::: ')
                         #print(term1, term2, term3, term4, term5, term6, term7, term8)
                         Theta[(N, (i,j,k,l), (0,0,0,0), (0,0,0,0))] = term1 - term2 + term3 - term4 + term5 - term6 + term7 + term8
+    # Step 7) Compute Theta^N_{ixjxkxlx,iy000,0000} 
+    YP1 = P[1] - pg1.center[1]
+    YPQ = P[1] - Q[1]
+    for i in range(1, pg1.m + 1):
+        for lx in range(pg4.l +1) : 
+            for kx in range(pg3.l +1) : 
+                for jx in range(pg2.l +1) : 
+                    for ix in range(pg1.l +1) : 
+                        N_lim = N_max - (i+ix+jx+kx+lx) + 1
+                        for N in reversed(range(N_lim)) : 
+                            im1 = (N, (ix,jx,kx,lx), (i-1,0,0,0), (0,0,0,0))
+                            im2 = (N, (ix,jx,kx,lx), (i-2,0,0,0), (0,0,0,0))
+                            Np1_im1 = (N+1, (ix,jx,kx,lx), (i-1,0,0,0), (0,0,0,0))
+                            Np1_im2 = (N+1, (ix,jx,kx,lx), (i-2,0,0,0), (0,0,0,0))
+                            term1 = YP1 * Theta[im1]
+                            term2 = YPQ * (alpha/p) * Theta[Np1_im1]
+                            term3 = (i-1)/(2*p) * Theta[im2] if i > 1 else 0.
+                            term4 = (i-1)/(2*p) * (alpha/p) * Theta[Np1_im2] if i > 1 else 0.
+                            Theta[(N, (ix,jx,kx,lx), (i,0,0,0), (0,0,0,0))] = term1 - term2 + term3 - term4
+    #Step 8) Compute Theta^N_{ixjxkxlx,iyjy00,0000}
+    YP2 = P[1] - pg2.center[1]
+    for j in range(1, pg2.m + 1) : 
+        for i in range(pg1.m + 1) : 
+            for lx in range(pg4.l +1) : 
+                for kx in range(pg3.l +1) : 
+                    for jx in range(pg2.l +1) : 
+                        for ix in range(pg1.l +1) : 
+                            N_lim = N_max - (i+j+ix+jx+kx+lx) + 1
+                            for N in reversed(range(N_lim)) : 
+                                jm1 = (N, (ix,jx,kx,lx), (i,j-1,0,0), (0,0,0,0))
+                                jm2 = (N, (ix,jx,kx,lx), (i,j-2,0,0), (0,0,0,0))
+                                Np1_jm1 = (N+1, (ix,jx,kx,lx), (i,j-1,0,0), (0,0,0,0))
+                                Np1_jm2 = (N+1, (ix,jx,kx,lx), (i,j-2,0,0), (0,0,0,0))
+                                im1 = (N, (ix,jx,kx,lx), (i-1,j-1,0,0), (0,0,0,0))
+                                Np1_im1 = (N+1, (ix,jx,kx,lx), (i-1,j-1,0,0), (0,0,0,0))
+                                #
+                                term1 = YP2 * Theta[jm1]
+                                term2 = YPQ * (alpha/p) * Theta[Np1_jm1]
+                                term3 = (j-1)/(2*p)*Theta[jm2] if j > 1 else 0.
+                                term4 = (j-1)/(2*p)*(alpha/p)*Theta[Np1_jm2] if j > 1 else 0.
+                                term5 = (i)/(2*p) * Theta[im1] if i > 0 else 0.
+                                term6 = (i)/(2*p) * (alpha/p) * Theta[Np1_im1] if i > 0 else 0.
+                                Theta[(N, (ix,jx,kx,lx), (i,j,0,0), (0,0,0,0))] = term1 - term2 + term3 - term4 + term5 - term6
+
+
 
     return Theta[(0,(pg1.l,pg2.l,pg3.l,pg4.l), (pg1.m,pg2.m,pg3.m,pg4.m), (pg1.n,pg2.n,pg3.n,pg4.n))]
 
