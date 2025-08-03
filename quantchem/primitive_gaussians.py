@@ -683,8 +683,121 @@ def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
                                         term7 = (i/(2*(p+q))) * Theta[Np1_im1] if i > 0 else 0
                                         term8 = (j/(2*(p+q))) * Theta[Np1_jm1] if j > 0 else 0
                                         Theta[(N, (ix,jx,kx,lx), (i,j,k,l), (0,0,0,0))] = term1 - term2 + term3 - term4 + term5 - term6 + term7 + term8
-
-
+    #Step 11) Compute Theta^N_{ixjxkxlx,iyjykyly,iz000}
+    ZP1 = P[2] - pg1.center[2]
+    ZPQ = P[2] - Q[2]
+    for i in range(1, pg1.n + 1) : 
+        for ix in range(pg1.l + 1) : 
+            for jx in range(pg2.l + 1) : 
+                for kx in range(pg3.l + 1) : 
+                    for lx in range(pg4.l + 1) : 
+                        for iy in range(pg1.m + 1) : 
+                            for jy in range(pg2.m + 1) : 
+                                for ky in range(pg3.m + 1) : 
+                                    for ly in range(pg4.m + 1) : 
+                                        N_lim = N_max - (i+ix+jx+kx+lx+iy+jy+ky+ly) + 1 
+                                        for N in reversed(range(N_lim)) : 
+                                            im1 = (N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i-1,0,0,0))
+                                            Np1_im1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i-1,0,0,0))
+                                            im2 = (N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i-2,0,0,0)) 
+                                            Np1_im2 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i-2,0,0,0)) 
+                                            term1 = ZP1 * Theta[im1]
+                                            term2 = ZPQ * (alpha/p) * Theta[Np1_im1] 
+                                            term3 = (i-1)/(2*p) * Theta[im2] if i > 1 else 0. 
+                                            term4 = (i-1)/(2*p) * (alpha/p) * Theta[Np1_im2] if i > 1 else 0.
+                                            Theta[(N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,0,0,0))] = term1 - term2 + term3 - term4 
+    #Step 12) Compute Theta^N_{ixjxkxlx,iyjykyly,izjz00}
+    ZP2 = P[2] - pg2.center[2]
+    ZPQ = P[2] - Q[2]
+    for j in range(1, pg2.n + 1) : 
+        for i in range(pg1.n + 1) : 
+            for ix in range(pg1.l + 1) : 
+                for jx in range(pg2.l + 1) : 
+                    for kx in range(pg3.l + 1) : 
+                        for lx in range(pg4.l + 1) : 
+                            for iy in range(pg1.m + 1) : 
+                                for jy in range(pg2.m + 1) : 
+                                    for ky in range(pg3.m + 1) : 
+                                        for ly in range(pg4.m + 1) : 
+                                            N_lim = N_max - (i+j+ix+jx+kx+lx+iy+jy+ky+ly) + 1 
+                                            for N in reversed(range(N_lim)) : 
+                                                jm1 = (N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j-1,0,0))
+                                                Np1_jm1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j-1,0,0))
+                                                jm2 = (N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j-2,0,0))
+                                                Np1_jm2 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j-2,0,0))
+                                                im1 = (N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i-1,j-1,0,0))
+                                                Np1_im1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i-1,j-1,0,0))
+                                                #
+                                                term1 = ZP2 * Theta[jm1]
+                                                term2 = ZPQ * (alpha/p) * Theta[Np1_jm1]
+                                                term3 = (j-1)/(2*p) * Theta[jm2] if j > 1 else 0
+                                                term4 = (j-1)/(2*p) * (alpha/p) * Theta[Np1_jm2] if j > 1 else 0
+                                                term5 = (i)/(2*p) * Theta[im1] if i > 0 else 0
+                                                term6 = (i)/(2*p) * (alpha/p) * Theta[Np1_im1] if i > 0 else 0 
+                                                Theta[(N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,0,0))] = term1 - term2 + term3 - term4 + term5 - term6 
+    #Step 13) Compute Theta^N_{ixjxkxlx,iyjykyly,izjzkz0}
+    ZQ3 = Q[2] - pg3.center[2]
+    ZQP = Q[2] - P[2]
+    for k in range(1, pg3.n + 1) : 
+        for j in range(pg2.n + 1) : 
+            for i in range(pg1.n + 1) : 
+                for ix in range(pg1.l + 1) : 
+                    for jx in range(pg2.l + 1) : 
+                        for kx in range(pg3.l + 1) : 
+                            for lx in range(pg4.l + 1) : 
+                                for iy in range(pg1.m + 1) : 
+                                    for jy in range(pg2.m + 1) : 
+                                        for ky in range(pg3.m + 1) : 
+                                            for ly in range(pg4.m + 1) : 
+                                                N_lim = N_max - (i+j+k+ix+jx+kx+lx+iy+jy+ky+ly) + 1 
+                                                for N in reversed(range(N_lim)) : 
+                                                    km1 = (N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k-1,0))
+                                                    Np1_km1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k-1,0))
+                                                    km2 = (N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k-2,0))
+                                                    Np1_km2 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k-2,0))
+                                                    Np1_im1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i-1,j,k-1,0))
+                                                    Np1_jm1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j-1,k-1,0))
+                                                    #
+                                                    term1 = ZQ3 * Theta[km1]
+                                                    term2 = ZQP * (alpha/q) * Theta[Np1_km1]
+                                                    term3 = (k-1)/(2*q) * Theta[km2] if k > 1 else 0.
+                                                    term4 = (k-1)/(2*q) * (alpha/q) * Theta[Np1_km2] if k > 1 else 0.
+                                                    term7 = (i)/(2*(p+q)) * Theta[Np1_im1] if i > 0 else 0 
+                                                    term8 = (j)/(2*(p+q)) * Theta[Np1_jm1] if j > 0 else 0 
+                                                    Theta[(N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k,0))] = term1 - term2 + term3 - term4 + term7 + term8
+    #Step 14) Compute Theta^N_{ixjxkxlx,iyjykyly,izjzkzlz}
+    ZQ4 = Q[2] - pg4.center[2]
+    for l in range(1, pg4.n + 1) : 
+        for k in range(pg3.n + 1) : 
+            for j in range(pg2.n + 1) : 
+                for i in range(pg1.n + 1) : 
+                    for ix in range(pg1.l + 1) : 
+                        for jx in range(pg2.l + 1) : 
+                            for kx in range(pg3.l + 1) : 
+                                for lx in range(pg4.l + 1) : 
+                                    for iy in range(pg1.m + 1) : 
+                                        for jy in range(pg2.m + 1) : 
+                                            for ky in range(pg3.m + 1) : 
+                                                for ly in range(pg4.m + 1) : 
+                                                    N_lim = N_max - (i+j+k+l+ix+jx+kx+lx+iy+jy+ky+ly) + 1 
+                                                    for N in reversed(range(N_lim)) :
+                                                        lm1 =     (N,   (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k,l-1))
+                                                        Np1_lm1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k,l-1))
+                                                        lm2 =     (N,   (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k,l-2))
+                                                        Np1_lm2 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k,l-2))
+                                                        km1 =     (N,   (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k-1,l-1))
+                                                        Np1_km1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k-1,l-1))
+                                                        Np1_im1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i-1,j,k,l-1))
+                                                        Np1_jm1 = (N+1, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j-1,k,l-1))
+                                                        term1 = ZQ4 * Theta[lm1]
+                                                        term2 = ZQP * (alpha/q) * Theta[Np1_lm1]
+                                                        term3 = (l-1)/(2*q) * Theta[lm2] if l > 1 else 0. 
+                                                        term4 = (l-1)/(2*q) * (alpha/q) * Theta[Np1_lm2] if l > 1 else 0.
+                                                        term5 = (k)/(2*q) * Theta[km1] if k > 0 else 0
+                                                        term6 = (k)/(2*q) * (alpha/q) * Theta[Np1_km1] if k > 0 else 0 
+                                                        term7 = (i)/(2*(p+q)) * Theta[Np1_im1] if i > 0 else 0.
+                                                        term8 = (j)/(2*(p+q)) * Theta[Np1_jm1] if j > 0 else 0.
+                                                        Theta[(N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k,l))] = term1 - term2 + term3 - term4 + term5 - term6 + term7 + term8
     return Theta[(0,(pg1.l,pg2.l,pg3.l,pg4.l), (pg1.m,pg2.m,pg3.m,pg4.m), (pg1.n,pg2.n,pg3.n,pg4.n))]
 
 class PrimGauss : 

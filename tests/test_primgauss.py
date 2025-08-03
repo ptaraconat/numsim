@@ -655,46 +655,62 @@ def test_elecrep_integral7():
     assertion = np.abs(elecrep-expected) < EPSILON 
     assert assertion 
 
-l1 = 1
-l2 = 1
-l3 = 1
-l4 = 1
-m1 = 1
-m2 = 1
-m3 = 1
-m4 = 4
-n1 = 0
-n2 = 0
-n3 = 0
-n4 = 0
-alpha1 = 0.5
-alpha2 = 0.4
-alpha3 = 0.4
-alpha4 = 0.2
-coord1 = np.array([0   ,0.2, 0.1])
-coord2 = np.array([0.9 ,0.1, 0])
-coord3 = np.array([0.4 ,0.1, 0])
-coord4 = np.array([0   ,0, 0.8])
-pg1 = PrimGauss(coord1,alpha1,l1,m1,n1,normalise=True)
-pg2 = PrimGauss(coord2,alpha2,l2,m2,n2,normalise=True)
-pg3 = PrimGauss(coord3,alpha3,l3,m3,n3,normalise=True)
-pg4 = PrimGauss(coord4,alpha4,l4,m4,n4,normalise=True)
-elecrep = primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4)
-expected = 325237.0249171882
-#
-#from quantchem.ref import * 
-#def covert_pg(pg):
-#    coefficient = 1
-#    origin = pg.center
-#    shell = np.array([pg.l, pg.m, pg.n])
-#    exponent = pg.alpha
-#    cpg = PrimitiveGaussian(coefficient,origin,shell,exponent)
-#    return cpg
-#cpg1 = covert_pg(pg1)
-#cpg2 = covert_pg(pg2)
-#cpg3 = covert_pg(pg3)
-#cpg4 = covert_pg(pg4)
-#Eri_integral = ElectronRepulsion()
-#
-#print(elecrep)
-#print(Eri_integral(cpg1,cpg2,cpg3,cpg4))
+def test_elecrep_integral8():
+    l1 = 0
+    l2 = 0
+    l3 = 0
+    l4 = 1
+    m1 = 0
+    m2 = 0
+    m3 = 2
+    m4 = 0
+    n1 = 0
+    n2 = 3
+    n3 = 0
+    n4 = 0
+    alpha1 = 0.5
+    alpha2 = 0.4
+    alpha3 = 0.4
+    alpha4 = 0.2
+    coord1 = np.array([0   ,0.2, 0.1])
+    coord2 = np.array([0.9 ,0.1, 0])
+    coord3 = np.array([0.4 ,0.1, 0])
+    coord4 = np.array([0   ,0, 0.8])
+    pg1 = PrimGauss(coord1,alpha1,l1,m1,n1,normalise=True)
+    pg2 = PrimGauss(coord2,alpha2,l2,m2,n2,normalise=True)
+    pg3 = PrimGauss(coord3,alpha3,l3,m3,n3,normalise=True)
+    pg4 = PrimGauss(coord4,alpha4,l4,m4,n4,normalise=True)
+    elecrep = primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4)
+    expected = 0.8579692541876706
+    assertion = np.abs(elecrep-expected)/np.mean([elecrep,expected]) < EPSILON
+    assert assertion
+
+def test_elecrep_integral9():
+    l1 = 0
+    l2 = 0
+    l3 = 2
+    l4 = 0
+    m1 = 0
+    m2 = 0
+    m3 = 0
+    m4 = 0
+    n1 = 0
+    n2 = 1
+    n3 = 0
+    n4 = 5
+    alpha1 = 0.5
+    alpha2 = 0.4
+    alpha3 = 0.4
+    alpha4 = 0.2
+    coord1 = np.array([0   ,0.2, 0.1])
+    coord2 = np.array([0.9 ,0.1, 0])
+    coord3 = np.array([0.4 ,0.1, 0])
+    coord4 = np.array([0   ,0, 0.8])
+    pg1 = PrimGauss(coord1,alpha1,l1,m1,n1,normalise=True)
+    pg2 = PrimGauss(coord2,alpha2,l2,m2,n2,normalise=True)
+    pg3 = PrimGauss(coord3,alpha3,l3,m3,n3,normalise=True)
+    pg4 = PrimGauss(coord4,alpha4,l4,m4,n4,normalise=True)
+    elecrep = primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4)
+    expected = 16.772162465618546
+    assertion = np.abs(elecrep-expected)/np.mean([elecrep,expected])*100 < EPSILON
+    assert assertion 
