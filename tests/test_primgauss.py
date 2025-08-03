@@ -625,14 +625,44 @@ def test_elecrep_integral6() :
     assertion = np.abs(elecrep - expected) < EPSILON
     assert assertion 
 
-l1 = 0
-l2 = 2
-l3 = 0
+def test_elecrep_integral7():
+    l1 = 1
+    l2 = 1
+    l3 = 1
+    l4 = 1
+    m1 = 1
+    m2 = 1
+    m3 = 1
+    m4 = 4
+    n1 = 0
+    n2 = 0
+    n3 = 0
+    n4 = 0
+    alpha1 = 0.5
+    alpha2 = 0.4
+    alpha3 = 0.4
+    alpha4 = 0.2
+    coord1 = np.array([0   ,0.2, 0.1])
+    coord2 = np.array([0.9 ,0.1, 0])
+    coord3 = np.array([0.4 ,0.1, 0])
+    coord4 = np.array([0   ,0, 0.8])
+    pg1 = PrimGauss(coord1,alpha1,l1,m1,n1,normalise=True)
+    pg2 = PrimGauss(coord2,alpha2,l2,m2,n2,normalise=True)
+    pg3 = PrimGauss(coord3,alpha3,l3,m3,n3,normalise=True)
+    pg4 = PrimGauss(coord4,alpha4,l4,m4,n4,normalise=True)
+    elecrep = primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4)
+    expected = 2.2093550398620616
+    assertion = np.abs(elecrep-expected) < EPSILON 
+    assert assertion 
+
+l1 = 1
+l2 = 1
+l3 = 1
 l4 = 1
-m1 = 0
-m2 = 4
-m3 = 0
-m4 = 0
+m1 = 1
+m2 = 1
+m3 = 1
+m4 = 4
 n1 = 0
 n2 = 0
 n3 = 0
