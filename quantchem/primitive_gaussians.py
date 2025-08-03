@@ -800,6 +800,35 @@ def primitive_gaussian_elecrep_integral(pg1,pg2,pg3,pg4):
                                                         Theta[(N, (ix,jx,kx,lx), (iy,jy,ky,ly), (i,j,k,l))] = term1 - term2 + term3 - term4 + term5 - term6 + term7 + term8
     return Theta[(0,(pg1.l,pg2.l,pg3.l,pg4.l), (pg1.m,pg2.m,pg3.m,pg4.m), (pg1.n,pg2.n,pg3.n,pg4.n))]
 
+def basis_function_elecrep_integral(bf1, bf2, bf3, bf4):
+    """
+    Compute the electron repulsion integral (μν|λσ) over contracted Gaussian functions.
+
+    Parameters:
+        bf1, bf2, bf3, bf4 : BasisFunction
+            The four contracted Gaussian functions.
+
+    Returns:
+        float
+            Value of the electron repulsion integral over contracted basis functions.
+    """
+    value = 0.0
+
+    for coeff1, pg1 in zip(bf1.pg_coeff, bf1.pg_list):
+        for coeff2, pg2 in zip(bf2.pg_coeff, bf2.pg_list):
+            for coeff3, pg3 in zip(bf3.pg_coeff, bf3.pg_list):
+                for coeff4, pg4 in zip(bf4.pg_coeff, bf4.pg_list):
+                    norm = (
+                        pg1.norm_constant *
+                        pg2.norm_constant *
+                        pg3.norm_constant *
+                        pg4.norm_constant
+                    )
+                    integral = primitive_gaussian_elecrep_integral(pg1, pg2, pg3, pg4)
+                    value += coeff1 * coeff2 * coeff3 * coeff4 * norm * integral
+    return value
+
+
 class PrimGauss : 
     '''
     '''

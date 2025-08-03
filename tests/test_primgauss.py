@@ -714,3 +714,31 @@ def test_elecrep_integral9():
     expected = 16.772162465618546
     assertion = np.abs(elecrep-expected)/np.mean([elecrep,expected])*100 < EPSILON
     assert assertion 
+
+def test_basis_function_elecrep_integral(bf_fixture1,bf_fixture2) : 
+    elecrep = basis_function_elecrep_integral(bf_fixture1,bf_fixture1,bf_fixture1,bf_fixture1)
+    expected = 0.77460594
+    assertion = np.abs(elecrep-expected)/np.mean([elecrep,expected])*100 < EPSILON
+    print(elecrep)
+    elecrep = basis_function_elecrep_integral(bf_fixture2,bf_fixture2,bf_fixture2,bf_fixture2)
+    expected = 0.7746059443199186
+    assertion = assertion and np.abs(elecrep-expected)/np.mean([elecrep,expected]*100) < EPSILON
+    print(elecrep)
+    elecrep = basis_function_elecrep_integral(bf_fixture1,bf_fixture2,bf_fixture2,bf_fixture2)
+    expected = 0.44410765895335225
+    assertion = assertion and np.abs(elecrep-expected)/np.mean([elecrep,expected]*100) < EPSILON
+    print(elecrep)
+    elecrep = basis_function_elecrep_integral(bf_fixture1,bf_fixture1,bf_fixture2,bf_fixture2)
+    expected = 0.5696759265516228
+    assertion = assertion and np.abs(elecrep-expected)/np.mean([elecrep,expected]*100) < EPSILON
+    print(elecrep)
+    elecrep = basis_function_elecrep_integral(bf_fixture1,bf_fixture1,bf_fixture1,bf_fixture2)
+    expected = 0.4441076589533523
+    assertion = assertion and np.abs(elecrep-expected)/np.mean([elecrep,expected]*100) < EPSILON
+    print(elecrep)
+    elecrep = basis_function_elecrep_integral(bf_fixture2,bf_fixture1,bf_fixture1,bf_fixture2)
+    expected = 0.29702854122262806
+    assertion = assertion and np.abs(elecrep-expected)/np.mean([elecrep,expected]*100) < EPSILON
+    print(elecrep)
+    #assertion = False 
+    assert assertion
