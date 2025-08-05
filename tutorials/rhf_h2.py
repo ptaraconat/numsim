@@ -34,6 +34,10 @@ for atom_coordinates in molecule_coordinates :
     energies.append(electronic_energy + nucat_energy)
 print('Optimal_distance : ', distances[np.argmin(energies)])
 
+# number of electrons in molecule 
+n_elec = 2 
+# setup nuclear charges 
+nuclei_charge = [1, 1]
 # Know bond length
 atom_coordinates = [np.array([0.0, 0.0, 0.0]), np.array([0.0, 0.0, 1.4])]
 # Define Basis functions 

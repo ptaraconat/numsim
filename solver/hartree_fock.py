@@ -88,7 +88,7 @@ class RestrictedHartreeFock(HartreeFockSolver):
                 for k in range(n_bf): 
                     for l in range(n_bf):
                         term1 = self.elecrep[i,j,k,l]
-                        term2 = self.elecrep[i,j,k,j]
+                        term2 = self.elecrep[i,l,k,j]
                         Gmat[i,j] += self.density[k,l] * (term1 - 0.5 * term2) 
         self.gmat = Gmat 
     def update_density(self):
