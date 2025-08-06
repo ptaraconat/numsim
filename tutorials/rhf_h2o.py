@@ -3,8 +3,6 @@ sys.path.append('../')
 from solver.hartree_fock import * 
 import math
 
-# --- Assure-toi que tes classes PrimGauss, BasisFunction, RestrictedHartreeFock, nuclear_nuclear_repulsion_energy sont bien définies avant ---
-
 # Géométrie H2O (en Bohr)
 OH_distance = 0.958 * 1.8897  # ~1.81 Bohr
 angle_deg = 104.5
@@ -28,7 +26,6 @@ coeff_p = [0.1543289673, 0.5353281423, 0.4446345422]
 exps_O_p = [5.0331513, 1.1695961, 0.3803890]
 
 # Créer les BasisFunctions
-
 # Oxygène s
 pg_list_O_s = [PrimGauss(atom_coordinates[0], exp, 0, 0, 0, normalise=True) for exp in exps_O_s]
 bf_O_s = BasisFunction(pg_list_O_s, coeff_s)
