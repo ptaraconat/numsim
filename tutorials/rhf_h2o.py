@@ -14,6 +14,12 @@ atom_coordinates = [
     np.array([-OH_distance * np.sin(angle_rad), 0.0, OH_distance * np.cos(angle_rad)])  # H droite
 ]
 
+atom_coordinates = [np.array([0., 0., 0.]), 
+                    np.array([1.43141111, 0.        , 1.1083169 ]), 
+                    np.array([-1.43141111,  0.        ,  1.1083169 ])]
+
+print(atom_coordinates)
+
 nuclei_charges = [8, 1, 1]
 n_electrons = 10
 

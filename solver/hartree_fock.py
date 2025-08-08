@@ -1,5 +1,36 @@
 from quantchem.primitive_gaussians import * 
 from scipy import linalg
+import basis_set_exchange as bse
+
+def generate_basis_functions(atom_type, atom_position, basis_data):
+    atom_data = basis_data['elements'][str(atom_type)]['electron_shells']
+    basis_functions = []
+
+    for shell in atom_data:
+        exponents = [float(e) for e in shell['exponents']]
+        contractions = shell['coefficients']
+        angular_momentum_list = shell['angular_momentum']
+
+        for l in angular_momentum_list:
+            for coeffs in contractions:
+                coeffs = [float(c) for c in coeffs]
+
+                if l == 0:
+                    prims = [PrimGauss(atom_position, exp, 0, 0, 0, normalise=True) for exp in exponents]
+                    basis_functions.append(BasisFunction(prims, coeffs))
+
+                elif l == 1:
+                    for lx, ly, lz in [(1,0,0), (0,1,0), (0,0,1)]:
+                        prims = [PrimGauss(atom_position, exp, lx, ly, lz, normalise=True) for exp in exponents]
+                        basis_functions.append(BasisFunction(prims, coeffs))
+
+                elif l == 2:
+                    for lx, ly, lz in [(2,0,0), (0,2,0), (0,0,2), (1,1,0), (1,0,1), (0,1,1)]:
+                        prims = [PrimGauss(atom_position, exp, lx, ly, lz, normalise=True) for exp in exponents]
+                        basis_functions.append(BasisFunction(prims, coeffs))
+                else:
+                    raise NotImplementedError(f"Angular momentum l={l} not implemented.")
+    return basis_functions
 
 def nuclear_nuclear_repulsion_energy(atom_coords, zlist):
     
@@ -33,9 +64,24 @@ class HartreeFockSolver:
 class RestrictedHartreeFock(HartreeFockSolver): 
     '''
     '''
-    def __init__(self, basis_functions = None, atom_coordinates = None, nuclei_charges = None, n_electrons = None):
+    def __init__(self, atom_coordinates, nuclei_charges, basis_functions = None, n_electrons = None):
         '''
         '''
+        #
+        if n_electrons == None : 
+            n_electrons = np.sum(nuclei_charges)
+        #
+        if basis_functions == None : 
+            basis_functions = 'sto-3g'
+        if type(basis_functions) == str : 
+            # Charger la base STO-3G
+            basis_data = bse.get_basis(basis_functions, elements=np.unique(np.array(nuclei_charges)).tolist(), make_general=True)
+            # Générer la base automatiquement :
+            basis_functions = []
+            for atom_type, atom_pos in zip(nuclei_charges, atom_coordinates):
+                bfs = generate_basis_functions(atom_type, atom_pos, basis_data)
+                basis_functions.extend(bfs)
+        #
         self.basis_functions = basis_functions
         self.atom_coordinates = atom_coordinates
         self.n_electrons = n_electrons
@@ -48,19 +94,23 @@ class RestrictedHartreeFock(HartreeFockSolver):
         '''
         n_bf = len(self.basis_functions)
         S = np.zeros((n_bf,n_bf))
+        print('Init overlapp integrals ')
         for i, bfi in enumerate(self.basis_functions): 
+            print('Advancement : ', i/len(self.basis_functions)*100)
             for j, bfj in enumerate(self.basis_functions):
                 S[i,j] = basis_function_overlap(bfi, bfj)
         self.overlapp = S
     def initialize_core_matrices(self): 
         '''
         '''
+        print('Init core hamilatonian integrals (Kinetic and nuclear attraction)')
         n_bf = len(self.basis_functions)
         # init kinetic matrix 
         T = np.zeros((n_bf,n_bf))
         # init nuclei attraction mat 
         V = np.zeros((n_bf,n_bf))
         for i, bfi in enumerate(self.basis_functions): 
+            print('Advancement : ', i/len(self.basis_functions)*100)
             for j, bfj in enumerate(self.basis_functions):
                 T[i,j] = basis_function_kinetic_integral(bfi, bfj)
                 V[i,j] = basis_function_nucat_integral(bfi, bfj, self.atom_coordinates, self.nuclei_charges)
@@ -70,9 +120,11 @@ class RestrictedHartreeFock(HartreeFockSolver):
     def initialize_electron_repulsion_matrix(self):
         '''
         '''
+        print('Init electron electron repulsion integrals')
         n_bf = len(self.basis_functions)
         ERI = np.zeros((n_bf, n_bf,n_bf,n_bf))
         for i,bfi in enumerate(self.basis_functions):
+            print('Advancement : ', i/len(self.basis_functions)*100)
             for j, bfj in enumerate(self.basis_functions):
                 for k, bfk in enumerate(self.basis_functions):
                     for l, bfl in enumerate(self.basis_functions): 
@@ -127,7 +179,7 @@ class RestrictedHartreeFock(HartreeFockSolver):
         self.update_gmat()
         energy = self.calculate_energy()
         #Hartree Fock loop
-        for step in range(max_iter) : 
+        for step in range(max_iter) :
             former_energy = energy
             # Calculate Fock matrix 
             self.update_gmat()
@@ -148,3 +200,10 @@ class RestrictedHartreeFock(HartreeFockSolver):
                 print('HF loop converged at step ', step)
                 print('electronic energy : ', energy)
                 return energy
+            else : 
+                print('#######################')
+                print('Hartree Fock Step : ', step)
+                print('Convergence crit : ', np.abs(former_energy - energy))
+                print('electronic energy : ', energy)
+        return energy
+

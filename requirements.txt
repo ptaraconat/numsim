@@ -12,3 +12,5 @@ pytest==8.0.2
 rich==13.7.1
 tomli
 scipy
+basis_set_exchange
+plotly
